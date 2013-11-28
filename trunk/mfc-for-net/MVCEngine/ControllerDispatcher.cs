@@ -234,6 +234,14 @@ namespace MVCEngine
         #region Register View
         public void RegisterView(object view)
         {
+            var propertyquery = view.GetType().GetProperties().SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ViewId>()),
+                (p, a) => new { Property = p, Attribute = a.CastToType<ViewId>() });
+            var propertyid = propertyquery.FirstOrDefault();
+            if (propertyquery.Count() > 1)
+            {
+                this.ThrowException<ViewRegisterException>("At least two properties is marked as Id");
+            }
+
             view.GetType().GetMethods().Where(m => !m.IsConstructor
                     && !m.IsGenericMethod
                     && m.IsPublic).ToList().ForEach((m) =>
@@ -267,6 +275,11 @@ namespace MVCEngine
                     {
                         ThisObject = view
                     };
+                    if (propertyid.IsNotNull())
+                    {
+                        listener.IdProperty = propertyid.Property;
+                        listener.IdParameterName = propertyid.Attribute.ParameterName;
+                    }
                     actionmethod.Listernes.Add(listener);
 
                     descriptor.Method callbackmethod = null;
@@ -290,7 +303,7 @@ namespace MVCEngine
                         });
                     }
                 });
-            });
+            }); 
         }
         #endregion Register View
 

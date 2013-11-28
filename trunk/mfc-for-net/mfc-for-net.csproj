@@ -87,6 +87,7 @@
     <Compile Include="MVCEngine\ControllerDispatcher.cs" />
     <Compile Include="MVCEngine\ErrorView.cs" />
     <Compile Include="MVCEngine\Exceptions\ActionMethodInvocationException.cs" />
+    <Compile Include="MVCEngine\Exceptions\ViewRegisterException.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\ActionMethod.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\Controller.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\Listener.cs" />
