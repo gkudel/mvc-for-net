@@ -36,73 +36,76 @@ namespace MVCEngine
         #endregion Properties
 
         #region Invoke Action Method
-        public void InvokeActionMethod(string controllerName, string actionMethod, object param)
+        public void InvokeActionMethod(string controllerName, string actionMethod, object param = null)
         {
             Validator.GetInstnace().
                 IsNotEmpty(controllerName, "controllerName").
                 IsNotEmpty(actionMethod, "actionMethod");
-            descriptor.Controller controller = Controllers.FirstOrDefault(c => c.Name == controllerName);
-            if(controller.IsNotNull())
+            var actionquery = Controllers.Where(c => c.Name == controllerName).
+                SelectMany(c => c.ActionMethods.Where(a => a.ActionName == actionMethod),
+                (c, a) => new { Controller = c, ActionMethod = a });
+            var ca = actionquery.FirstOrDefault();
+            if (ca.IsNotNull())
             {
-                descriptor.ActionMethod action = controller.ActionMethods.FirstOrDefault(a => a.ActionName == actionMethod);
-                if (action.IsNotNull())
+                descriptor.Controller controller = ca.Controller;
+                descriptor.ActionMethod action = ca.ActionMethod;
+                object objecttoinvoke = null;
+                TryCatchStatment.Try().Invoke(() =>
                 {
-                    object objecttoinvoke = null;
-                    TryCatchStatment.Try().Invoke(() =>
+                    if (controller.ConstructorParams.IsNotNull())
                     {
-                        if (controller.ConstructorParams.IsNotNull())
-                        {
-                            objecttoinvoke = Activator.CreateInstance(controller.ControllerType, controller.ConstructorParams());
-                        }
-                        else
-                        {
-                            objecttoinvoke = Activator.CreateInstance(controller.ControllerType);
-                        }
-                    }).Catch((Message, Source, StackTrace, Exception) =>
+                        objecttoinvoke = Activator.CreateInstance(controller.ControllerType, controller.ConstructorParams());
+                    }
+                    else
                     {
-                        this.ThrowException<ActionMethodInvocationException>(Message);
-                    });
+                        objecttoinvoke = Activator.CreateInstance(controller.ControllerType);
+                    }
+                }).Catch((Message, Source, StackTrace, Exception) =>
+                {
+                    this.ThrowException<ActionMethodInvocationException>(Message);
+                });
 
-                    if (objecttoinvoke.IsNotNull())
+                if (objecttoinvoke.IsNotNull())
+                {
+                    try
                     {
-                        try
+                        object ret = InvokeMethod(action.Action, objecttoinvoke, param);
+                        foreach(descriptor.Listener l in action.Listernes)
                         {
-                            object ret = InvokeMethod(action.Action, objecttoinvoke, param);
-                            if (action.Listernes.Count() > 0)
+                            if (l.IdProperty.IsNotNull())
                             {
-                                action.Listernes.ForEach((l) =>
-                                {
-                                    if (ret.IsTypeOf<ErrorView>())
-                                    {
-                                        if (l.ActionErrorBack.IsNotNull())
-                                        {
-                                            InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
-                                        }
-                                    }
-                                    else if (l.ActionCallBack.IsNotNull())
-                                    {
-                                        InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
-                                    }
-                                });
+                                object viewid = l.IdProperty.GetValue(l.ThisObject, null);
+                                PropertyInfo pinfo = ret.GetType().GetProperty(l.IdParameterName);
+                                if (pinfo.IsNull()) continue;
+                                object retid = pinfo.GetValue(ret, null);
+                                if (viewid.IsNotEquals(retid)) continue;
                             }
-                        }
-                        finally
-                        {
-                            if (objecttoinvoke.IsTypeOf<IDisposable>())
+
+                            if (ret.IsTypeOf<ErrorView>())
                             {
-                                objecttoinvoke.CastToType<IDisposable>().Dispose();
+                                if (l.ActionErrorBack.IsNotNull())
+                                {
+                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
+                                }
+                            }
+                            else if (l.ActionCallBack.IsNotNull())
+                            {
+                                InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
                             }
                         }
                     }
-                }
-                else
-                {
-                    this.ThrowException<ActionMethodInvocationException>(controllerName + " doesn't handle " + actionMethod + " action method");
+                    finally
+                    {
+                        if (objecttoinvoke.IsTypeOf<IDisposable>())
+                        {
+                            objecttoinvoke.CastToType<IDisposable>().Dispose();
+                        }
+                    }
                 }
             }
             else
             {
-                this.ThrowException<ActionMethodInvocationException>("There is no controller for " + controllerName);
+                this.ThrowException<ActionMethodInvocationException>("There is no Controller[" + controllerName + "] or Action Method[" + actionMethod + "] register");
             }            
         }
 
@@ -244,65 +247,60 @@ namespace MVCEngine
 
             view.GetType().GetMethods().Where(m => !m.IsConstructor
                     && !m.IsGenericMethod
-                    && m.IsPublic).ToList().ForEach((m) =>
+                    && m.IsPublic).SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
+                    (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((m) =>
             {
-                var atrributequery = from a in System.Attribute.GetCustomAttributes(m)
-                                     where a.IsTypeOf<ActionCallBack>()
-                                     select a;
-                atrributequery.ToList().ForEach((a) =>
+                ActionCallBack actioncallback = m.Attribute;
+                descriptor.Controller controller = Controllers.FirstOrDefault(c => c.Name == actioncallback.ControllerName).
+                    IfNullDefault<descriptor.Controller>(() =>
+                    {
+                        return new descriptor.Controller()
+                        {
+                            Name = actioncallback.ControllerName
+                        };
+                    });
+                descriptor.ActionMethod actionmethod = controller.ActionMethods.FirstOrDefault(action => action.ActionName == actioncallback.ActionName).
+                    IfNullDefault<descriptor.ActionMethod>(() =>
+                    {
+                        return new descriptor.ActionMethod()
+                        {
+                            ActionName = actioncallback.ActionName
+                        };
+                    });
+                controller.ActionMethods.AddIfNotContains(actionmethod);
+                Controllers.AddIfNotContains(controller);
+
+                descriptor.Listener listener = new descriptor.Listener()
                 {
-                    ActionCallBack actioncallback = a.CastToType<ActionCallBack>();
-                    descriptor.Controller controller = Controllers.FirstOrDefault(c => c.Name == actioncallback.ControllerName).
-                        IfNullDefault<descriptor.Controller>(() =>
-                        {
-                            return new descriptor.Controller()
-                            {
-                                Name = actioncallback.ControllerName
-                            };
-                        });
-                    descriptor.ActionMethod actionmethod = controller.ActionMethods.FirstOrDefault(action => action.ActionName == actioncallback.ActionName).
-                        IfNullDefault<descriptor.ActionMethod>(() =>
-                        {
-                            return new descriptor.ActionMethod()
-                            {
-                                ActionName = actioncallback.ActionName
-                            };
-                        });
-                    controller.ActionMethods.AddIfNotContains(actionmethod);
-                    Controllers.AddIfNotContains(controller);
+                    ThisObject = view
+                };
+                if (propertyid.IsNotNull())
+                {
+                    listener.IdProperty = propertyid.Property;
+                    listener.IdParameterName = propertyid.Attribute.ParameterName;
+                }
+                actionmethod.Listernes.Add(listener);
 
-                    descriptor.Listener listener = new descriptor.Listener()
+                descriptor.Method callbackmethod = null;
+                if (m.Attribute.IsTypeOf<ActionMethodCallBack>())
+                {
+                    callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodInfo = m.Method };
+                }
+                else if (m.Attribute.IsTypeOf<ActionMethodErrorBack>())
+                {
+                    callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodInfo = m.Method };
+                }
+                if (callbackmethod.IsNotNull())
+                {
+                    m.Method.GetParameters().ToList().ForEach((p) =>
                     {
-                        ThisObject = view
-                    };
-                    if (propertyid.IsNotNull())
-                    {
-                        listener.IdProperty = propertyid.Property;
-                        listener.IdParameterName = propertyid.Attribute.ParameterName;
-                    }
-                    actionmethod.Listernes.Add(listener);
-
-                    descriptor.Method callbackmethod = null;
-                    if (a.IsTypeOf<ActionMethodCallBack>())
-                    {
-                        callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodInfo = m };
-                    }
-                    else if (a.IsTypeOf<ActionMethodErrorBack>())
-                    {
-                        callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodInfo = m };
-                    }
-                    if (callbackmethod.IsNotNull())
-                    {
-                        m.GetParameters().ToList().ForEach((p) =>
+                        callbackmethod.Parameters.Add(new descriptor.Parameter()
                         {
-                            callbackmethod.Parameters.Add(new descriptor.Parameter()
-                            {
-                                ParameterName = p.Name.ToUpper(),
-                                ParameterType = p.ParameterType
-                            });
+                            ParameterName = p.Name.ToUpper(),
+                            ParameterType = p.ParameterType
                         });
-                    }
-                });
+                    });
+                }
             }); 
         }
         #endregion Register View
