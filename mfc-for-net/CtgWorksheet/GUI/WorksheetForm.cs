@@ -11,8 +11,9 @@ using MVCEngine.Model;
 using MVCEngine.Exceptions;
 using MVCEngine.Attributes;
 using MVCTestGui.CtgWorksheet.Controllers;
+using MVCTestGui.CtgWorksheet.Model;
 
-namespace MVCTestGui.CtgWorksheet.GUI
+namespace MvcForNet.CtgWorksheet.GUI
 {
     public partial class WorksheetForm : Form
     {
@@ -41,13 +42,34 @@ namespace MVCTestGui.CtgWorksheet.GUI
                 MessageBox.Show(exc.Message);
             });
         }
+
+        private void AddScreeningClick(object sender, EventArgs e)
+        {
+            TryCatchStatment.Try().Invoke(() =>
+            {
+                _controllerdispatcher.InvokeActionMethod("Worksheet", "AddScreening", null);
+            }).Catch<ActionMethodInvocationException>((exc) =>
+            {
+                MessageBox.Show(exc.Message);
+            });
+        }
         #endregion GUI Events
 
         #region Calls Back
         [ActionMethodCallBack("Worksheet", "Load")]
-        public void Loaded(WorksheetForm model)
+        public void Loaded(Worksheet model)
         {
-            MessageBox.Show("Data Loaded");
+        }
+
+        [ActionMethodCallBack("Worksheet", "AddScreening")]
+        public void ScreeningAdded(Screening model)
+        {
+            ScreeningControl screening = new ScreeningControl(model);
+            screening.Dock = DockStyle.Fill;
+            TabPage tabpage = new TabPage("Screenig" + model.Id);
+            tabpage.Controls.Add(screening);
+            tabScreening.TabPages.Add(tabpage);
+            tabScreening.SelectedTab = tabpage;
         }
         #endregion Calls Back
     }

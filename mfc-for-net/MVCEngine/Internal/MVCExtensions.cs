@@ -120,5 +120,25 @@ namespace MVCEngine.Internal
             return false;
         }
         #endregion AddIfNotContains
+
+        #region IsEquals
+        public static bool IsEquals(this object thisObject, object obj)
+        {
+            if((thisObject.IsNull() && obj.IsNull()) ||
+                (thisObject.IsNotNull() && obj.IsNotNull() && thisObject.Equals(obj)))
+            {
+                return true;
+            }
+            return false;
+        }
+        #endregion IsEquals
+
+        #region IsNotEquals
+        public static bool IsNotEquals(this object thisObject, object obj)
+        {
+            return IsEquals(thisObject, obj);
+        }
+        #endregion IsNotEquals
+
     }
 }
