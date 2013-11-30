@@ -10,20 +10,11 @@ using CtgWorksheet.Model;
 namespace CtgWorksheet.Controllers
 {
     [Controller("Worksheet")]
-    public class WorksheetController : IDisposable
+    public class WorksheetController
     {
-        #region Member
-        private ModelContext ctx;
-        #endregion Member
-
         #region Constructor
         public WorksheetController()
         { }
-
-        public WorksheetController(ModelContext ctx)
-        {
-            this.ctx = ctx;
-        }
         #endregion Constructor
 
         #region Action Method
@@ -48,12 +39,5 @@ namespace CtgWorksheet.Controllers
             return new { ScreeningNumber };
         }
         #endregion Action Method
-
-        #region Dispose
-        public void Dispose()
-        {
-            ctx = null;
-        }
-        #endregion Dispose
     }
 }
