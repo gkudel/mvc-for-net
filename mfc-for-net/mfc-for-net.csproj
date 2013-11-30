@@ -104,6 +104,8 @@
     <Compile Include="MVCEngine\Model\Interceptors\InterceptorSelector.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\SecurityInterceptor.cs" />
     <Compile Include="MVCEngine\Model\ModelContext.cs" />
+    <Compile Include="MVCEngine\Session\Exceptions\InvalidSessionIdException.cs" />
+    <Compile Include="MVCEngine\Session\Session.cs" />
     <Compile Include="MVCEngine\TryCatchStatment.cs" />
     <Compile Include="MVCEngine\Validation\Validation.cs" />
     <Compile Include="MVCEngine\Validation\ValidationExtensions.cs" />
