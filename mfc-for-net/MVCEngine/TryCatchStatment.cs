@@ -205,6 +205,12 @@ namespace MVCEngine
                 throw Exception;
             }
         }
+
+        public TryCatchStatment Finally(Action action)
+        {
+            action();
+            return this;
+        }
         #endregion Methods
     }
 }

@@ -1,4 +1,5 @@
-﻿namespace MvcForNet.CtgWorksheet.GUI
+﻿using MVCEngine;
+namespace MvcForNet.CtgWorksheet.GUI
 {
     partial class WorksheetForm
     {
@@ -17,7 +18,7 @@
             {
                 components.Dispose();
             }
-            _controllerdispatcher.UnRegisterView(this);
+            ControllerDispatcher.GetInstance().UnRegisterView(this);
             base.Dispose(disposing);
         }
 
