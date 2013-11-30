@@ -17,12 +17,21 @@ namespace MVCEngine
     {
         #region Members
         private List<descriptor.Controller> _controllers;
+        private static ControllerDispatcher _instance = null;
         #endregion Members
 
         #region Constructor
-        public ControllerDispatcher()
+        private ControllerDispatcher()
         { }
         #endregion Constructor
+
+        #region Instance Factory
+        public static ControllerDispatcher GetInstance()
+        {
+            _instance = _instance.IfNullDefault<ControllerDispatcher>(new ControllerDispatcher());
+            return _instance;
+        }
+        #endregion Instance Factory
 
         #region Properties
         private List<descriptor.Controller> Controllers
@@ -65,41 +74,56 @@ namespace MVCEngine
                     this.ThrowException<ActionMethodInvocationException>(Message);
                 });
 
+                object ret = param;
                 if (objecttoinvoke.IsNotNull())
                 {
-                    try
+                    TryCatchStatment.Try().Invoke(() =>
                     {
-                        object ret = InvokeMethod(action.Action, objecttoinvoke, param);
-                        foreach(descriptor.Listener l in action.Listernes)
-                        {
-                            if (l.IdProperty.IsNotNull())
-                            {
-                                object viewid = l.IdProperty.GetValue(l.ThisObject, null);
-                                PropertyInfo pinfo = ret.GetType().GetProperty(l.IdParameterName);
-                                if (pinfo.IsNull()) continue;
-                                object retid = pinfo.GetValue(ret, null);
-                                if (viewid.IsNotEquals(retid)) continue;
-                            }
-
-                            if (ret.IsTypeOf<ErrorView>())
-                            {
-                                if (l.ActionErrorBack.IsNotNull())
-                                {
-                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
-                                }
-                            }
-                            else if (l.ActionCallBack.IsNotNull())
-                            {
-                                InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
-                            }
-                        }
-                    }
-                    finally
+                        ret = InvokeMethod(action.Action, objecttoinvoke, param);
+                    }).Catch((Message, Source, StackTrace, Exception) =>
+                    {
+                        this.ThrowException<ActionMethodInvocationException>(Message);
+                    }).Finally(() =>
                     {
                         if (objecttoinvoke.IsTypeOf<IDisposable>())
                         {
                             objecttoinvoke.CastToType<IDisposable>().Dispose();
                         }
+                    });
+                }
+                foreach (descriptor.Listener l in action.Listernes)
+                {
+                    if (l.IdProperty.IsNotNull())
+                    {
+                        object viewid = l.IdProperty.GetValue(l.ThisObject, null);
+                        PropertyInfo pinfo = ret.GetType().GetProperty(l.IdParameterName);
+                        if (pinfo.IsNull()) continue;
+                        object retid = pinfo.GetValue(param, null);
+                        if (viewid.IsNotEquals(retid)) continue;
+                    }
+
+                    if (ret.IsTypeOf<ErrorView>())
+                    {
+                        if (l.ActionErrorBack.IsNotNull())
+                        {
+                            TryCatchStatment.Try().Invoke(() =>
+                            {
+                                InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
+                            }).Catch((Message, Source, StackTrace, Exception) =>
+                            {
+                                this.ThrowException<ActionMethodInvocationException>(Message);
+                            });
+                        }
+                    }
+                    else if (l.ActionCallBack.IsNotNull())
+                    {
+                        TryCatchStatment.Try().Invoke(() =>
+                        {
+                            InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
+                        }).Catch((Message, Source, StackTrace, Exception) =>
+                        {
+                            this.ThrowException<ActionMethodInvocationException>(Message);
+                        });                        
                     }
                 }
             }
@@ -113,7 +137,7 @@ namespace MVCEngine
         {
             object ret = null;
             List<object> parameters = new List<object>();
-            if (param.IsNull() || (param.GetType().Namespace.IsNull() && param.GetType().Name.Contains("Anonymous")))
+            if (param.IsNotNull() && param.GetType().Namespace.IsNull() && param.GetType().Name.Contains("Anonymous"))
             {
                 PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); }, 
                                                                                                     new PropertyInfo[0]);
@@ -146,12 +170,20 @@ namespace MVCEngine
                         parameters.Add(null);
                     }
                 });
-                ret = method.MethodInfo.Invoke(objecttoinvoke, parameters.Count > 0 ? parameters.ToArray() : null);
+            }
+            else if (param.IsNotNull() && param.IsTypeOf<object[]>())
+            {
+                parameters.AddAndAppendByDefault(param.CastToType<object[]>(), method.Parameters.Count, null);
+            }
+            else if (param.IsNotNull())
+            {
+                parameters.AddAndAppendByDefault(new object[] { param }, method.Parameters.Count, null);
             }
             else
             {
-                this.ThrowException<ActionMethodInvocationException>(param.GetType().FullName + " isn't anonymous type. Only Anonymous type can be passed as parameter or return as result of ActionMethod ");
+                parameters.AddAndAppendByDefault(new object[0], method.Parameters.Count, null);
             }
+            ret = method.MethodInfo.Invoke(objecttoinvoke, parameters.Count > 0 ? parameters.ToArray() : null);
             return ret;
         }
         #endregion Invoke Action Method

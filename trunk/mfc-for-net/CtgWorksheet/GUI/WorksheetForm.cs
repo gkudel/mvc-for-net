@@ -18,7 +18,6 @@ namespace MvcForNet.CtgWorksheet.GUI
     public partial class WorksheetForm : Form
     {
         #region Members
-        ControllerDispatcher _controllerdispatcher = new ControllerDispatcher();
         ModelContext _ctx = new ModelContext();
         #endregion Members
         
@@ -26,8 +25,8 @@ namespace MvcForNet.CtgWorksheet.GUI
         public WorksheetForm()
         {
             InitializeComponent();
-            _controllerdispatcher.RegisterController(typeof(WorksheetController), () => { return new object[] { _ctx }; });
-            _controllerdispatcher.RegisterView(this);
+            ControllerDispatcher.GetInstance().RegisterController(typeof(WorksheetController), () => { return new object[] { _ctx }; });
+            ControllerDispatcher.GetInstance().RegisterView(this);
         }
         #endregion Constructor
 
@@ -36,7 +35,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             TryCatchStatment.Try().Invoke(() =>
             {
-                _controllerdispatcher.InvokeActionMethod("Worksheet", "Load", new { Id = -2 });
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 } );
             }).Catch<ActionMethodInvocationException>((exc) =>
             {
                 MessageBox.Show(exc.Message);
@@ -47,7 +46,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             TryCatchStatment.Try().Invoke(() =>
             {
-                _controllerdispatcher.InvokeActionMethod("Worksheet", "AddScreening", null);
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", null);
             }).Catch<ActionMethodInvocationException>((exc) =>
             {
                 MessageBox.Show(exc.Message);

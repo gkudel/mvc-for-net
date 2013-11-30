@@ -140,5 +140,21 @@ namespace MVCEngine.Internal
         }
         #endregion IsNotEquals
 
+        #region AppendByDefault
+        public static void AddAndAppendByDefault<T>(this ICollection<T> thisObject, ICollection<T> collection, int length, T defaultvalue)
+        {
+            for (int i = thisObject.Count, j = 0; i < length; i++, j++)
+            {
+                if (j < collection.Count)
+                {
+                    thisObject.Add(collection.ElementAt(j));
+                }
+                else
+                {
+                    thisObject.Add(defaultvalue);
+                }
+            }
+        }
+        #endregion AppendByDefault
     }
 }
