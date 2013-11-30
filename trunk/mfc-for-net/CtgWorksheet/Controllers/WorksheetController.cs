@@ -17,6 +17,9 @@ namespace CtgWorksheet.Controllers
         #endregion Member
 
         #region Constructor
+        public WorksheetController()
+        { }
+
         public WorksheetController(ModelContext ctx)
         {
             this.ctx = ctx;

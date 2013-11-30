@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MVCEngine.Attributes
 {
-    public class ActionMethodCallBack : ActionCallBack
+    public sealed class ActionMethodCallBack : ActionCallBack
     {
         #region Constructor
         public ActionMethodCallBack(string controllerName, string actionName)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MVCEngine
 {
-    public class ErrorView
+    public sealed class ErrorView
     {
         #region Error Parameters
         public object Params { get; set; }

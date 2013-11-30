@@ -7,7 +7,7 @@ using MVCEngine.Internal;
 
 namespace MVCEngine
 {
-    public class TryCatchStatment
+    public sealed class TryCatchStatment
     {
         #region Exception
         private Exception Exception { get; set; }
