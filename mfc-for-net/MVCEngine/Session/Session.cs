@@ -9,21 +9,21 @@ namespace MVCEngine.Session
     public class Session
     {
         #region Members        
-        private static List<Session> _sessions;
-        private List<KeyValuePair<string, object>> _values;
+        private static Lazy<List<Session>> _sessions;
+        private Lazy<List<KeyValuePair<string, object>>> _values;
         private static object _threadLock;
         #endregion Members
         
         #region Constructor
         static Session()
         {
-            _sessions = new List<Session>();
             _threadLock = new object();
+            _sessions = new Lazy<List<Session>>(() => { return new List<Session>(); }, true);
         }
 
         private Session()
         {
-            _values = new List<KeyValuePair<string, object>>();            
+            _values = new Lazy<List<KeyValuePair<string, object>>>(() => { return new List<KeyValuePair<string, object>>(); }, true);
         }
         #endregion Constructor
 
@@ -35,30 +35,30 @@ namespace MVCEngine.Session
         public static string CreateSession()
         {
             Session session = new Session() { SessionId = Guid.NewGuid().ToString() };
-            _sessions.Add(session);
+            _sessions.Value.Add(session);
             return session.SessionId;
         }
 
         public static bool IsSessionExists(string sessionId)
         {
-            return _sessions.Exists(s => s.SessionId == sessionId);
+            return _sessions.Value.Exists(s => s.SessionId == sessionId);
         }
 
         public static void ReleaseSession(string sessionId)
         {
             lock (_threadLock)
             {
-                Session session = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+                Session session = _sessions.Value.FirstOrDefault(s => s.SessionId == sessionId);
                 if (session.IsNotNull())
                 {
-                    foreach (KeyValuePair<string, object> value in session._values)
+                    foreach (KeyValuePair<string, object> value in session._values.Value)
                     {
                         if (value.Value.IsTypeOf<IDisposable>())
                         {
                             value.Value.CastToType<IDisposable>().Dispose();
                         }
                     }
-                    _sessions.Remove(session);
+                    _sessions.Value.Remove(session);
                 }
             }
         }
@@ -75,10 +75,10 @@ namespace MVCEngine.Session
             lock (_threadLock)
             {
                 T value = default(T);
-                Session session = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+                Session session = _sessions.Value.FirstOrDefault(s => s.SessionId == sessionId);
                 if (session.IsNotNull())
                 {
-                    KeyValuePair<string, object> kv = session._values.FirstOrDefault(v => v.Key == key);
+                    KeyValuePair<string, object> kv = session._values.Value.FirstOrDefault(v => v.Key == key);
                     if (kv.IsNotNull() && kv.Value.IsTypeOf<T>())
                     {
                         value = kv.Value.CastToType<T>();
@@ -92,15 +92,15 @@ namespace MVCEngine.Session
         {
             lock (_threadLock)
             {
-                Session session = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+                Session session = _sessions.Value.FirstOrDefault(s => s.SessionId == sessionId);
                 if (session.IsNotNull())
                 {
-                    KeyValuePair<string, object> kv = session._values.FirstOrDefault(v => v.Key == key);
+                    KeyValuePair<string, object> kv = session._values.Value.FirstOrDefault(v => v.Key == key);
                     if (kv.IsNotNull())
                     {
-                        session._values.Remove(kv);
+                        session._values.Value.Remove(kv);
                     }
-                    session._values.Add(new KeyValuePair<string, object>(key, value));
+                    session._values.Value.Add(new KeyValuePair<string, object>(key, value));
                 }
                 else
                 {
