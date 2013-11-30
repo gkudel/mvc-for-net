@@ -10,10 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 using descriptor = MVCEngine.Internal.Descriptor;
 using MVCEngine;
+using System.Configuration;
 
 namespace MVCEngine
 {
-    public class ControllerDispatcher: IDisposable 
+    public sealed class ControllerDispatcher: IDisposable 
     {
         #region Members
         private List<descriptor.Controller> _controllers;
@@ -311,6 +312,40 @@ namespace MVCEngine
             }
             return method;
         }
+
+        public void AppeConfigInitialization()
+        {
+            string appsettings = ConfigurationSettings.AppSettings["Controllers"];
+            if (!appsettings.IsNullOrEmpty())
+            {
+                string[] controllers = appsettings.Split('|');
+                foreach (string controller in controllers)
+                {
+                    string controllerNameSpace = ConfigurationSettings.AppSettings[controller + "NameSpace"];
+                    string controllerClass = ConfigurationSettings.AppSettings[controller + "Class"];
+                    if (!controllerNameSpace.IsNullOrEmpty() && !controllerClass.IsNullOrEmpty())
+                    {
+                        object obj = null;
+                        TryCatchStatment.Try().Invoke(() =>
+                        {
+                            obj = Activator.CreateInstance(null, controllerNameSpace + "." + controllerClass).Unwrap();
+                        }).Catch((Message, Source, StackTrace, Exception) =>
+                        {
+                            this.ThrowException<ControllerRegistrationException>(Message);
+                        });
+                        if (obj.IsNotNull())
+                        {
+                            RegisterController(obj.GetType());
+                        }
+                    }
+                    else
+                    {
+                        this.ThrowException<ControllerRegistrationException>(controller + " isn't defined properly in app.config file");
+                    }
+                }
+            }
+        }
+        
         #endregion Register Controller
 
         #region Register View

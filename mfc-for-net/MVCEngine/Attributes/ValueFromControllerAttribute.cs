@@ -6,7 +6,7 @@ using System.Text;
 namespace MVCEngine.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class ValueFromControllerAttribute : System.Attribute
+    public sealed class ValueFromControllerAttribute : System.Attribute
     {
         #region Members
         private string propertyName;

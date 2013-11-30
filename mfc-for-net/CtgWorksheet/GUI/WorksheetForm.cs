@@ -25,8 +25,6 @@ namespace MvcForNet.CtgWorksheet.GUI
         public WorksheetForm()
         {
             InitializeComponent();
-            ControllerDispatcher.GetInstance().RegisterController(typeof(WorksheetController));
-            ControllerDispatcher.GetInstance().RegisterController(typeof(ScreeningController));
             ControllerDispatcher.GetInstance().RegisterView(this);
         }
         #endregion Constructor
@@ -70,6 +68,11 @@ namespace MvcForNet.CtgWorksheet.GUI
                     });
                 }
             }
+        }
+
+        private void CloseClick(object sender, EventArgs e)
+        {
+            Close();
         }
         #endregion GUI Events
 

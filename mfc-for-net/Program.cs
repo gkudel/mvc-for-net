@@ -1,4 +1,5 @@
-﻿using MvcForNet.CtgWorksheet.GUI;
+﻿using MVCEngine;
+using MvcForNet.CtgWorksheet.GUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,9 @@ namespace mfc_for_net
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            ControllerDispatcher.GetInstance().AppeConfigInitialization();
+
             Application.Run(new WorksheetForm());
         }
     }

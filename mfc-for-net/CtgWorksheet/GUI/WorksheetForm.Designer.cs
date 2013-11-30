@@ -75,6 +75,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.btnClose.TabIndex = 1;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.CloseClick);
             // 
             // btnAddScreening
             // 

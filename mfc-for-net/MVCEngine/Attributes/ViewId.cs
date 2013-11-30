@@ -7,7 +7,7 @@ using MVCEngine.Internal;
 namespace MVCEngine.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class ViewId : System.Attribute 
+    public sealed class ViewId : System.Attribute 
     {
         #region Members
         private string parameterName;
