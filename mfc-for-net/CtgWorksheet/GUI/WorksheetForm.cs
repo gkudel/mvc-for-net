@@ -10,8 +10,8 @@ using MVCEngine;
 using MVCEngine.Model;
 using MVCEngine.Exceptions;
 using MVCEngine.Attributes;
-using MVCTestGui.CtgWorksheet.Controllers;
-using MVCTestGui.CtgWorksheet.Model;
+using CtgWorksheet.Controllers;
+using CtgWorksheet.Model;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -25,7 +25,8 @@ namespace MvcForNet.CtgWorksheet.GUI
         public WorksheetForm()
         {
             InitializeComponent();
-            ControllerDispatcher.GetInstance().RegisterController(typeof(WorksheetController), () => { return new object[] { _ctx }; });
+            ControllerDispatcher.GetInstance().RegisterController(typeof(WorksheetController));
+            ControllerDispatcher.GetInstance().RegisterController(typeof(ScreeningController));
             ControllerDispatcher.GetInstance().RegisterView(this);
         }
         #endregion Constructor
@@ -35,7 +36,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             TryCatchStatment.Try().Invoke(() =>
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 } );
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 }, () => { return new object[] { _ctx }; });
             }).Catch<ActionMethodInvocationException>((exc) =>
             {
                 MessageBox.Show(exc.Message);
@@ -46,11 +47,29 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             TryCatchStatment.Try().Invoke(() =>
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", null);
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", null, () => { return new object[] { _ctx }; });
             }).Catch<ActionMethodInvocationException>((exc) =>
             {
                 MessageBox.Show(exc.Message);
             });
+        }
+
+        private void DeleteScreening(object sender, EventArgs e)
+        {
+            if(tabScreening.SelectedTab.IsNotNull())
+            {
+                ScreeningControl control = tabScreening.SelectedTab.Controls[0].CastToType<ScreeningControl>();
+                if (control.IsNotNull())
+                {
+                    TryCatchStatment.Try().Invoke(() =>
+                    {
+                        ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Id = control.Id }, () => { return new object[] { _ctx }; });
+                    }).Catch<ActionMethodInvocationException>((exc) =>
+                    {
+                        MessageBox.Show(exc.Message);
+                    });
+                }
+            }
         }
         #endregion GUI Events
 
@@ -61,7 +80,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         }
 
         [ActionMethodCallBack("Worksheet", "AddScreening")]
-        public void ScreeningAdded(Screening model)
+        public void ScreeningAdded(Screening model, int screeningNumber)
         {
             ScreeningControl screening = new ScreeningControl(model);
             screening.Dock = DockStyle.Fill;
@@ -69,6 +88,20 @@ namespace MvcForNet.CtgWorksheet.GUI
             tabpage.Controls.Add(screening);
             tabScreening.TabPages.Add(tabpage);
             tabScreening.SelectedTab = tabpage;
+
+            btnDeleteScreening.Enabled = screeningNumber > 0;
+        }
+
+        [ActionMethodCallBack("Worksheet", "DeleteScreening")]
+        public void ScreeningDeleted(int screeningNumber)
+        {
+            if (tabScreening.SelectedTab.IsNotNull())
+            {
+                TabPage tp = tabScreening.SelectedTab;
+                tabScreening.TabPages.Remove(tp);
+                tp.Dispose();
+            }
+            btnDeleteScreening.Enabled = screeningNumber > 0;
         }
         #endregion Calls Back
     }

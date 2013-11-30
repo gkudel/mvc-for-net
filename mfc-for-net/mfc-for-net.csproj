@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CtgWorksheet\Controllers\ScreeningController.cs" />
     <Compile Include="CtgWorksheet\Controllers\WorksheetController.cs" />
     <Compile Include="CtgWorksheet\GUI\ScreeningControl.cs">
       <SubType>UserControl</SubType>
@@ -83,17 +84,19 @@
     <Compile Include="MVCEngine\Attributes\ActionMethodCallBack.cs" />
     <Compile Include="MVCEngine\Attributes\ActionMethodErrorBack.cs" />
     <Compile Include="MVCEngine\Attributes\Controller.cs" />
+    <Compile Include="MVCEngine\Attributes\ValueFromControllerAttribute.cs" />
     <Compile Include="MVCEngine\Attributes\ViewId.cs" />
     <Compile Include="MVCEngine\ControllerDispatcher.cs" />
     <Compile Include="MVCEngine\ErrorView.cs" />
     <Compile Include="MVCEngine\Exceptions\ActionMethodInvocationException.cs" />
-    <Compile Include="MVCEngine\Exceptions\ViewRegisterException.cs" />
+    <Compile Include="MVCEngine\Exceptions\ControllerRegistrationException.cs" />
+    <Compile Include="MVCEngine\Exceptions\ViewRegistrationException.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\ActionMethod.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\Controller.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\Listener.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\Method.cs" />
     <Compile Include="MVCEngine\Internal\Descriptor\Parameter.cs" />
-    <Compile Include="MVCEngine\Internal\MVCExtensions.cs" />
+    <Compile Include="MVCEngine\MVCExtensions.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Column.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Table.cs" />

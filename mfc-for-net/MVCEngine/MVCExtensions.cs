@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine.Internal
+namespace MVCEngine
 {
     public static class MVCExtensions
     {
@@ -26,12 +26,12 @@ namespace MVCEngine.Internal
         }
         #endregion IfNullDefault
 
-        #region IfNulOrEmptyDefault
-        public static string IfNulOrEmptyDefault(this string thisObject, string defaultValue)
+        #region IfNullOrEmptyDefault
+        public static string IfNullOrEmptyDefault(this string thisObject, string defaultValue)
         {
             return string.IsNullOrEmpty(thisObject) ? defaultValue : thisObject;
         }
-        #endregion IfNulOrEmptyDefault
+        #endregion IfNullOrEmptyDefault
 
         #region IsNull
         public static bool IsNull(this object thisObject)
@@ -136,7 +136,7 @@ namespace MVCEngine.Internal
         #region IsNotEquals
         public static bool IsNotEquals(this object thisObject, object obj)
         {
-            return IsEquals(thisObject, obj);
+            return !IsEquals(thisObject, obj);
         }
         #endregion IsNotEquals
 

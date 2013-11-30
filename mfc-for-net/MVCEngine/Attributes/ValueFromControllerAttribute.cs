@@ -2,30 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MVCEngine.Internal;
 
 namespace MVCEngine.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class ViewId : System.Attribute 
+    public class ValueFromControllerAttribute : System.Attribute
     {
         #region Members
-        private string parameterName;
+        private string propertyName;
         #endregion Members
 
         #region Constructor
-        public ViewId(string parameterName)
+        public ValueFromControllerAttribute(string propertyName)
         {
-            this.parameterName = parameterName;
+            this.propertyName = propertyName;
         }
         #endregion Constructor
 
         #region Properties
-        public string ParameterName
+        public string PropertyName
         {
-            get { return parameterName; }
-            set { parameterName = value; }
+            get { return propertyName; }
+            set { propertyName = value; }
         }
         #endregion Properties
+
     }
 }

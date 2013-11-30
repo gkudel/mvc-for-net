@@ -22,6 +22,11 @@ namespace MvcForNet.CtgWorksheet.GUI
             base.Dispose(disposing);
         }
 
+        ~WorksheetForm()
+        {
+            Dispose();
+        }
+
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -31,6 +36,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.btnDeleteScreening = new System.Windows.Forms.Button();
             this.btnClose = new System.Windows.Forms.Button();
             this.btnAddScreening = new System.Windows.Forms.Button();
             this.tabScreening = new System.Windows.Forms.TabControl();
@@ -39,6 +45,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.btnDeleteScreening);
             this.panel1.Controls.Add(this.btnClose);
             this.panel1.Controls.Add(this.btnAddScreening);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -46,6 +53,18 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(669, 44);
             this.panel1.TabIndex = 0;
+            // 
+            // btnDeleteScreening
+            // 
+            this.btnDeleteScreening.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnDeleteScreening.Enabled = false;
+            this.btnDeleteScreening.Location = new System.Drawing.Point(471, 9);
+            this.btnDeleteScreening.Name = "btnDeleteScreening";
+            this.btnDeleteScreening.Size = new System.Drawing.Size(105, 23);
+            this.btnDeleteScreening.TabIndex = 2;
+            this.btnDeleteScreening.Text = "Delete Screening";
+            this.btnDeleteScreening.UseVisualStyleBackColor = true;
+            this.btnDeleteScreening.Click += new System.EventHandler(this.DeleteScreening);
             // 
             // btnClose
             // 
@@ -60,7 +79,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             // btnAddScreening
             // 
             this.btnAddScreening.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddScreening.Location = new System.Drawing.Point(481, 9);
+            this.btnAddScreening.Location = new System.Drawing.Point(370, 9);
             this.btnAddScreening.Name = "btnAddScreening";
             this.btnAddScreening.Size = new System.Drawing.Size(95, 23);
             this.btnAddScreening.TabIndex = 0;
@@ -99,6 +118,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.Button btnAddScreening;
         private System.Windows.Forms.TabControl tabScreening;
+        private System.Windows.Forms.Button btnDeleteScreening;
     }
 }
 
