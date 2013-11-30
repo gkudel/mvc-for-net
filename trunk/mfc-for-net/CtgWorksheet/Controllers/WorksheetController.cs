@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCTestGui.CtgWorksheet.Model;
+using CtgWorksheet.Model;
 
-namespace MVCTestGui.CtgWorksheet.Controllers
+namespace CtgWorksheet.Controllers
 {
     [Controller("Worksheet")]
     public class WorksheetController : IDisposable
@@ -30,13 +30,20 @@ namespace MVCTestGui.CtgWorksheet.Controllers
             return new { Model = new Worksheet() { Id = id } };
         }
 
-        int screeningrecid = 1;
+        private static int screeningrecid = 0;
         [ActionMethod("AddScreening")]
-        public object AddScreening(int id)
+        public object AddScreening()
         {
-            return new { Model = new Screening() { Id = screeningrecid++ } };
+            int ScreeningNumber = ++screeningrecid;
+            return new { Model = new Screening() { Id = ScreeningNumber }, ScreeningNumber };
         }
 
+        [ActionMethod("DeleteScreening")]
+        public object AddScreening(int id)
+        {
+            int ScreeningNumber = --screeningrecid;
+            return new { ScreeningNumber };
+        }
         #endregion Action Method
 
         #region Dispose

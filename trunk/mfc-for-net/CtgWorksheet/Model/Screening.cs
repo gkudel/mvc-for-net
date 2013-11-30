@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCTestGui.CtgWorksheet.Model
+namespace CtgWorksheet.Model
 {
     [Table("GP_FISHSCREENING")]
     public class Screening

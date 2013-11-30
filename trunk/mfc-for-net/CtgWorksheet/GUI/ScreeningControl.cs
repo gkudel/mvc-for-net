@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using MVCEngine.Attributes;
 using MVCEngine;
-using MVCTestGui.CtgWorksheet.Model;
+using CtgWorksheet.Model;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -18,6 +18,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         public ScreeningControl(Screening screening)
         {
             InitializeComponent();
+            ControllerDispatcher.GetInstance().RegisterView(this);
             Model = screening;
         }
         #endregion Constructor
@@ -37,7 +38,16 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
+            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { Id = Id, A = txtA.Text, B = txtB.Text });
         }
         #endregion GUI Events
+
+        #region Calls Back
+        [ActionMethodCallBack("Screening", "Recalculate")]
+        public void Loaded(int Result)
+        {
+            lblResult.Text = Result.ToString();
+        }
+        #endregion Calls Back
     }
 }

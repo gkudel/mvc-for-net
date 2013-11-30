@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MVCEngine.Attributes
 {
-    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct) ]
+    [AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct) ]
     public class Controller : System.Attribute
     {
         #region Members

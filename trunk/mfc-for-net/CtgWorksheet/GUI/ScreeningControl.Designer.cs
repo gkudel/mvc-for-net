@@ -1,4 +1,5 @@
-﻿namespace MvcForNet.CtgWorksheet.GUI
+﻿using MVCEngine;
+namespace MvcForNet.CtgWorksheet.GUI
 {
     partial class ScreeningControl
     {
@@ -17,9 +18,14 @@
             {
                 components.Dispose();
             }
+            ControllerDispatcher.GetInstance().UnRegisterView(this);
             base.Dispose(disposing);
         }
 
+        ~ScreeningControl()
+        {
+            Dispose();
+        }
         #region Component Designer generated code
 
         /// <summary> 
@@ -43,7 +49,7 @@
             this.btnRecalculation.Name = "btnRecalculation";
             this.btnRecalculation.Size = new System.Drawing.Size(95, 23);
             this.btnRecalculation.TabIndex = 0;
-            this.btnRecalculation.Text = "Recalculation";
+            this.btnRecalculation.Text = "Recalculate";
             this.btnRecalculation.UseVisualStyleBackColor = true;
             this.btnRecalculation.Click += new System.EventHandler(this.Recalculation);
             // 

@@ -7,21 +7,21 @@ using System.Text;
 namespace MVCEngine.Exceptions
 {
     [Serializable]
-    public class ViewRegisterException : Exception
+    public class ControllerRegistrationException : Exception
     {
         #region Constructors
-        public ViewRegisterException()
+        public ControllerRegistrationException()
         { }
 
-        public ViewRegisterException(string message)
+        public ControllerRegistrationException(string message)
             : base(message)
         { }
 
-        public ViewRegisterException(string message, Exception innerException)
+        public ControllerRegistrationException(string message, Exception innerException)
             : base(message, innerException)
         { }
 
-        protected ViewRegisterException(SerializationInfo info, StreamingContext context)
+        protected ControllerRegistrationException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         { }
         #endregion Constructors
