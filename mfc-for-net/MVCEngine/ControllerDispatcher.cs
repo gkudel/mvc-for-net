@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using descriptor = MVCEngine.Internal.Descriptor;
 using MVCEngine;
 using System.Configuration;
+using MVCEngine.View;
 
 namespace MVCEngine
 {
@@ -52,6 +53,7 @@ namespace MVCEngine
                 IsNotEmpty(actionMethod, "actionMethod");
 
             object ret = null;
+            RedirectView redirect = null;
             var actionquery = Controllers.Where(c => c.Name == controllerName).
                 SelectMany(c => c.ActionMethods.Where(a => a.ActionName == actionMethod),
                 (c, a) => new { Controller = c, ActionMethod = a });
@@ -104,39 +106,85 @@ namespace MVCEngine
                         }
                     });
                 }
-                foreach (descriptor.Listener l in action.Listernes)
+                List<descriptor.Listener> listeners = action.Listernes;
+                if(ret.IsTypeOf<ForwardView>())
                 {
-                    if (l.IdProperty.IsNotNull())
+                    ForwardView forward = ret.CastToType<ForwardView>();
+                    var redirectquery = controller.ActionMethods.Where(a => a.ActionName == forward.ActionMethod).
+                        Select(a => a.Listernes);
+
+                    if (!forward.ControllerName.IsNullOrEmpty() &&
+                        !forward.ControllerName.IsEquals(controllerName))
                     {
-                        object viewid = l.IdProperty.GetValue(l.ThisObject, null);
-                        PropertyInfo pinfo = param.GetType().GetProperty(l.IdParameterName);
-                        if (pinfo.IsNull()) continue;
-                        object retid = pinfo.GetValue(param, null);
-                        if (viewid.IsNotEquals(retid)) continue;
+                        redirectquery = _controllers.Where(c => c.Name == forward.ControllerName).
+                            SelectMany(c => c.ActionMethods.Where(a => a.ActionName == forward.ActionMethod),
+                            (c, a) => a.Listernes);
                     }
 
-                    if (ret.IsTypeOf<ErrorView>())
+                    listeners = redirectquery.FirstOrDefault();
+                    ret = forward.Params;
+                }
+                if (ret.IsTypeOf<RedirectView>())
+                {
+                    redirect = ret.CastToType<RedirectView>();
+                    ret = redirect.Params;
+                }
+                if (listeners.IsNotNull())
+                {
+                    foreach (descriptor.Listener l in listeners)
                     {
-                        if (l.ActionErrorBack.IsNotNull())
+                        if (l.IdProperty.IsNotNull())
+                        {
+                            object viewid = l.IdProperty.GetValue(l.ThisObject, null);
+                            if (viewid.IsNull()) continue;
+                            PropertyInfo pinfo = ret.GetType().GetProperty(l.IdParameterName);
+                            object retid = null;
+                            if (pinfo.IsNull())
+                            {
+                                pinfo = param.GetType().GetProperty(l.IdParameterName);
+                                if (pinfo.IsNull()) continue;
+                                retid = pinfo.GetValue(param, null);
+                            }
+                            else
+                            {
+                                retid = pinfo.GetValue(ret, null);
+                            }
+                            if (!viewid.GetType().IsInstanceOfType(retid))
+                            {
+                                TryCatchStatment.Try().Invoke(() =>
+                                {
+                                    retid = Convert.ChangeType(retid, viewid.GetType());
+                                }).Catch<InvalidCastException, FormatException, OverflowException, ArgumentNullException>(() =>
+                                {
+                                    retid = null;
+                                });
+                            }
+                            if (viewid.IsNotEquals(retid)) continue;
+                        }
+
+                        if (ret.IsTypeOf<ErrorView>())
+                        {
+                            if (l.ActionErrorBack.IsNotNull())
+                            {
+                                TryCatchStatment.Try().Invoke(() =>
+                                {
+                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
+                                }).Catch((Message, Source, StackTrace, Exception) =>
+                                {
+                                    this.ThrowException<ActionMethodInvocationException>(Message);
+                                });
+                            }
+                        }
+                        else if (l.ActionCallBack.IsNotNull())
                         {
                             TryCatchStatment.Try().Invoke(() =>
                             {
-                                InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
+                                InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
                             }).Catch((Message, Source, StackTrace, Exception) =>
                             {
                                 this.ThrowException<ActionMethodInvocationException>(Message);
                             });
                         }
-                    }
-                    else if (l.ActionCallBack.IsNotNull())
-                    {
-                        TryCatchStatment.Try().Invoke(() =>
-                        {
-                            InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
-                        }).Catch((Message, Source, StackTrace, Exception) =>
-                        {
-                            this.ThrowException<ActionMethodInvocationException>(Message);
-                        });                        
                     }
                 }
             }
@@ -144,7 +192,15 @@ namespace MVCEngine
             {
                 this.ThrowException<ActionMethodInvocationException>("There is no Controller[" + controllerName + "] or Action Method[" + actionMethod + "] register");
             }
-            return ret;
+            
+            if (redirect.IsNotNull())
+            {
+                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controllerName), redirect.ActionMethod, redirect.RedirectParams, redirect.ConstructorParams.IfNullDefault(ConstructorParams));
+            }
+            else
+            {
+                return ret;
+            }
         }
 
         private object InvokeMethod(descriptor.Method method, object objecttoinvoke, object param)
@@ -256,7 +312,7 @@ namespace MVCEngine
             }
             else
             {
-                this.ThrowException<ControllerRegistrationException>(type.FullName + " it cann't be recognise as Controller. Controller Attribute is required.");
+                this.ThrowException<ControllerRegistrationException>("Type[" + type.FullName + "] it cann't be recognise as valid Controller. Controller Attribute on class level is required.");
             }
         }
 
@@ -279,7 +335,7 @@ namespace MVCEngine
             }
             else
             {
-                this.ThrowException<ControllerRegistrationException>(controllerType.FullName + " doesn't have public implementation of " + controllerMethod);
+                this.ThrowException<ControllerRegistrationException>("Type[" + controllerType.FullName + "] doesn't have public implementation of Method[" + controllerMethod + "]");
             }
         }
 
@@ -308,7 +364,7 @@ namespace MVCEngine
             }
             else
             {
-                this.ThrowException<ControllerRegistrationException>(ActionName + " is declared at least twice");
+                this.ThrowException<ControllerRegistrationException>("Action[" +ActionName + "] is declared at least twice");
             }
             return method;
         }
@@ -321,6 +377,7 @@ namespace MVCEngine
                 string[] controllers = appsettings.Split('|');
                 foreach (string controller in controllers)
                 {
+                    string controllerAssembly = ConfigurationSettings.AppSettings[controller + "Assembly"];
                     string controllerNameSpace = ConfigurationSettings.AppSettings[controller + "NameSpace"];
                     string controllerClass = ConfigurationSettings.AppSettings[controller + "Class"];
                     if (!controllerNameSpace.IsNullOrEmpty() && !controllerClass.IsNullOrEmpty())
@@ -328,7 +385,7 @@ namespace MVCEngine
                         object obj = null;
                         TryCatchStatment.Try().Invoke(() =>
                         {
-                            obj = Activator.CreateInstance(null, controllerNameSpace + "." + controllerClass).Unwrap();
+                            obj = Activator.CreateInstance(controllerAssembly.IfNullOrEmptyDefault(null), controllerNameSpace + "." + controllerClass).Unwrap();
                         }).Catch((Message, Source, StackTrace, Exception) =>
                         {
                             this.ThrowException<ControllerRegistrationException>(Message);
@@ -340,7 +397,7 @@ namespace MVCEngine
                     }
                     else
                     {
-                        this.ThrowException<ControllerRegistrationException>(controller + " isn't defined properly in app.config file");
+                        this.ThrowException<ControllerRegistrationException>("Controller[" + controller + "] isn't defined properly in app.config file");
                     }
                 }
             }

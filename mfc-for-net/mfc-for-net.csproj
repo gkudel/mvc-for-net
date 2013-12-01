@@ -87,7 +87,7 @@
     <Compile Include="MVCEngine\Attributes\ValueFromControllerAttribute.cs" />
     <Compile Include="MVCEngine\Attributes\ViewId.cs" />
     <Compile Include="MVCEngine\ControllerDispatcher.cs" />
-    <Compile Include="MVCEngine\ErrorView.cs" />
+    <Compile Include="MVCEngine\View\ErrorView.cs" />
     <Compile Include="MVCEngine\Exceptions\ActionMethodInvocationException.cs" />
     <Compile Include="MVCEngine\Exceptions\ControllerRegistrationException.cs" />
     <Compile Include="MVCEngine\Exceptions\ViewRegistrationException.cs" />
@@ -109,6 +109,8 @@
     <Compile Include="MVCEngine\TryCatchStatment.cs" />
     <Compile Include="MVCEngine\Validation\Validation.cs" />
     <Compile Include="MVCEngine\Validation\ValidationExtensions.cs" />
+    <Compile Include="MVCEngine\View\ForwardView.cs" />
+    <Compile Include="MVCEngine\View\RedirectView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="CtgWorksheet\GUI\ScreeningControl.resx">
