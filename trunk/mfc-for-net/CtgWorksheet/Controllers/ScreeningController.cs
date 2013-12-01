@@ -18,9 +18,9 @@ namespace CtgWorksheet.Controllers
 
         #region Action Method
         [ActionMethod("Recalculate")]
-        public object Recalculate(int id, int A, int B)
+        public object Recalculate(long id, int A, int B)
         {
-            return new { Result = A + B };
+            return new { Id = id, Result = A + B };
         }
         #endregion Action Method
 

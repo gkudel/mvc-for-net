@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine
+namespace MVCEngine.View
 {
     public sealed class ErrorView
     {
