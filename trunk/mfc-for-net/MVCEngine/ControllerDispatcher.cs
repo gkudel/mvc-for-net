@@ -12,6 +12,7 @@ using descriptor = MVCEngine.Internal.Descriptor;
 using MVCEngine;
 using System.Configuration;
 using MVCEngine.View;
+using appconfig = MVCEngine.AppConfig;
 
 namespace MVCEngine
 {
@@ -371,38 +372,27 @@ namespace MVCEngine
 
         public void AppeConfigInitialization()
         {
-            string appsettings = ConfigurationSettings.AppSettings["Controllers"];
-            if (!appsettings.IsNullOrEmpty())
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            appconfig.ControllerSection section = config.GetSection("RegisterControllers") as appconfig.ControllerSection;
+            if (section.IsNotNull())
             {
-                string[] controllers = appsettings.Split('|');
-                foreach (string controller in controllers)
+                foreach (appconfig.Controller controller in section.Controllers)
                 {
-                    string controllerAssembly = ConfigurationSettings.AppSettings[controller + "Assembly"];
-                    string controllerNameSpace = ConfigurationSettings.AppSettings[controller + "NameSpace"];
-                    string controllerClass = ConfigurationSettings.AppSettings[controller + "Class"];
-                    if (!controllerNameSpace.IsNullOrEmpty() && !controllerClass.IsNullOrEmpty())
+                    object obj = null;
+                    TryCatchStatment.Try().Invoke(() =>
                     {
-                        object obj = null;
-                        TryCatchStatment.Try().Invoke(() =>
-                        {
-                            obj = Activator.CreateInstance(controllerAssembly.IfNullOrEmptyDefault(null), controllerNameSpace + "." + controllerClass).Unwrap();
-                        }).Catch((Message, Source, StackTrace, Exception) =>
-                        {
-                            this.ThrowException<ControllerRegistrationException>(Message);
-                        });
-                        if (obj.IsNotNull())
-                        {
-                            RegisterController(obj.GetType());
-                        }
-                    }
-                    else
+                        obj = Activator.CreateInstance(controller.Assembly.IfNullOrEmptyDefault(null), controller.Class).Unwrap();
+                    }).Catch((Message, Source, StackTrace, Exception) =>
                     {
-                        this.ThrowException<ControllerRegistrationException>("Controller[" + controller + "] isn't defined properly in app.config file");
+                        this.ThrowException<ControllerRegistrationException>(Message);
+                    });
+                    if (obj.IsNotNull())
+                    {
+                        RegisterController(obj.GetType());
                     }
                 }
             }
-        }
-        
+        }        
         #endregion Register Controller
 
         #region Register View

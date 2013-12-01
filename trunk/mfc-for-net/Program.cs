@@ -17,8 +17,7 @@ namespace mfc_for_net
         static void Main()
         {
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
+            Application.SetCompatibleTextRenderingDefault(false);           
             ControllerDispatcher.GetInstance().AppeConfigInitialization();
 
             Application.Run(new WorksheetForm());
