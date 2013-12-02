@@ -40,5 +40,8 @@ namespace CtgWorksheet.Controllers
             return new { ScreeningNumber };
         }
         #endregion Action Method
+
+        [ValueFromController("")]
+        public string Test { get; set; }
     }
 }
