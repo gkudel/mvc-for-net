@@ -18,7 +18,7 @@ namespace MVCEngine.Internal.Descriptor
         #region Properties
         internal string ActionName { get; set; }
         internal Method Action { get; set; }
-        internal Type ControllerType { get; set; }
+        internal Func<object> ControllerActivator { get; set; }
         internal List<Listener> Listernes { get; set; }
         #endregion Properties
     }

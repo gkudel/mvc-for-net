@@ -13,6 +13,7 @@ using MVCEngine;
 using System.Configuration;
 using MVCEngine.View;
 using appconfig = MVCEngine.AppConfig;
+using System.Linq.Expressions;
 
 namespace MVCEngine
 {
@@ -47,7 +48,7 @@ namespace MVCEngine
         #endregion Properties
 
         #region Invoke Action Method
-        public object InvokeActionMethod(string controllerName, string actionMethod, object param = null, Func<object[]> ConstructorParams = null)
+        public object InvokeActionMethod(string controllerName, string actionMethod, object param = null)
         {
             Validator.GetInstnace().
                 IsNotEmpty(controllerName, "controllerName").
@@ -64,24 +65,17 @@ namespace MVCEngine
                 descriptor.Controller controller = ca.Controller;
                 descriptor.ActionMethod action = ca.ActionMethod;
                 object objecttoinvoke = null;
-                Type controllerType = controller.ControllerType.IfNullDefault<Type>(action.ControllerType);
-                if (controllerType.IsNotNull())
+                Func<object> controllerActivator = controller.ControllerActivator.IfNullDefault(action.ControllerActivator);
+                if (controllerActivator.IsNotNull())
                 {
                     TryCatchStatment.Try().Invoke(() =>
                     {
-                        if (ConstructorParams.IsNotNull())
-                        {
-                            objecttoinvoke = Activator.CreateInstance(controllerType, ConstructorParams());
-                        }
-                        else
-                        {
-                            objecttoinvoke = Activator.CreateInstance(controllerType);
-                        }
-                        if (controller.ControllerType.IsNotNull())
+                        objecttoinvoke = controllerActivator();
+                        if (controller.ControllerActivator.IsNotNull())
                         {
                             controller.PropertiesDefaultValues.ForEach((d) =>
                             {
-                                d.Key.SetValue(objecttoinvoke, d.Value, null);
+                                d.Key(objecttoinvoke, d.Value);
                             });
                         }
                     }).Catch((Message, Source, StackTrace, Exception) =>
@@ -196,7 +190,7 @@ namespace MVCEngine
             
             if (redirect.IsNotNull())
             {
-                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controllerName), redirect.ActionMethod, redirect.RedirectParams, redirect.ConstructorParams.IfNullDefault(ConstructorParams));
+                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controllerName), redirect.ActionMethod, redirect.RedirectParams);
             }
             else
             {
@@ -269,7 +263,7 @@ namespace MVCEngine
             if (controlerAttribute.IsNotNull())
             {
                 descriptor.Controller controller = Controllers.FirstOrDefault(c =>c.Name == controlerAttribute.ControllerName);
-                if (controller.IsNull() || controller.ControllerType.IsNull())
+                if (controller.IsNull() || controller.ControllerActivator.IsNull())
                 {
                     type.GetMethods().AsEnumerable().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
                         SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionMethod>()),
@@ -291,13 +285,13 @@ namespace MVCEngine
                                 PropertyInfo info = controlerAttribute.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
                                 if (info.IsNotNull())
                                 {
-                                    c.PropertiesDefaultValues.Add(new KeyValuePair<PropertyInfo, object>(pa.Property, info.GetValue(controlerAttribute, null)));
+                                    c.PropertiesDefaultValues.Add(new KeyValuePair<Action<object, object>, object>(GetPropertySetter(type, pa.Property), info.GetValue(controlerAttribute, null)));
                                 }
                             });
                             return c;
                         });
 
-                        controller.ControllerType = type;
+                        controller.ControllerActivator = CreatControllerActivator(type);
                         AddActionMethod(controller, action.ActionName, ma.Method);
                     });
 
@@ -331,7 +325,7 @@ namespace MVCEngine
                     };                    
                 });
                 descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, mInfo);
-                method.ControllerType = controllerType;
+                method.ControllerActivator = CreatControllerActivator(controllerType);
                 Controllers.AddIfNotContains(controller);
             }
             else
@@ -392,7 +386,37 @@ namespace MVCEngine
                     }
                 }
             }
-        }        
+        }
+
+        private Func<object> CreatControllerActivator(Type controllerType)
+        {
+            Func<object> ret = null;
+            ConstructorInfo ctor = controllerType.GetConstructors().FirstOrDefault(c => c.GetParameters().Count() == 0);
+            if (ctor != null)
+            {
+                ret = (Func<object>)Expression.Lambda(typeof(Func<object>), Expression.New(ctor, null), null).Compile();
+            }
+            else
+            {
+                this.ThrowException<ControllerRegistrationException>("Type[" + controllerType.FullName + "] should have no arguments constructor");
+            }
+            return ret;
+        }
+
+        public Action<object, object> GetPropertySetter(Type objectType, PropertyInfo propertyInfo)
+        {
+            ParameterExpression obj = Expression.Parameter(typeof(object));
+            Expression convertObj = Expression.Convert(obj, objectType);
+            ParameterExpression value = Expression.Parameter(typeof(object));
+            DefaultExpression defaultvalue = Expression.Default(propertyInfo.PropertyType);
+            return Expression.Lambda<Action<object, object>>(Expression.TryCatch(
+                    Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), Expression.Convert(value, propertyInfo.PropertyType)),
+                    Expression.Catch(typeof(InvalidCastException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
+                    Expression.Catch(typeof(FormatException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
+                    Expression.Catch(typeof(OverflowException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
+                    Expression.Catch(typeof(ArgumentNullException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
+                obj, value).Compile();
+        }
         #endregion Register Controller
 
         #region Register View

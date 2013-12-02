@@ -31,6 +31,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void WorksheetFormLoad(object sender, EventArgs e)
         {
+            DateTime dt = DateTime.Now;
             TryCatchStatment.Try().Invoke(() =>
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 });
@@ -38,6 +39,8 @@ namespace MvcForNet.CtgWorksheet.GUI
             {
                 MessageBox.Show(exc.Message);
             });
+            TimeSpan ts = DateTime.Now - dt;
+            MessageBox.Show(ts.Minutes + ":" + ts.Seconds + ":" + ts.Milliseconds);
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
