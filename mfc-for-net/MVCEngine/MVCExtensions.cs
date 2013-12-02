@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -65,6 +67,17 @@ namespace MVCEngine
             return false;
         }
         #endregion IsTypeOf
+
+        #region IsAnonymousType
+        public static bool IsAnonymousType(this object thisObject)
+        {
+            Type type = thisObject.GetType();
+            return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+                && type.IsGenericType && type.Name.Contains("AnonymousType")
+                && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
+                && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic; 
+        }
+        #endregion IsAnonymousType
 
         #region CastToTypeOf
         public static T CastToType<T>(this object thisObject) where T : class

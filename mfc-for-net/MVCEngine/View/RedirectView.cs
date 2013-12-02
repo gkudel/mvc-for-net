@@ -23,7 +23,7 @@ namespace MVCEngine.View
         public string ActionMethod { get; set; }
         public object Params { get; set; }
         public object RedirectParams { get; set; }
-        public Func<object[]> ConstructorParams { get; set; }
+        public object ControllerProperties { get; set; }
         #endregion Error Parameters
     }
 }
