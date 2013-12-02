@@ -48,7 +48,7 @@ namespace MVCEngine
         #endregion Properties
 
         #region Invoke Action Method
-        public object InvokeActionMethod(string controllerName, string actionMethod, object param = null)
+        public object InvokeActionMethod(string controllerName, string actionMethod, object param = null, object controllerProperties = null)
         {
             Validator.GetInstnace().
                 IsNotEmpty(controllerName, "controllerName").
@@ -73,9 +73,9 @@ namespace MVCEngine
                         objecttoinvoke = controllerActivator();
                         if (controller.ControllerActivator.IsNotNull())
                         {
-                            controller.PropertiesDefaultValues.ForEach((d) =>
-                            {
-                                d.Key(objecttoinvoke, d.Value);
+                            controller.DefaultValues.Keys.ToList().ForEach((k) =>
+                            {   
+                                controller.PropertiesSetters[k](objecttoinvoke, controller.DefaultValues[k]);
                             });
                         }
                     }).Catch((Message, Source, StackTrace, Exception) =>
@@ -190,7 +190,7 @@ namespace MVCEngine
             
             if (redirect.IsNotNull())
             {
-                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controllerName), redirect.ActionMethod, redirect.RedirectParams);
+                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controllerName), redirect.ActionMethod, redirect.RedirectParams, redirect.ControllerProperties.IfNullDefault(controllerProperties));
             }
             else
             {
@@ -202,7 +202,7 @@ namespace MVCEngine
         {
             object ret = null;
             List<object> parameters = new List<object>();
-            if (param.IsNotNull() && param.GetType().Namespace.IsNull() && param.GetType().Name.Contains("Anonymous"))
+            if (param.IsNotNull() && param.IsAnonymousType())
             {
                 PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); }, 
                                                                                                     new PropertyInfo[0]);
@@ -285,7 +285,8 @@ namespace MVCEngine
                                 PropertyInfo info = controlerAttribute.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
                                 if (info.IsNotNull())
                                 {
-                                    c.PropertiesDefaultValues.Add(new KeyValuePair<Action<object, object>, object>(GetPropertySetter(type, pa.Property), info.GetValue(controlerAttribute, null)));
+                                    c.DefaultValues.Add(info.Name, info.GetValue(controlerAttribute, null));
+                                    c.PropertiesSetters.Add(info.Name, GetPropertySetter(type, pa.Property));
                                 }
                             });
                             return c;
