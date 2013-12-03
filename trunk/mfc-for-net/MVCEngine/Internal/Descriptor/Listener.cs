@@ -9,8 +9,17 @@ namespace MVCEngine.Internal.Descriptor
 {
     internal class Listener
     {
+        #region Member
+        private object _thisObject;
+        #endregion Member
+
         #region Properties
-        internal object ThisObject { get; set; }
+        internal object ThisObject 
+        {
+            get { return _thisObject; }
+            set { _thisObject = value; FullTypeName = _thisObject.IsNotNull() ? _thisObject.GetType().FullName : string.Empty; }
+        }
+        internal string FullTypeName { get; set; }
         internal PropertyInfo IdProperty { get; set; }
         internal string IdParameterName { get; set; }
         internal Method ActionCallBack { get; set; }
