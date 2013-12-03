@@ -34,7 +34,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             DateTime dt = DateTime.Now;
             TryCatchStatment.Try().Invoke(() =>
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 });
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 }, new { Test = "Ala ma kota" });
             }).Catch<ActionMethodInvocationException>((exc) =>
             {
                 MessageBox.Show(exc.Message);

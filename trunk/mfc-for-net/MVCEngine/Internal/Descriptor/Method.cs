@@ -17,7 +17,7 @@ namespace MVCEngine.Internal.Descriptor
         #endregion Constructor
 
         #region Properties
-        internal MethodInfo MethodInfo { get; set; }
+        internal Func<object, object[], object> MethodTriger { get; set; }
         internal List<Parameter> Parameters { get; set; }
         #endregion Properties
     }
