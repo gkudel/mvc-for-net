@@ -24,7 +24,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             InitializeComponent();
             SessionId = Session.CreateSession();
             Session.SetSessionData(SessionId, "ModelContext", new ModelContext());
-            ControllerDispatcher.GetInstance().RegisterView(this);
+            ControllerDispatcher.GetInstance().RegisterListener(this);
         }
         #endregion Constructor
 

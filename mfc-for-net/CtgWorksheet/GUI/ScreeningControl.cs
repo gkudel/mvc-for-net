@@ -15,10 +15,16 @@ namespace MvcForNet.CtgWorksheet.GUI
     public partial class ScreeningControl : UserControl
     {
         #region Constructor
-        public ScreeningControl(Screening screening, string sessionId)
+        public ScreeningControl()
         {
             InitializeComponent();
-            ControllerDispatcher.GetInstance().RegisterView(this);
+        }
+
+        public ScreeningControl(Screening screening, string sessionId)
+            : this()
+        {
+
+            ControllerDispatcher.GetInstance().RegisterListener(this);
             SessionId = sessionId;
             Model = screening;
         }
