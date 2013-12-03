@@ -390,7 +390,7 @@ namespace MVCEngine
             RegisterListener(view);
         }
 
-        public void RegisterView(Type type)
+        private void RegisterView(Type type)
         {
             if (!_views.Value.Contains(type.FullName))
             {
@@ -651,7 +651,6 @@ namespace MVCEngine
                     });
                 }
             }
-
         }
         #endregion App Config
     }
