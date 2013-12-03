@@ -33,6 +33,11 @@ namespace MVCEngine
         {
             return string.IsNullOrEmpty(thisObject) ? defaultValue : thisObject;
         }
+
+        public static string IfNotNullOrEmptyDefault(this string thisObject, string defaultValue)
+        {
+            return !string.IsNullOrEmpty(thisObject) ? defaultValue : thisObject;
+        }
         #endregion IfNullOrEmptyDefault
 
         #region IsNull

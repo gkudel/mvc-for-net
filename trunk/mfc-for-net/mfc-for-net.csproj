@@ -102,6 +102,9 @@
     <Compile Include="MVCEngine\AppConfig\Controller.cs" />
     <Compile Include="MVCEngine\AppConfig\Controllers.cs" />
     <Compile Include="MVCEngine\AppConfig\ControllerSection.cs" />
+    <Compile Include="MVCEngine\AppConfig\View.cs" />
+    <Compile Include="MVCEngine\AppConfig\Views.cs" />
+    <Compile Include="MVCEngine\AppConfig\ViewSection.cs" />
     <Compile Include="MVCEngine\Attributes\ActionCallBack.cs" />
     <Compile Include="MVCEngine\Attributes\ActionMethod.cs" />
     <Compile Include="MVCEngine\Attributes\ActionMethodCallBack.cs" />
