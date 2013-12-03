@@ -20,12 +20,17 @@ namespace MVCEngine
     public sealed class ControllerDispatcher: IDisposable 
     {
         #region Members
-        private List<descriptor.Controller> _controllers;
+        private Lazy<List<descriptor.Controller>> _controllers;
+        private Lazy<List<string>> _views;
         private static ControllerDispatcher _instance = null;
         #endregion Members
 
         #region Constructor
-        private ControllerDispatcher() { }
+        private ControllerDispatcher() 
+        {
+            _controllers = new Lazy<List<descriptor.Controller>>(() => { return new List<descriptor.Controller>(); }, true);
+            _views = new Lazy<List<string>>(() => { return new List<string>(); }, true);
+        }
         #endregion Constructor
 
         #region Instance Factory
@@ -36,17 +41,6 @@ namespace MVCEngine
         }
         #endregion Instance Factory
 
-        #region Properties
-        private List<descriptor.Controller> Controllers
-        {
-            get
-            {
-                if (_controllers == null) _controllers = new List<descriptor.Controller>();
-                return _controllers;
-            }
-        }
-        #endregion Properties
-
         #region Invoke Action Method
         public object InvokeActionMethod(string controllerName, string actionMethod, object param = null, object controllerProperties = null)
         {
@@ -56,7 +50,7 @@ namespace MVCEngine
 
             object ret = null;
             RedirectView redirect = null;
-            var actionquery = Controllers.Where(c => c.Name == controllerName).
+            var actionquery = _controllers.Value.Where(c => c.Name == controllerName).
                 SelectMany(c => c.ActionMethods.Where(a => a.ActionName == actionMethod),
                 (c, a) => new { Controller = c, ActionMethod = a });
             var ca = actionquery.FirstOrDefault();
@@ -129,7 +123,7 @@ namespace MVCEngine
                     if (!forward.ControllerName.IsNullOrEmpty() &&
                         !forward.ControllerName.IsEquals(controllerName))
                     {
-                        redirectquery = _controllers.Where(c => c.Name == forward.ControllerName).
+                        redirectquery = _controllers.Value.Where(c => c.Name == forward.ControllerName).
                             SelectMany(c => c.ActionMethods.Where(a => a.ActionName == forward.ActionMethod),
                             (c, a) => a.Listernes);
                     }
@@ -144,7 +138,7 @@ namespace MVCEngine
                 }
                 if (listeners.IsNotNull())
                 {
-                    foreach (descriptor.Listener l in listeners)
+                    foreach (descriptor.Listener l in listeners.Where(l => l.ThisObject.IsNotNull()))
                     {
                         if (l.IdProperty.IsNotNull())
                         {
@@ -280,7 +274,7 @@ namespace MVCEngine
             Controller controlerAttribute = query.FirstOrDefault();
             if (controlerAttribute.IsNotNull())
             {
-                descriptor.Controller controller = Controllers.FirstOrDefault(c =>c.Name == controlerAttribute.ControllerName);
+                descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == controlerAttribute.ControllerName);
                 if (controller.IsNull() || controller.ControllerActivator.IsNull())
                 {
                     type.GetMethods().AsEnumerable().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
@@ -316,7 +310,7 @@ namespace MVCEngine
 
                     if (controller.IsNotNull())
                     {
-                        Controllers.AddIfNotContains(controller);
+                        _controllers.Value.AddIfNotContains(controller);
                     }
                 }
                 else
@@ -335,7 +329,7 @@ namespace MVCEngine
             MethodInfo mInfo = controllerType.GetMethod(controllerMethod);
             if (mInfo.IsNotNull() && mInfo.IsPublic)
             {
-                descriptor.Controller controller = Controllers.FirstOrDefault(c => c.Name == controllerName);
+                descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == controllerName);
                 controller = controller.IfNullDefault<descriptor.Controller>(() =>
                 {
                     return new descriptor.Controller()
@@ -345,7 +339,7 @@ namespace MVCEngine
                 });
                 descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, GetMethodTriger(controllerType, mInfo), mInfo);
                 method.ControllerActivator = GetControllerActivator(controllerType);
-                Controllers.AddIfNotContains(controller);
+                _controllers.Value.AddIfNotContains(controller);
             }
             else
             {
@@ -411,94 +405,111 @@ namespace MVCEngine
         #region Register View
         public void RegisterView(object view)
         {
-            var propertyquery = view.GetType().GetProperties().
-                SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ViewId>()),
-                (p, a) => new { Property = p, Attribute = a.CastToType<ViewId>() });
-            var propertyid = propertyquery.FirstOrDefault();
-            if (propertyquery.Count() > 1)
+            if (!_views.Value.Contains(view.GetType().FullName))
             {
-                this.ThrowException<ViewRegistrationException>("At least two properties is marked as Id");
-            }
-
-            view.GetType().GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
-                    SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
-                    (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((m) =>
-            {
-                ActionCallBack actioncallback = m.Attribute;
-                descriptor.Controller controller = Controllers.FirstOrDefault(c => c.Name == actioncallback.ControllerName).
-                IfNullDefault<descriptor.Controller>(() =>
+                var propertyquery = view.GetType().GetProperties().
+                    SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ViewId>()),
+                    (p, a) => new { Property = p, Attribute = a.CastToType<ViewId>() });
+                var propertyid = propertyquery.FirstOrDefault();
+                if (propertyquery.Count() > 1)
                 {
-                    return new descriptor.Controller()
-                    {
-                        Name = actioncallback.ControllerName
-                    };
-                });
-                descriptor.ActionMethod actionmethod = controller.ActionMethods.FirstOrDefault(action => action.ActionName == actioncallback.ActionName).
-                IfNullDefault<descriptor.ActionMethod>(() =>
-                {
-                    return new descriptor.ActionMethod()
-                    {
-                        ActionName = actioncallback.ActionName
-                    };
-                });
-                controller.ActionMethods.AddIfNotContains(actionmethod);
-                Controllers.AddIfNotContains(controller);
-
-                descriptor.Listener listener = new descriptor.Listener()
-                {
-                    ThisObject = view
-                };
-                if (propertyid.IsNotNull())
-                {
-                    listener.IdProperty = propertyid.Property;
-                    listener.IdParameterName = propertyid.Attribute.ParameterName.IfNullOrEmptyDefault(propertyid.Property.Name);
+                    this.ThrowException<ViewRegistrationException>("At least two properties is marked as Id");
                 }
-                actionmethod.Listernes.Add(listener);
 
-                descriptor.Method callbackmethod = null;
-                if (m.Attribute.IsTypeOf<ActionMethodCallBack>())
+                view.GetType().GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
+                        SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
+                        (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((m) =>
                 {
-                    callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodTriger = GetMethodTriger(view.GetType(), m.Method) };
-                }
-                else if (m.Attribute.IsTypeOf<ActionMethodErrorBack>())
-                {
-                    callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodTriger = GetMethodTriger(view.GetType(), m.Method) };
-                }
-                if (callbackmethod.IsNotNull())
-                {
-                    m.Method.GetParameters().ToList().ForEach((p) =>
+                    ActionCallBack actioncallback = m.Attribute;
+                    descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == actioncallback.ControllerName).
+                    IfNullDefault<descriptor.Controller>(() =>
                     {
-                        callbackmethod.Parameters.Add(new descriptor.Parameter()
+                        return new descriptor.Controller()
                         {
-                            ParameterName = p.Name.ToUpper(),
-                            ParameterType = p.ParameterType
-                        });
+                            Name = actioncallback.ControllerName
+                        };
                     });
-                }
-            }); 
+                    descriptor.ActionMethod actionmethod = controller.ActionMethods.FirstOrDefault(action => action.ActionName == actioncallback.ActionName).
+                    IfNullDefault<descriptor.ActionMethod>(() =>
+                    {
+                        return new descriptor.ActionMethod()
+                        {
+                            ActionName = actioncallback.ActionName
+                        };
+                    });
+                    controller.ActionMethods.AddIfNotContains(actionmethod);
+                    _controllers.Value.AddIfNotContains(controller);
+
+                    descriptor.Listener listener = new descriptor.Listener()
+                    {
+                        FullTypeName = view.GetType().FullName
+                    };
+                    if (propertyid.IsNotNull())
+                    {
+                        listener.IdProperty = propertyid.Property;
+                        listener.IdParameterName = propertyid.Attribute.ParameterName.IfNullOrEmptyDefault(propertyid.Property.Name);
+                    }
+                    actionmethod.Listernes.Add(listener);
+
+                    descriptor.Method callbackmethod = null;
+                    if (m.Attribute.IsTypeOf<ActionMethodCallBack>())
+                    {
+                        callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodTriger = GetMethodTriger(view.GetType(), m.Method) };
+                    }
+                    else if (m.Attribute.IsTypeOf<ActionMethodErrorBack>())
+                    {
+                        callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodTriger = GetMethodTriger(view.GetType(), m.Method) };
+                    }
+                    if (callbackmethod.IsNotNull())
+                    {
+                        m.Method.GetParameters().ToList().ForEach((p) =>
+                        {
+                            callbackmethod.Parameters.Add(new descriptor.Parameter()
+                            {
+                                ParameterName = p.Name.ToUpper(),
+                                ParameterType = p.ParameterType
+                            });
+                        });
+                    }
+                });
+                _views.Value.Add(view.GetType().FullName);
+            }
+            var listnerquery = _controllers.Value.SelectMany(c => c.ActionMethods.
+                                    SelectMany(a => a.Listernes.Where(l => l.FullTypeName == view.GetType().FullName && l.ThisObject.IsNull()).Take(1),
+                                                (a, l) => new { ActionMethod = a, Listener = l }),
+                                    (c, al) => new { Controller = c, ActionListner = al});
+            listnerquery.ToList().ForEach((element) => 
+            {
+                descriptor.Controller c = element.Controller;
+                descriptor.ActionMethod a = element.ActionListner.ActionMethod;
+                descriptor.Listener l = element.ActionListner.Listener;
+                a.Listernes.Add(new descriptor.Listener()
+                {
+                    ThisObject = view,
+                    IdProperty = l.IdProperty,
+                    IdParameterName = l.IdParameterName,
+                    ActionCallBack = l.ActionCallBack,
+                    ActionErrorBack = l.ActionErrorBack
+                });                    
+            });
         }
         #endregion Register View
 
         #region UnRegister View
         public void UnRegisterView(object view)
         {
-            view.GetType().GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
-                    SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
-                    (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((ma) =>
+            var listnerquery = _controllers.Value.SelectMany(c => c.ActionMethods.
+                        SelectMany(a => a.Listernes.Where(l => view.Equals(l.ThisObject)),
+                                  (a, l) => new { ActionMethod = a, Listener = l }),
+                        (c, al) => new { Controller = c, ActionListner = al });
+            listnerquery.ToList().ForEach((element) => 
             {
-                descriptor.Controller controller = Controllers.FirstOrDefault(c => c.Name == ma.Attribute.ControllerName);
-                if (controller.IsNotNull())
-                {
-                    descriptor.ActionMethod actionmethod = controller.ActionMethods.FirstOrDefault(action => action.ActionName == ma.Attribute.ActionName);
-                    if (actionmethod.IsNotNull())
-                    {
-                        actionmethod.Listernes.Where(l => l.ThisObject.Equals(view)).ToList().ForEach((l) =>
-                        {
-                            l.ThisObject = null;
-                        });
-                        actionmethod.Listernes.RemoveAll((l) => { return l.ThisObject.IsNull(); });
-                    }
-                }
+                descriptor.Controller c = element.Controller;
+                descriptor.ActionMethod a = element.ActionListner.ActionMethod;
+                descriptor.Listener l = element.ActionListner.Listener;
+
+                l.ThisObject = null;
+                a.Listernes.Remove(l);
             });
         }
         #endregion UnRegister View
@@ -506,7 +517,7 @@ namespace MVCEngine
         #region Dispose & Desctructor
         public void Dispose()
         {
-            Controllers.ForEach((c) =>
+            _controllers.Value.ForEach((c) =>
             {
                 c.ActionMethods.ForEach((a) =>
                 {
