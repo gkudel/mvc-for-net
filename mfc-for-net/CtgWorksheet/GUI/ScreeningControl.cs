@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using MVCEngine.Attributes;
 using MVCEngine;
 using CtgWorksheet.Model;
+using MVCEngine.Exceptions;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -48,7 +49,14 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { Id = Id, A = txtA.Text, B = txtB.Text });
+            TryCatchStatment.Try().Invoke(() =>
+            {            
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { Id = Id, A = txtA.Text, B = txtB.Text });
+            }).Catch<ActionMethodInvocationException>((exc) =>
+            {
+                MessageBox.Show(exc.Message);
+            });
+
         }
         #endregion GUI Events
 

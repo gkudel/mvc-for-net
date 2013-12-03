@@ -22,6 +22,7 @@ namespace MVCEngine
         #region Members
         private Lazy<List<descriptor.Controller>> _controllers;
         private Lazy<List<string>> _views;
+        private MethodInfo _miChangeType;
         private static ControllerDispatcher _instance = null;
         #endregion Members
 
@@ -30,6 +31,7 @@ namespace MVCEngine
         {
             _controllers = new Lazy<List<descriptor.Controller>>(() => { return new List<descriptor.Controller>(); }, true);
             _views = new Lazy<List<string>>(() => { return new List<string>(); }, true);
+            _miChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
         }
         #endregion Constructor
 
@@ -227,20 +229,7 @@ namespace MVCEngine
                 {
                     if (v.Value.IsNotNull())
                     {
-                        if (v.Parameter.ParameterType.IsInstanceOfType(v.Value.PropertyType))
-                        {
-                            parameters.Add(v.Value.GetValue(param, null));
-                        }
-                        else
-                        {
-                            TryCatchStatment.Try().Invoke(() =>
-                            {
-                                parameters.Add(Convert.ChangeType(v.Value.GetValue(param, null), v.Parameter.ParameterType));
-                            }).Catch<InvalidCastException, FormatException, OverflowException, ArgumentNullException>(() =>
-                            {
-                                parameters.Add(null);
-                            }).Throw();
-                        }
+                        parameters.Add(v.Value.GetValue(param, null));
                     }
                     else
                     {
@@ -571,25 +560,35 @@ namespace MVCEngine
 
         private Func<object, object[], object> GetMethodTriger(Type objectType, MethodInfo info)
         {
+            
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);
             ParameterExpression param = Expression.Parameter(typeof(object[]));
-
             ParameterInfo[] paramsInfo = info.GetParameters();
             Expression[] argsExp = new Expression[paramsInfo.Length];
             for (int i = 0; i < paramsInfo.Length; i++)
             {
                 Expression index = Expression.Constant(i);
                 Type paramType = paramsInfo[i].ParameterType;
-                argsExp[i] = Expression.Convert(Expression.ArrayIndex(param, index), paramType);
-            }
+                if (_miChangeType.IsNotNull())
+                {
+                    argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.Call(_miChangeType, Expression.ArrayIndex(param, index), Expression.Constant(paramType)),paramType),
+                                 Expression.Catch(typeof(Exception), Expression.Default(paramType)));
+                }
+                else
+                {
+                    argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.ArrayIndex(param, index), paramType),
+                                                     Expression.Catch(typeof(Exception), Expression.Default(paramType)));
+                }
+            }          
             if (!info.ReturnType.Equals(typeof(void)))
-            {
+            {                
                 return Expression.Lambda<Func<object, object[], object>>(Expression.Call(convertObj, info, argsExp), obj, param).Compile();
             }
             else
             {
-                return Expression.Lambda<Func<object, object[], object>>(Expression.Block(Expression.Call(convertObj, info, argsExp), Expression.Constant(null)), obj, param).Compile();
+                return Expression.Lambda<Func<object, object[], object>>(Expression.Block(Expression.Call(convertObj, info, argsExp), 
+                                                                          Expression.Constant(null)), obj, param).Compile();
             }
         }
         #endregion Lambda Expressions
