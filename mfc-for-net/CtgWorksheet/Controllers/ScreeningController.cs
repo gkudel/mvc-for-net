@@ -17,7 +17,7 @@ namespace CtgWorksheet.Controllers
         #endregion Constructor
 
         #region Action Method
-        [ActionMethod("Recalculate")]
+        [ActionMethod("Recalculate", IsAsynchronousInvoke=true)]
         public object Recalculate(long id, int A, int B)
         {
             return new { Id = id, Result = A + B };
