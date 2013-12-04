@@ -8,7 +8,7 @@ namespace MVCEngine.Session
 {
     public class Session
     {
-        #region Members        
+        #region Members
         private static Lazy<List<Session>> _sessions;
         private Lazy<List<KeyValuePair<string, object>>> _values;
         private static object _threadLock;
@@ -41,7 +41,10 @@ namespace MVCEngine.Session
 
         public static bool IsSessionExists(string sessionId)
         {
-            return _sessions.Value.Exists(s => s.SessionId == sessionId);
+            lock (_threadLock)
+            {
+                return _sessions.Value.Exists(s => s.SessionId == sessionId);
+            }
         }
 
         public static void ReleaseSession(string sessionId)
@@ -67,7 +70,10 @@ namespace MVCEngine.Session
         #region Data Methods
         public static object GetSessionData(string sessionId, string key)
         {
-            return GetSessionData<object>(sessionId, key);
+            lock (_threadLock)
+            {
+                return GetSessionData<object>(sessionId, key);
+            }
         }
 
         public static T GetSessionData<T>(string sessionId, string key) where T : class

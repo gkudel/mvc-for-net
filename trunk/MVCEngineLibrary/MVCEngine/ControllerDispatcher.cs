@@ -101,7 +101,7 @@ namespace MVCEngine
                 }
 
                 ret = actionMethodParameters;
-                ActionMethodData actionMethodData = new ActionMethodData(controller, action, objectToInvokeMethod, actionMethodParameters);
+                ActionMethodData actionMethodData = new ActionMethodData(action.IsAsynchronousInvoke, controller, action, objectToInvokeMethod, actionMethodParameters);
                 if (objectToInvokeMethod.IsNotNull())
                 {
                     if (!action.IsAsynchronousInvoke)
@@ -117,18 +117,18 @@ namespace MVCEngine
                     else
                     {
                         Task<object> task = new Task<object>(() =>
-                        {                            
+                        {
                             return InvokeAntecedent(actionMethodData);
                         });
-
-                        Task continuation = task.ContinueWith((antecedent) =>
+                      
+                        task.ContinueWith((antecedent) =>
                         {
                             ActionMethodData data = antecedent.Result.CastToType<ActionMethodData>();
                             if (data.IsNotNull())
                             {
                                 InvokeContinuations(data);
                             }
-                        });
+                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
                         task.Start();
                     }
                 }
@@ -163,7 +163,16 @@ namespace MVCEngine
                 actionMethodData.ControllerReturnData = InvokeMethod(actionMethodData.ActionMethod.Action, actionMethodData.ObjectToInvokeMethod, actionMethodData.ActionMethodParameters);
             }).Catch((Message, Source, StackTrace, Exception) =>
             {
-                this.ThrowException<ActionMethodInvocationException>(Message);
+                if (actionMethodData.IsAsynchronousInvoke)
+                {
+                    actionMethodData.IsFault = true;
+                    actionMethodData.Message = Message;
+                    actionMethodData.StackTrace = StackTrace;
+                }
+                else
+                {
+                    this.ThrowException<ActionMethodInvocationException>(Message);
+                }
             }).Finally(() =>
             {
                 if (actionMethodData.ObjectToInvokeMethod.IsTypeOf<IDisposable>())
@@ -177,7 +186,7 @@ namespace MVCEngine
         private void InvokeContinuations(ActionMethodData actionMethodData)
         {
             List<descriptor.Listener> listeners = actionMethodData.ActionMethod.Listernes;
-            if (actionMethodData.ControllerReturnData.IsTypeOf<ForwardView>())
+            if (actionMethodData.ControllerReturnData.IsNotNull() && actionMethodData.ControllerReturnData.IsTypeOf<ForwardView>())
             {
                 ForwardView forward = actionMethodData.ControllerReturnData.CastToType<ForwardView>();
                 var redirectquery = actionMethodData.Controller.ActionMethods.Where(a => a.ActionName == forward.ActionMethod).
@@ -202,7 +211,11 @@ namespace MVCEngine
                     {
                         object viewid = l.IdProperty.GetValue(l.ThisObject, null);
                         if (viewid.IsNull()) continue;
-                        PropertyInfo pinfo = actionMethodData.ControllerReturnData.GetType().GetProperty(l.IdParameterName);
+                        PropertyInfo pinfo = null;
+                        if (actionMethodData.ControllerReturnData.IsNotNull())
+                        {
+                            pinfo = actionMethodData.ControllerReturnData.GetType().GetProperty(l.IdParameterName);
+                        }
                         object retid = null;
                         if (pinfo.IsNull())
                         {
@@ -210,7 +223,7 @@ namespace MVCEngine
                             if (pinfo.IsNull()) continue;
                             retid = pinfo.GetValue(actionMethodData.ActionMethodParameters, null);
                         }
-                        else
+                        else if(pinfo.IsNotNull())
                         {
                             retid = pinfo.GetValue(actionMethodData.ControllerReturnData, null);
                         }
@@ -227,13 +240,21 @@ namespace MVCEngine
                         if (viewid.IsNotEquals(retid)) continue;
                     }
 
-                    if (actionMethodData.ControllerReturnData.IsTypeOf<ErrorView>())
+                    if ((actionMethodData.ControllerReturnData.IsNull() && actionMethodData.IsFault)
+                        || actionMethodData.ControllerReturnData.IsTypeOf<ErrorView>())
                     {
                         if (l.ActionErrorBack.IsNotNull())
                         {
                             TryCatchStatment.Try().Invoke(() =>
                             {
-                                InvokeMethod(l.ActionErrorBack, l.ThisObject, actionMethodData.ControllerReturnData.CastToType<ErrorView>().Params);
+                                if (actionMethodData.ControllerReturnData.IsNotNull())
+                                {
+                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, actionMethodData.ControllerReturnData.CastToType<ErrorView>().Params);
+                                }
+                                else
+                                {
+                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, new { Message = actionMethodData.Message, StackTrace = actionMethodData.StackTrace });
+                                }
                             }).Catch((Message, Source, StackTrace, Exception) =>
                             {
                                 this.ThrowException<ActionMethodInvocationException>(Message);
@@ -344,7 +365,7 @@ namespace MVCEngine
                         });
 
                         controller.ControllerActivator = controlActivator.IfNullDefault(() => { return GetControllerActivator(type); });
-                        AddActionMethod(controller, action.ActionName, action.IsAsynchronousInvoke, GetMethodTriger(type, ma.Method), ma.Method);
+                        AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, GetMethodTriger(type, ma.Method), ma.Method);
                     });
 
                     if (controller.IsNotNull())
@@ -468,10 +489,14 @@ namespace MVCEngine
                     controller.ActionMethods.AddIfNotContains(actionmethod);
                     _controllers.Value.AddIfNotContains(controller);
 
-                    descriptor.Listener listener = new descriptor.Listener()
+                    descriptor.Listener listener = actionmethod.Listernes.FirstOrDefault(l => l.ThisObject == null).
+                    IfNullDefault(() =>
                     {
-                        FullTypeName = type.FullName
-                    };
+                        return new descriptor.Listener()
+                        {
+                            FullTypeName = type.FullName
+                        };
+                    });
                     if (propertyid.IsNotNull())
                     {
                         listener.IdProperty = propertyid.Property;
@@ -533,10 +558,10 @@ namespace MVCEngine
         #endregion Register Listener
 
         #region UnRegister View
-        public void UnRegisterView(object view)
+        public void UnRegisterListener(object listener)
         {
             var listnerquery = _controllers.Value.SelectMany(c => c.ActionMethods.
-                        SelectMany(a => a.Listernes.Where(l => view.Equals(l.ThisObject)),
+                        SelectMany(a => a.Listernes.Where(l => listener.Equals(l.ThisObject)),
                                   (a, l) => new { ActionMethod = a, Listener = l }),
                         (c, al) => new { Controller = c, ActionListner = al });
             listnerquery.ToList().ForEach((element) => 
@@ -718,8 +743,9 @@ namespace MVCEngine
         private class ActionMethodData
         {
             #region Constructor
-            public ActionMethodData(descriptor.Controller Controller, descriptor.ActionMethod ActionMethod, object ObjectToInvokeMethod, object ActionMethodParameters)
+            public ActionMethodData(bool IsAsynchronousInvoke, descriptor.Controller Controller, descriptor.ActionMethod ActionMethod, object ObjectToInvokeMethod, object ActionMethodParameters)
             {
+                this.IsAsynchronousInvoke = IsAsynchronousInvoke;
                 this.Controller = Controller;
                 this.ActionMethod = ActionMethod;
                 this.ObjectToInvokeMethod = ObjectToInvokeMethod;
@@ -728,11 +754,15 @@ namespace MVCEngine
             #endregion Constructor
 
             #region Properties
+            public bool IsAsynchronousInvoke { get; private set; }
             public descriptor.Controller Controller { get; private set; }
             public descriptor.ActionMethod ActionMethod { get; private set; }
             public object ObjectToInvokeMethod { get; private set; }
             public object ActionMethodParameters { get; private set; }
             public object ControllerReturnData { get; set; }
+            public bool IsFault { get; set; }
+            public string Message { get; set; }
+            public string StackTrace { get; set; }
             #endregion Properties
         }
         #endregion Asynchronous Action Method Data

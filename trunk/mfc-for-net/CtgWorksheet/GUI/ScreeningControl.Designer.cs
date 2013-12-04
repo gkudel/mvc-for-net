@@ -18,7 +18,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             {
                 components.Dispose();
             }
-            ControllerDispatcher.GetInstance().UnRegisterView(this);
+            ControllerDispatcher.GetInstance().UnRegisterListener(this);
             base.Dispose(disposing);
         }
 
