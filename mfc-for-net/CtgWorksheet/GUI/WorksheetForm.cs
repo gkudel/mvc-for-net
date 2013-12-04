@@ -32,7 +32,6 @@ namespace MvcForNet.CtgWorksheet.GUI
         private void WorksheetFormLoad(object sender, EventArgs e)
         {
             ControllerDispatcher.GetInstance().RegisterListener(this);
-            DateTime dt = DateTime.Now;
             try
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 }, new { Test = "Ala ma kota" });
@@ -41,8 +40,6 @@ namespace MvcForNet.CtgWorksheet.GUI
             {
                 MessageBox.Show(exc.Message);
             }
-            TimeSpan ts = DateTime.Now - dt;
-            MessageBox.Show(ts.Minutes + ":" + ts.Seconds + ":" + ts.Milliseconds);
         }
 
         private void AddScreeningClick(object sender, EventArgs e)

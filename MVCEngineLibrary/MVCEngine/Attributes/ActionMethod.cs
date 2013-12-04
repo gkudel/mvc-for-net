@@ -30,7 +30,7 @@ namespace MVCEngine.Attributes
             get { return actionName; }
         }
 
-        public virtual bool IsAsynchronousInvoke { get; set; }
+        //public virtual bool IsAsynchronousInvoke { get; set; }
         #endregion Properties
     }
 }
