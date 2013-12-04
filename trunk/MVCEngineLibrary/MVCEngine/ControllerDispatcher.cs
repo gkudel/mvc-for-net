@@ -52,8 +52,7 @@ namespace MVCEngine
                 IsNotEmpty(controllerName, "controllerName").
                 IsNotEmpty(actionMethod, "actionMethod");
 
-            object ret = null;
-            RedirectView redirect = null;
+            object ret = null;            
             var actionquery = _controllers.Value.Where(c => c.Name == controllerName).
                 SelectMany(c => c.ActionMethods.Where(a => a.ActionName == actionMethod),
                 (c, a) => new { Controller = c, ActionMethod = a });
@@ -117,100 +116,113 @@ namespace MVCEngine
                         }
                     });
                 }
-                List<descriptor.Listener> listeners = action.Listernes;
-                if(ret.IsTypeOf<ForwardView>())
+                if (!action.IsAsynchronousInvoke)
                 {
-                    ForwardView forward = ret.CastToType<ForwardView>();
-                    var redirectquery = controller.ActionMethods.Where(a => a.ActionName == forward.ActionMethod).
-                        Select(a => a.Listernes);
-
-                    if (!forward.ControllerName.IsNullOrEmpty() &&
-                        !forward.ControllerName.IsEquals(controllerName))
-                    {
-                        redirectquery = _controllers.Value.Where(c => c.Name == forward.ControllerName).
-                            SelectMany(c => c.ActionMethods.Where(a => a.ActionName == forward.ActionMethod),
-                            (c, a) => a.Listernes);
-                    }
-
-                    listeners = redirectquery.FirstOrDefault();
-                    ret = forward.Params;
+                    ret = InvokeAntecents(controller, action, param, ret, controllerProperties);
                 }
-                if (ret.IsTypeOf<RedirectView>())
+                else
                 {
-                    redirect = ret.CastToType<RedirectView>();
-                    ret = redirect.Params;
-                }
-                if (listeners.IsNotNull())
-                {
-                    foreach (descriptor.Listener l in listeners.Where(l => l.ThisObject.IsNotNull()))
-                    {
-                        if (l.IdProperty.IsNotNull())
-                        {
-                            object viewid = l.IdProperty.GetValue(l.ThisObject, null);
-                            if (viewid.IsNull()) continue;
-                            PropertyInfo pinfo = ret.GetType().GetProperty(l.IdParameterName);
-                            object retid = null;
-                            if (pinfo.IsNull())
-                            {
-                                pinfo = param.GetType().GetProperty(l.IdParameterName);
-                                if (pinfo.IsNull()) continue;
-                                retid = pinfo.GetValue(param, null);
-                            }
-                            else
-                            {
-                                retid = pinfo.GetValue(ret, null);
-                            }
-                            if (!viewid.GetType().IsInstanceOfType(retid))
-                            {
-                                TryCatchStatment.Try().Invoke(() =>
-                                {
-                                    retid = Convert.ChangeType(retid, viewid.GetType());
-                                }).Catch<InvalidCastException, FormatException, OverflowException, ArgumentNullException>(() =>
-                                {
-                                    retid = null;
-                                });
-                            }
-                            if (viewid.IsNotEquals(retid)) continue;
-                        }
-
-                        if (ret.IsTypeOf<ErrorView>())
-                        {
-                            if (l.ActionErrorBack.IsNotNull())
-                            {
-                                TryCatchStatment.Try().Invoke(() =>
-                                {
-                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, ret.CastToType<ErrorView>().Params);
-                                }).Catch((Message, Source, StackTrace, Exception) =>
-                                {
-                                    this.ThrowException<ActionMethodInvocationException>(Message);
-                                });
-                            }
-                        }
-                        else if (l.ActionCallBack.IsNotNull())
-                        {
-                            TryCatchStatment.Try().Invoke(() =>
-                            {
-                                InvokeMethod(l.ActionCallBack, l.ThisObject, ret);
-                            }).Catch((Message, Source, StackTrace, Exception) =>
-                            {
-                                this.ThrowException<ActionMethodInvocationException>(Message);
-                            });
-                        }
-                    }
+                    ret = null;
                 }
             }
             else
             {
                 this.ThrowException<ActionMethodInvocationException>("There is no Controller[" + controllerName + "] or Action Method[" + actionMethod + "] register");
             }
-            
+            return ret;
+        }
+
+        private object InvokeAntecents(descriptor.Controller controller, descriptor.ActionMethod action, object param, object controllerData, object controllerProperties)
+        {
+            RedirectView redirect = null;
+            List<descriptor.Listener> listeners = action.Listernes;
+            if (controllerData.IsTypeOf<ForwardView>())
+            {
+                ForwardView forward = controllerData.CastToType<ForwardView>();
+                var redirectquery = controller.ActionMethods.Where(a => a.ActionName == forward.ActionMethod).
+                    Select(a => a.Listernes);
+
+                if (!forward.ControllerName.IsNullOrEmpty() &&
+                    !forward.ControllerName.IsEquals(controller.Name))
+                {
+                    redirectquery = _controllers.Value.Where(c => c.Name == forward.ControllerName).
+                        SelectMany(c => c.ActionMethods.Where(a => a.ActionName == forward.ActionMethod),
+                        (c, a) => a.Listernes);
+                }
+
+                listeners = redirectquery.FirstOrDefault();
+                controllerData = forward.Params;
+            }
+            if (controllerData.IsTypeOf<RedirectView>())
+            {
+                redirect = controllerData.CastToType<RedirectView>();
+                controllerData = redirect.Params;
+            }
+            if (listeners.IsNotNull())
+            {
+                foreach (descriptor.Listener l in listeners.Where(l => l.ThisObject.IsNotNull()))
+                {
+                    if (l.IdProperty.IsNotNull())
+                    {
+                        object viewid = l.IdProperty.GetValue(l.ThisObject, null);
+                        if (viewid.IsNull()) continue;
+                        PropertyInfo pinfo = controllerData.GetType().GetProperty(l.IdParameterName);
+                        object retid = null;
+                        if (pinfo.IsNull())
+                        {
+                            pinfo = param.GetType().GetProperty(l.IdParameterName);
+                            if (pinfo.IsNull()) continue;
+                            retid = pinfo.GetValue(param, null);
+                        }
+                        else
+                        {
+                            retid = pinfo.GetValue(controllerData, null);
+                        }
+                        if (!viewid.GetType().IsInstanceOfType(retid))
+                        {
+                            TryCatchStatment.Try().Invoke(() =>
+                            {
+                                retid = Convert.ChangeType(retid, viewid.GetType());
+                            }).Catch<InvalidCastException, FormatException, OverflowException, ArgumentNullException>(() =>
+                            {
+                                retid = null;
+                            });
+                        }
+                        if (viewid.IsNotEquals(retid)) continue;
+                    }
+
+                    if (controllerData.IsTypeOf<ErrorView>())
+                    {
+                        if (l.ActionErrorBack.IsNotNull())
+                        {
+                            TryCatchStatment.Try().Invoke(() =>
+                            {
+                                InvokeMethod(l.ActionErrorBack, l.ThisObject, controllerData.CastToType<ErrorView>().Params);
+                            }).Catch((Message, Source, StackTrace, Exception) =>
+                            {
+                                this.ThrowException<ActionMethodInvocationException>(Message);
+                            });
+                        }
+                    }
+                    else if (l.ActionCallBack.IsNotNull())
+                    {
+                        TryCatchStatment.Try().Invoke(() =>
+                        {
+                            InvokeMethod(l.ActionCallBack, l.ThisObject, controllerData);
+                        }).Catch((Message, Source, StackTrace, Exception) =>
+                        {
+                            this.ThrowException<ActionMethodInvocationException>(Message);
+                        });
+                    }
+                }
+            }
             if (redirect.IsNotNull())
             {
-                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controllerName), redirect.ActionMethod, redirect.RedirectParams, redirect.ControllerProperties.IfNullDefault(controllerProperties));
+                return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controller.Name), redirect.ActionMethod, redirect.RedirectParams, redirect.ControllerProperties.IfNullDefault(controllerProperties));
             }
             else
             {
-                return ret;
+                return controllerData;
             }
         }
 
@@ -304,7 +316,7 @@ namespace MVCEngine
                         });
 
                         controller.ControllerActivator = controlActivator.IfNullDefault(() => { return GetControllerActivator(type); });
-                        AddActionMethod(controller, action.ActionName, GetMethodTriger(type, ma.Method), ma.Method);
+                        AddActionMethod(controller, action.ActionName, action.IsAsynchronousInvoke, GetMethodTriger(type, ma.Method), ma.Method);
                     });
 
                     if (controller.IsNotNull())
@@ -323,7 +335,7 @@ namespace MVCEngine
             }
         }
 
-        public void RegisterActionMethod(Type controllerType, string controllerMethod, string controllerName, string actionMethod)
+        public void RegisterActionMethod(Type controllerType, string controllerMethod, string controllerName, string actionMethod, bool isAsynchronousInvoke)
         {
             lock (_threadlock)
             {
@@ -338,7 +350,7 @@ namespace MVCEngine
                             Name = controllerName
                         };
                     });
-                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, GetMethodTriger(controllerType, mInfo), mInfo);
+                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, GetMethodTriger(controllerType, mInfo), mInfo);
                     method.ControllerActivator = GetControllerActivator(controllerType);
                     _controllers.Value.AddIfNotContains(controller);
                 }
@@ -349,7 +361,7 @@ namespace MVCEngine
             }
         }
 
-        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, Func<object, object[], object> methodTriger, MethodInfo mInfo)
+        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, bool isAsynchronousInvoke, Func<object, object[], object> methodTriger, MethodInfo mInfo)
         {
             descriptor.ActionMethod method = controller.ActionMethods.FirstOrDefault(am => am.ActionName == ActionName);
             if (method.IsNull() || method.Action.IsNull())
@@ -358,7 +370,8 @@ namespace MVCEngine
                 {
                     return new descriptor.ActionMethod()
                     {
-                        ActionName = ActionName
+                        ActionName = ActionName, 
+                        IsAsynchronousInvoke = isAsynchronousInvoke
                     };
                 });
                 method.Action = new descriptor.Method() { MethodTriger = methodTriger };
