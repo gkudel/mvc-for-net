@@ -20,6 +20,7 @@ namespace CtgWorksheet.Controllers
         [ActionMethod("Recalculate", IsAsynchronousInvoke=true)]
         public object Recalculate(long id, int A, int B)
         {
+            System.Threading.Thread.Sleep(5000);
             return new { Id = id, Result = A + B };
         }
         #endregion Action Method
