@@ -4,25 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine.Validation
+namespace MVCEngine.Internal.Validation
 {
-    public sealed class Validator
+    internal sealed class Validator
     {
         #region Constructor
-        public Validator()
+        internal Validator()
         {
         }
         #endregion Constructor
 
         #region Throw Exception
-        public void ThrowExeception(Exception e)
+        internal void ThrowExeception(Exception e)
         {
             throw e;
         }
         #endregion Throw Exception
 
         #region Begin Validation
-        public static Validator GetInstnace()
+        internal static Validator GetInstnace()
         {
             return null;
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCEngine.Validation;
+using MVCEngine.Internal.Validation;
 
 namespace MVCEngine.Attributes
 {
@@ -29,6 +29,8 @@ namespace MVCEngine.Attributes
         {
             get { return actionName; }
         }
+
+        public virtual bool IsAsynchronousInvoke { get; set; }
         #endregion Properties
     }
 }

@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Internal;
 
-namespace MVCEngine
+namespace MVCEngine.Internal
 {
-    public sealed class TryCatchStatment
+    internal sealed class TryCatchStatment
     {
         #region Exception
         private Exception Exception { get; set; }
@@ -20,12 +20,12 @@ namespace MVCEngine
         #endregion Constructor
 
         #region Methods
-        public static TryCatchStatment Try()
+        internal static TryCatchStatment Try()
         {
             return new TryCatchStatment();          
         }
 
-        public TryCatchStatment Invoke(Action action)
+        internal TryCatchStatment Invoke(Action action)
         {
             if (Exception.IsNull())
             {
@@ -41,7 +41,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T>(Action<T> catchStatment = null) 
+        internal TryCatchStatment Catch<T>(Action<T> catchStatment = null) 
             where T : Exception
         {
             if (Exception.IsNotNull())
@@ -58,7 +58,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2>(Action<T1> catchStatmentT1 = null, Action<T2> catchStatmentT2 = null) 
+        internal TryCatchStatment Catch<T1, T2>(Action<T1> catchStatmentT1 = null, Action<T2> catchStatmentT2 = null) 
             where T1 : Exception 
             where T2 : Exception                                                                                          
         {
@@ -67,7 +67,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2, T3>(Action<T1> catchStatmentT1 = null, Action<T2> catchStatmentT2 = null, 
+        internal TryCatchStatment Catch<T1, T2, T3>(Action<T1> catchStatmentT1 = null, Action<T2> catchStatmentT2 = null, 
                                                     Action<T3> catchStatmentT3 = null)
             where T1 : Exception
             where T2 : Exception
@@ -79,7 +79,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2, T3, T4>(Action<T1> catchStatmentT1 = null, Action<T2> catchStatmentT2 = null,
+        internal TryCatchStatment Catch<T1, T2, T3, T4>(Action<T1> catchStatmentT1 = null, Action<T2> catchStatmentT2 = null,
                                                         Action<T3> catchStatmentT3 = null, Action<T4> catchStatmentT4 = null)
             where T1 : Exception
             where T2 : Exception
@@ -93,7 +93,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T>(Action<string, string, string, Exception> catchStatment)
+        internal TryCatchStatment Catch<T>(Action<string, string, string, Exception> catchStatment)
             where T : Exception
         {
             if (Exception.IsNotNull())
@@ -110,7 +110,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2>(Action<string, string, string, Exception> catchStatment)
+        internal TryCatchStatment Catch<T1, T2>(Action<string, string, string, Exception> catchStatment)
             where T1 : Exception
             where T2 : Exception
         {
@@ -118,8 +118,8 @@ namespace MVCEngine
             Catch<T2>(catchStatment);
             return this;
         }
-        
-        public TryCatchStatment Catch<T1, T2, T3>(Action<string, string, string, Exception> catchStatment)
+
+        internal TryCatchStatment Catch<T1, T2, T3>(Action<string, string, string, Exception> catchStatment)
             where T1 : Exception
             where T2 : Exception
             where T3 : Exception
@@ -129,7 +129,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2, T3, T4>(Action<string, string, string, Exception> catchStatment)
+        internal TryCatchStatment Catch<T1, T2, T3, T4>(Action<string, string, string, Exception> catchStatment)
             where T1 : Exception
             where T2 : Exception
             where T3 : Exception
@@ -140,7 +140,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T>(Action catchStatment)
+        internal TryCatchStatment Catch<T>(Action catchStatment)
             where T : Exception
         {
             if (Exception.IsNotNull())
@@ -154,7 +154,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2>(Action catchStatment)
+        internal TryCatchStatment Catch<T1, T2>(Action catchStatment)
             where T1 : Exception
             where T2 : Exception
         {
@@ -163,7 +163,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2, T3>(Action catchStatment)
+        internal TryCatchStatment Catch<T1, T2, T3>(Action catchStatment)
             where T1 : Exception
             where T2 : Exception
             where T3 : Exception
@@ -173,7 +173,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch<T1, T2, T3, T4>(Action catchStatment)
+        internal TryCatchStatment Catch<T1, T2, T3, T4>(Action catchStatment)
             where T1 : Exception
             where T2 : Exception
             where T3 : Exception
@@ -184,7 +184,7 @@ namespace MVCEngine
             return this;
         }
 
-        public TryCatchStatment Catch(Action<string, string, string, Exception> catchStatment)
+        internal TryCatchStatment Catch(Action<string, string, string, Exception> catchStatment)
         {
             if (Exception.IsNotNull())
             {
@@ -198,7 +198,7 @@ namespace MVCEngine
         }
 
 
-        public void Throw()
+        internal void Throw()
         {
             if (Exception.IsNotNull())
             {
@@ -206,7 +206,7 @@ namespace MVCEngine
             }
         }
 
-        public TryCatchStatment Finally(Action action)
+        internal TryCatchStatment Finally(Action action)
         {
             action();
             return this;
