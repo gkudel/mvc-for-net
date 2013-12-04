@@ -20,6 +20,7 @@ namespace MVCEngine.Internal.Descriptor
         internal Method Action { get; set; }
         internal Func<object> ControllerActivator { get; set; }
         internal List<Listener> Listernes { get; set; }
+        internal bool IsAsynchronousInvoke { get; set; }
         #endregion Properties
     }
 }

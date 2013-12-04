@@ -49,13 +49,14 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            TryCatchStatment.Try().Invoke(() =>
+            try
             {            
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { Id = Id, A = txtA.Text, B = txtB.Text });
-            }).Catch<ActionMethodInvocationException>((exc) =>
+            }
+            catch(ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
-            });
+            }
 
         }
         #endregion GUI Events

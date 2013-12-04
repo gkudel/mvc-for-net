@@ -13,6 +13,7 @@ using MVCEngine.Attributes;
 using CtgWorksheet.Controllers;
 using CtgWorksheet.Model;
 using MVCEngine.Session;
+using MVCEngine.Internal;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -23,35 +24,37 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             InitializeComponent();
             SessionId = Session.CreateSession();
-            Session.SetSessionData(SessionId, "ModelContext", new ModelContext());
-            ControllerDispatcher.GetInstance().RegisterListener(this);
+            Session.SetSessionData(SessionId, "ModelContext", new ModelContext());            
         }
         #endregion Constructor
 
         #region GUI Events
         private void WorksheetFormLoad(object sender, EventArgs e)
         {
+            ControllerDispatcher.GetInstance().RegisterListener(this);
             DateTime dt = DateTime.Now;
-            TryCatchStatment.Try().Invoke(() =>
+            try
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 }, new { Test = "Ala ma kota" });
-            }).Catch<ActionMethodInvocationException>((exc) =>
+            }
+            catch(ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
-            });
+            }
             TimeSpan ts = DateTime.Now - dt;
             MessageBox.Show(ts.Minutes + ":" + ts.Seconds + ":" + ts.Milliseconds);
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
         {
-            TryCatchStatment.Try().Invoke(() =>
+            try
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening");
-            }).Catch<ActionMethodInvocationException>((exc) =>
+            }
+            catch(ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
-            });
+            }
         }
 
         private void DeleteScreening(object sender, EventArgs e)
@@ -61,13 +64,14 @@ namespace MvcForNet.CtgWorksheet.GUI
                 ScreeningControl control = tabScreening.SelectedTab.Controls[0].CastToType<ScreeningControl>();
                 if (control.IsNotNull())
                 {
-                    TryCatchStatment.Try().Invoke(() =>
+                    try
                     {
                         ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Id = control.Id });
-                    }).Catch<ActionMethodInvocationException>((exc) =>
+                    }
+                    catch(ActionMethodInvocationException exc) 
                     {
                         MessageBox.Show(exc.Message);
-                    });
+                    }
                 }
             }
         }

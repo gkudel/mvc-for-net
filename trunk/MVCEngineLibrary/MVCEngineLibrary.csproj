@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A1F52670-6CAB-49AF-9981-F96989CD134F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MVCEngineLibrary</RootNamespace>
+    <AssemblyName>MVCEngineLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\packages\Castle.Core.1.2.0\lib\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\packages\Castle.DynamicProxy.2.2.0\lib\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MVCEngine\AppConfig\Controller.cs" />
+    <Compile Include="MVCEngine\AppConfig\Controllers.cs" />
+    <Compile Include="MVCEngine\AppConfig\ControllerSection.cs" />
+    <Compile Include="MVCEngine\AppConfig\View.cs" />
+    <Compile Include="MVCEngine\AppConfig\Views.cs" />
+    <Compile Include="MVCEngine\AppConfig\ViewSection.cs" />
+    <Compile Include="MVCEngine\Attributes\ActionCallBack.cs" />
+    <Compile Include="MVCEngine\Attributes\ActionMethod.cs" />
+    <Compile Include="MVCEngine\Attributes\ActionMethodCallBack.cs" />
+    <Compile Include="MVCEngine\Attributes\ActionMethodErrorBack.cs" />
+    <Compile Include="MVCEngine\Attributes\Controller.cs" />
+    <Compile Include="MVCEngine\Attributes\ValueFromControllerAttribute.cs" />
+    <Compile Include="MVCEngine\Attributes\ViewId.cs" />
+    <Compile Include="MVCEngine\ControllerDispatcher.cs" />
+    <Compile Include="MVCEngine\Exceptions\ActionMethodInvocationException.cs" />
+    <Compile Include="MVCEngine\Exceptions\ControllerRegistrationException.cs" />
+    <Compile Include="MVCEngine\Exceptions\ViewRegistrationException.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptor\ActionMethod.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptor\Controller.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptor\Listener.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptor\Method.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptor\Parameter.cs" />
+    <Compile Include="MVCEngine\Internal\TryCatchStatment.cs" />
+    <Compile Include="MVCEngine\Internal\Validation\Validation.cs" />
+    <Compile Include="MVCEngine\Internal\Validation\ValidationExtensions.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Column.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Interceptor.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Table.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\InterceptorGenerationHook.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\InterceptorSelector.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\SecurityInterceptor.cs" />
+    <Compile Include="MVCEngine\Model\ModelContext.cs" />
+    <Compile Include="MVCEngine\MVCExtensions.cs" />
+    <Compile Include="MVCEngine\Session\Exceptions\InvalidSessionIdException.cs" />
+    <Compile Include="MVCEngine\Session\Session.cs" />
+    <Compile Include="MVCEngine\View\ErrorView.cs" />
+    <Compile Include="MVCEngine\View\ForwardView.cs" />
+    <Compile Include="MVCEngine\View\RedirectView.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,7 +1,6 @@
 ﻿using MVCEngine.Attributes;
 using MVCEngine.Exceptions;
 using MVCEngine.Internal;
-using MVCEngine.Validation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +13,7 @@ using System.Configuration;
 using MVCEngine.View;
 using appconfig = MVCEngine.AppConfig;
 using System.Linq.Expressions;
+using MVCEngine.Internal.Validation;
 
 namespace MVCEngine
 {
@@ -24,6 +24,7 @@ namespace MVCEngine
         private Lazy<List<string>> _views;
         private MethodInfo _miChangeType;
         private static ControllerDispatcher _instance = null;
+        private object _threadlock;
         #endregion Members
 
         #region Constructor
@@ -32,6 +33,7 @@ namespace MVCEngine
             _controllers = new Lazy<List<descriptor.Controller>>(() => { return new List<descriptor.Controller>(); }, true);
             _views = new Lazy<List<string>>(() => { return new List<string>(); }, true);
             _miChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
+            _threadlock = new object();
         }
         #endregion Constructor
 
@@ -257,7 +259,10 @@ namespace MVCEngine
         #region Register Controller
         public void RegisterController(Type type)
         {
-            RegisterController(type, null);
+            lock (_threadlock)
+            {
+                RegisterController(type, null);
+            }
         }
 
         private void RegisterController(Type type, Func<object> controlActivator)
@@ -320,24 +325,27 @@ namespace MVCEngine
 
         public void RegisterActionMethod(Type controllerType, string controllerMethod, string controllerName, string actionMethod)
         {
-            MethodInfo mInfo = controllerType.GetMethod(controllerMethod);
-            if (mInfo.IsNotNull() && mInfo.IsPublic)
+            lock (_threadlock)
             {
-                descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == controllerName);
-                controller = controller.IfNullDefault<descriptor.Controller>(() =>
+                MethodInfo mInfo = controllerType.GetMethod(controllerMethod);
+                if (mInfo.IsNotNull() && mInfo.IsPublic)
                 {
-                    return new descriptor.Controller()
+                    descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == controllerName);
+                    controller = controller.IfNullDefault<descriptor.Controller>(() =>
                     {
-                        Name = controllerName
-                    };                    
-                });
-                descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, GetMethodTriger(controllerType, mInfo), mInfo);
-                method.ControllerActivator = GetControllerActivator(controllerType);
-                _controllers.Value.AddIfNotContains(controller);
-            }
-            else
-            {
-                this.ThrowException<ControllerRegistrationException>("Type[" + controllerType.FullName + "] doesn't have public implementation of Method[" + controllerMethod + "]");
+                        return new descriptor.Controller()
+                        {
+                            Name = controllerName
+                        };
+                    });
+                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, GetMethodTriger(controllerType, mInfo), mInfo);
+                    method.ControllerActivator = GetControllerActivator(controllerType);
+                    _controllers.Value.AddIfNotContains(controller);
+                }
+                else
+                {
+                    this.ThrowException<ControllerRegistrationException>("Type[" + controllerType.FullName + "] doesn't have public implementation of Method[" + controllerMethod + "]");
+                }
             }
         }
 
@@ -375,8 +383,11 @@ namespace MVCEngine
         #region Register View
         public void RegisterView(object view)
         {
-            RegisterView(view.GetType());
-            RegisterListener(view);
+            lock (_threadlock)
+            {
+                RegisterView(view.GetType());
+                RegisterListener(view);
+            }
         }
 
         private void RegisterView(Type type)
@@ -456,24 +467,27 @@ namespace MVCEngine
         #region Register Listener
         public void RegisterListener(object listener)
         {
-            var listnerquery = _controllers.Value.SelectMany(c => c.ActionMethods.
-                        SelectMany(a => a.Listernes.Where(l => l.FullTypeName == listener.GetType().FullName && l.ThisObject.IsNull()).Take(1),
-                                    (a, l) => new { ActionMethod = a, Listener = l }),
-                        (c, al) => new { Controller = c, ActionListner = al });
-            listnerquery.ToList().ForEach((element) =>
+            lock (_threadlock)
             {
-                descriptor.Controller c = element.Controller;
-                descriptor.ActionMethod a = element.ActionListner.ActionMethod;
-                descriptor.Listener l = element.ActionListner.Listener;
-                a.Listernes.Add(new descriptor.Listener()
+                var listnerquery = _controllers.Value.SelectMany(c => c.ActionMethods.
+                            SelectMany(a => a.Listernes.Where(l => l.FullTypeName == listener.GetType().FullName && l.ThisObject.IsNull()).Take(1),
+                                        (a, l) => new { ActionMethod = a, Listener = l }),
+                            (c, al) => new { Controller = c, ActionListner = al });
+                listnerquery.ToList().ForEach((element) =>
                 {
-                    ThisObject = listener,
-                    IdProperty = l.IdProperty,
-                    IdParameterName = l.IdParameterName,
-                    ActionCallBack = l.ActionCallBack,
-                    ActionErrorBack = l.ActionErrorBack
+                    descriptor.Controller c = element.Controller;
+                    descriptor.ActionMethod a = element.ActionListner.ActionMethod;
+                    descriptor.Listener l = element.ActionListner.Listener;
+                    a.Listernes.Add(new descriptor.Listener()
+                    {
+                        ThisObject = listener,
+                        IdProperty = l.IdProperty,
+                        IdParameterName = l.IdParameterName,
+                        ActionCallBack = l.ActionCallBack,
+                        ActionErrorBack = l.ActionErrorBack
+                    });
                 });
-            });
+            }
         }
         #endregion Register Listener
 
@@ -595,61 +609,67 @@ namespace MVCEngine
 
         #region App Config
         public void AppeConfigInitialization()
-        {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            appconfig.ControllerSection controllersection = config.GetSection("RegisterControllers") as appconfig.ControllerSection;
-            if (controllersection.IsNotNull())
+        {            
+            Task t = Task.Factory.StartNew(() =>
             {
-                foreach (appconfig.Controller controller in controllersection.Controllers)
+                lock (_threadlock)
                 {
-                    object obj = null;                    
-                    TryCatchStatment.Try().Invoke(() =>
+                    Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                    appconfig.ControllerSection controllersection = config.GetSection("RegisterControllers") as appconfig.ControllerSection;
+                    if (controllersection.IsNotNull())
                     {
-                        Type type = Type.GetType(controller.Class + controller.Assembly.IfNotNullOrEmptyDefault("," + controller.Assembly));
-                        Func<object> objectActivator = GetControllerActivator(type);
-                        obj = objectActivator();
-                        RegisterController(obj.GetType(), objectActivator);
-                    }).Catch((Message, Source, StackTrace, Exception) =>
-                    {
-                        this.ThrowException<ControllerRegistrationException>(Message);
-                    }).Finally(() =>
-                    {
-                        if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
+                        foreach (appconfig.Controller controller in controllersection.Controllers)
                         {
-                            obj.CastToType<IDisposable>().Dispose();
+                            object obj = null;
+                            TryCatchStatment.Try().Invoke(() =>
+                            {
+                                Type type = Type.GetType(controller.Class + controller.Assembly.IfNotNullOrEmptyDefault("," + controller.Assembly));
+                                Func<object> objectActivator = GetControllerActivator(type);
+                                obj = objectActivator();
+                                RegisterController(obj.GetType(), objectActivator);
+                            }).Catch((Message, Source, StackTrace, Exception) =>
+                            {
+                                this.ThrowException<ControllerRegistrationException>(Message);
+                            }).Finally(() =>
+                            {
+                                if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
+                                {
+                                    obj.CastToType<IDisposable>().Dispose();
+                                }
+                            });
                         }
-                    });
-                }
-            }
+                    }
 
-            appconfig.ViewSection viewsection = config.GetSection("RegisterViews") as appconfig.ViewSection;
-            if (viewsection.IsNotNull())
-            {
-                foreach (appconfig.View view in viewsection.Views)
-                {
-                    object obj = null;
-                    TryCatchStatment.Try().Invoke(() =>
+                    appconfig.ViewSection viewsection = config.GetSection("RegisterViews") as appconfig.ViewSection;
+                    if (viewsection.IsNotNull())
                     {
-                        Type type = Type.GetType(view.Class + view.Assembly.IfNotNullOrEmptyDefault("," + view.Assembly));
-                        Func<object> objectActivator = GetControllerActivator(type);
-                        obj = objectActivator();
-                        if (obj.IsNotNull())
+                        foreach (appconfig.View view in viewsection.Views)
                         {
-                            RegisterView(obj.GetType());
-                        }
+                            object obj = null;
+                            TryCatchStatment.Try().Invoke(() =>
+                            {
+                                Type type = Type.GetType(view.Class + view.Assembly.IfNotNullOrEmptyDefault("," + view.Assembly));
+                                Func<object> objectActivator = GetControllerActivator(type);
+                                obj = objectActivator();
+                                if (obj.IsNotNull())
+                                {
+                                    RegisterView(obj.GetType());
+                                }
 
-                    }).Catch((Message, Source, StackTrace, Exception) =>
-                    {
-                        this.ThrowException<ControllerRegistrationException>(Message);
-                    }).Finally(() =>
-                    {
-                        if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
-                        {
-                            obj.CastToType<IDisposable>().Dispose();
+                            }).Catch((Message, Source, StackTrace, Exception) =>
+                            {
+                                this.ThrowException<ControllerRegistrationException>(Message);
+                            }).Finally(() =>
+                            {
+                                if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
+                                {
+                                    obj.CastToType<IDisposable>().Dispose();
+                                }
+                            });
                         }
-                    });
+                    }
                 }
-            }
+            });
         }
         #endregion App Config
     }

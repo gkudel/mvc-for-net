@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine.Validation
+namespace MVCEngine.Internal.Validation
 {
-    public static class ValidationExtensions
+    internal static class ValidationExtensions
     {
         #region IsNotNull
-        public static Validator IsNotNull(this Validator validation, object theObject, string paramName)
+        internal static Validator IsNotNull(this Validator validation, object theObject, string paramName)
         {
             if (theObject == null)
             {
@@ -19,7 +19,7 @@ namespace MVCEngine.Validation
             return validation;
         }
 
-        public static Validator IsNotNull(this Validator validation, object theObject, string paramName, Func<object, bool> func)
+        internal static Validator IsNotNull(this Validator validation, object theObject, string paramName, Func<object, bool> func)
         {
             if (!func(theObject))
             {
@@ -30,7 +30,7 @@ namespace MVCEngine.Validation
         #endregion IsNotNull
 
         #region IsNotNull
-        public static Validator IsNotEmpty(this Validator validation, string theValue, string paramName)
+        internal static Validator IsNotEmpty(this Validator validation, string theValue, string paramName)
         {
             if (string.IsNullOrEmpty(theValue))
             {
@@ -40,7 +40,7 @@ namespace MVCEngine.Validation
             return validation;
         }
 
-        public static Validator IsNotEmpty(this Validator validation, string theValue, string paramName, Func<string, bool> func)
+        internal static Validator IsNotEmpty(this Validator validation, string theValue, string paramName, Func<string, bool> func)
         {
             if (!func(theValue))
             {
