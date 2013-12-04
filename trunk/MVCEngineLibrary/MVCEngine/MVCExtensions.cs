@@ -11,37 +11,37 @@ namespace MVCEngine
     public static class MVCExtensions
     {
         #region IfNullDefault
-        public static T IfNullDefault<T>(this T thisObject, T defaultValue)
+        internal static T IfNullDefault<T>(this T thisObject, T defaultValue)
         {
             return thisObject == null ? defaultValue : thisObject;
         }
 
-        public static T IfNullDefault<T>(this T thisObject, Func<T> fun)
+        internal static T IfNullDefault<T>(this T thisObject, Func<T> fun)
         {
             return thisObject == null ? fun() : thisObject;
         }
 
-        public delegate T Func<T>();
-        public static T2 IfNullDefault<T1, T2>(this T1 thisObject, Func<T2> fun, T2 defaultValue)
+        internal delegate T Func<T>();
+        internal static T2 IfNullDefault<T1, T2>(this T1 thisObject, Func<T2> fun, T2 defaultValue)
         {
             return thisObject != null ? fun() : defaultValue;
         }
         #endregion IfNullDefault
 
         #region IfNullOrEmptyDefault
-        public static string IfNullOrEmptyDefault(this string thisObject, string defaultValue)
+        internal static string IfNullOrEmptyDefault(this string thisObject, string defaultValue)
         {
             return string.IsNullOrEmpty(thisObject) ? defaultValue : thisObject;
         }
 
-        public static string IfNotNullOrEmptyDefault(this string thisObject, string defaultValue)
+        internal static string IfNotNullOrEmptyDefault(this string thisObject, string defaultValue)
         {
             return !string.IsNullOrEmpty(thisObject) ? defaultValue : thisObject;
         }
         #endregion IfNullOrEmptyDefault
 
         #region IsNull
-        public static bool IsNull(this object thisObject)
+        internal static bool IsNull(this object thisObject)
         {
             return thisObject == null;
         }
@@ -55,14 +55,14 @@ namespace MVCEngine
         #endregion IsNull
 
         #region IsNull
-        public static bool IsNullOrEmpty(this string thisObject)
+        internal static bool IsNullOrEmpty(this string thisObject)
         {
             return string.IsNullOrEmpty(thisObject);
         }
         #endregion IsNull
 
         #region IsTypeOf
-        public static bool IsTypeOf<T>(this object thisObject) where T : class
+        internal static bool IsTypeOf<T>(this object thisObject) where T : class
         {
             if (thisObject != null)
             {
@@ -74,7 +74,7 @@ namespace MVCEngine
         #endregion IsTypeOf
 
         #region IsAnonymousType
-        public static bool IsAnonymousType(this object thisObject)
+        internal static bool IsAnonymousType(this object thisObject)
         {
             Type type = thisObject.GetType();
             return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
@@ -96,7 +96,7 @@ namespace MVCEngine
         #endregion IsTypeOf
 
         #region GetOrNull
-        public static T2 GetOrNull<T1, T2>(this Dictionary<T1, T2> dict, T1 key)
+        internal static T2 GetOrNull<T1, T2>(this Dictionary<T1, T2> dict, T1 key)
         {
             if (dict.ContainsKey(key))
             {
@@ -107,7 +107,7 @@ namespace MVCEngine
         #endregion GetOrNull
 
         #region AddOrReplace
-        public static void AddOrReplace<T1, T2>(this Dictionary<T1, T2> dict, T1 key, T2 value)
+        internal static void AddOrReplace<T1, T2>(this Dictionary<T1, T2> dict, T1 key, T2 value)
         {
             if (!dict.ContainsKey(key))
             {
@@ -121,14 +121,14 @@ namespace MVCEngine
         #endregion AddOrReplace
 
         #region ThrowException
-        public static void ThrowException<T>(this object o, string excMessage) where T : Exception
+        internal static void ThrowException<T>(this object o, string excMessage) where T : Exception
         {
             if (!string.IsNullOrEmpty(excMessage)) throw (T)Activator.CreateInstance(typeof(T), new object[] { excMessage });
         }
         #endregion ThrowException
 
         #region AddIfNotContains
-        public static bool AddIfNotContains<T>(this List<T> list, T obj)
+        internal static bool AddIfNotContains<T>(this List<T> list, T obj)
         {
             if (!list.Contains(obj))
             {
@@ -140,7 +140,7 @@ namespace MVCEngine
         #endregion AddIfNotContains
 
         #region IsEquals
-        public static bool IsEquals(this object thisObject, object obj)
+        internal static bool IsEquals(this object thisObject, object obj)
         {
             if((thisObject.IsNull() && obj.IsNull()) ||
                 (thisObject.IsNotNull() && obj.IsNotNull() && thisObject.Equals(obj)))
@@ -152,14 +152,14 @@ namespace MVCEngine
         #endregion IsEquals
 
         #region IsNotEquals
-        public static bool IsNotEquals(this object thisObject, object obj)
+        internal static bool IsNotEquals(this object thisObject, object obj)
         {
             return !IsEquals(thisObject, obj);
         }
         #endregion IsNotEquals
 
         #region AppendByDefault
-        public static void AddAndAppendByDefault<T>(this ICollection<T> thisObject, ICollection<T> collection, int length, T defaultvalue)
+        internal static void AddAndAppendByDefault<T>(this ICollection<T> thisObject, ICollection<T> collection, int length, T defaultvalue)
         {
             for (int i = thisObject.Count, j = 0; i < length; i++, j++)
             {

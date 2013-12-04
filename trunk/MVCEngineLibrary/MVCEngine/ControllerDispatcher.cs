@@ -102,19 +102,12 @@ namespace MVCEngine
                 ret = param;
                 if (objecttoinvoke.IsNotNull())
                 {
-                    TryCatchStatment.Try().Invoke(() =>
+                    if (!action.IsAsynchronousInvoke)
                     {
-                        ret = InvokeMethod(action.Action, objecttoinvoke, param);
-                    }).Catch((Message, Source, StackTrace, Exception) =>
-                    {
-                        this.ThrowException<ActionMethodInvocationException>(Message);
-                    }).Finally(() =>
-                    {
-                        if (objecttoinvoke.IsTypeOf<IDisposable>())
-                        {
-                            objecttoinvoke.CastToType<IDisposable>().Dispose();
-                        }
-                    });
+                        ret = InvokeAntecedent(action, objecttoinvoke, param);
+                    }
+                    else
+                    { }
                 }
                 if (!action.IsAsynchronousInvoke)
                 {
@@ -129,6 +122,25 @@ namespace MVCEngine
             {
                 this.ThrowException<ActionMethodInvocationException>("There is no Controller[" + controllerName + "] or Action Method[" + actionMethod + "] register");
             }
+            return ret;
+        }
+
+        private object InvokeAntecedent(descriptor.ActionMethod action, object objecttoinvoke, object param)
+        {
+            object ret = null;
+            TryCatchStatment.Try().Invoke(() =>
+            {
+                ret = InvokeMethod(action.Action, objecttoinvoke, param);
+            }).Catch((Message, Source, StackTrace, Exception) =>
+            {
+                this.ThrowException<ActionMethodInvocationException>(Message);
+            }).Finally(() =>
+            {
+                if (objecttoinvoke.IsTypeOf<IDisposable>())
+                {
+                    objecttoinvoke.CastToType<IDisposable>().Dispose();
+                }
+            });
             return ret;
         }
 
