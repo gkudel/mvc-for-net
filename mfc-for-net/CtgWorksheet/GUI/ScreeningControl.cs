@@ -63,9 +63,9 @@ namespace MvcForNet.CtgWorksheet.GUI
 
         #region Calls Back
         [ActionMethodCallBack("Screening", "Recalculate")]
-        public void Loaded(int Result)
+        public void Recalculate(int Result)
         {
-            lblResult.Text = Result.ToString();
+            Invoke(new Action<int>((r) => { lblResult.Text = r.ToString(); }), new object[] { Result });            
         }
         #endregion Calls Back
     }
