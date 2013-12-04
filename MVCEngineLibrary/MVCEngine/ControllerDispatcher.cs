@@ -118,7 +118,7 @@ namespace MVCEngine
                 }
                 if (!action.IsAsynchronousInvoke)
                 {
-                    ret = InvokeAntecents(controller, action, param, ret, controllerProperties);
+                    ret = InvokeContinuations(controller, action, param, ret, controllerProperties);
                 }
                 else
                 {
@@ -132,7 +132,7 @@ namespace MVCEngine
             return ret;
         }
 
-        private object InvokeAntecents(descriptor.Controller controller, descriptor.ActionMethod action, object param, object controllerData, object controllerProperties)
+        private object InvokeContinuations(descriptor.Controller controller, descriptor.ActionMethod action, object param, object controllerData, object controllerProperties)
         {
             RedirectView redirect = null;
             List<descriptor.Listener> listeners = action.Listernes;
