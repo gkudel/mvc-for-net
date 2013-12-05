@@ -29,7 +29,6 @@ namespace CtgWorksheet.Controllers
             w.Id = id;
             w.Description = "Workshet(" + screeningrecid + ")";
             ctx._worksheets.AcceptChanges();
-            int c = w.Screenings.Count();
             return new RedirectView("AddScreening") { Params = new { Model = w } };
         }
 

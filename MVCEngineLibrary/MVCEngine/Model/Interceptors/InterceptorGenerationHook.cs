@@ -12,7 +12,6 @@ namespace MVCEngine.Model.Interceptors
 {
     internal class InterceptorGenerationHook : IProxyGenerationHook
     {
-
         #region IProxyGenerationHook
         public void MethodsInspected()
         {

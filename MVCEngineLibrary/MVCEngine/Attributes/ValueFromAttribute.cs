@@ -6,14 +6,14 @@ using System.Text;
 namespace MVCEngine.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public sealed class ValueFromControllerAttribute : System.Attribute
+    public sealed class ValueFromAttribute : System.Attribute
     {
         #region Members
         private string propertyName;
         #endregion Members
 
         #region Constructor
-        public ValueFromControllerAttribute(string propertyName)
+        public ValueFromAttribute(string propertyName)
         {
             this.propertyName = propertyName;
         }

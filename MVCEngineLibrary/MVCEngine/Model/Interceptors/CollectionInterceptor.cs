@@ -1,4 +1,5 @@
 ﻿using Castle.Core.Interceptor;
+using MVCEngine.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Text;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    public class CollectionInterceptor : IInterceptor
+    internal class CollectionInterceptor : IInterceptor
     {
         #region Constructor
         public CollectionInterceptor()
@@ -22,5 +23,13 @@ namespace MVCEngine.Model.Interceptors
         }
         #endregion Inetercept
 
+        #region Properties
+        [ValueFromAttribute("")]
+        public string TableName { get; set; }
+        [ValueFromAttribute("")]
+        public string Id { get; set; }
+        [ValueFromAttribute("")]
+        public string ForeignKey { get; set; }
+        #endregion Properties
     }
 }

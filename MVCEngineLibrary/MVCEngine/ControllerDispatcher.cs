@@ -350,8 +350,8 @@ namespace MVCEngine
                                 Name = controlerAttribute.ControllerName
                             };
                             type.GetProperties().AsEnumerable().Where(p => p.CanWrite).
-                            SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromControllerAttribute>()),
-                            (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromControllerAttribute>() }).
+                            SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),
+                            (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromAttribute>() }).
                             ToList().ForEach((pa) =>
                             {
                                 PropertyInfo info = controlerAttribute.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
