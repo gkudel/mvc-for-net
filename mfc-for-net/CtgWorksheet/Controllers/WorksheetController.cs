@@ -27,8 +27,9 @@ namespace CtgWorksheet.Controllers
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx._worksheets.AddNew();
             w.Id = id;
-            w.Description = "Testowy opisik";
-            ctx.Freeze<Worksheet>(w);
+            w.Description = "Workshet(" + screeningrecid + ")";
+            ctx._worksheets.AcceptChanges();
+            int c = w.Screenings.Count();
             return new RedirectView("AddScreening") { Params = new { Model = w } };
         }
 
@@ -37,6 +38,8 @@ namespace CtgWorksheet.Controllers
         public object AddScreening()
         {
             int ScreeningNumber = ++screeningrecid;
+            WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
+            ctx._worksheets[0].Description = "Workshet(" + screeningrecid + ")";
             return new { Model = new Screening() { Id = ScreeningNumber }, ScreeningNumber };
         }
 
@@ -44,6 +47,8 @@ namespace CtgWorksheet.Controllers
         public object AddScreening(int id)
         {
             int ScreeningNumber = --screeningrecid;
+            WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
+            ctx._worksheets[0].Description = "Workshet(" + screeningrecid + ")";
             return new { ScreeningNumber };
         }
         #endregion Action Method
