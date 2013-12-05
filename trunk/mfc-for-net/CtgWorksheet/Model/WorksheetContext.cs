@@ -8,6 +8,6 @@ namespace CtgWorksheet.Model
 {
     public class WorksheetContext : ModelContext
     {
-        public ModelList<Worksheet> _worksheets = new ModelList<Worksheet>();
+        public ModelBindingList<Worksheet> _worksheets = new ModelBindingList<Worksheet>();
     }
 }

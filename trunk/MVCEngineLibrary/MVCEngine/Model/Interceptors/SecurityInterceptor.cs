@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCEngine.Model.Interceptors.Interface;
 using MVCEngine.Model.Interceptors.Exceptions;
 
 namespace MVCEngine.Model.Interceptors
@@ -21,15 +20,15 @@ namespace MVCEngine.Model.Interceptors
         #region Inetercept
         public void Intercept(IInvocation invocation)
         {
-            if (invocation.InvocationTarget.IsTypeOf<ISecurity>())
+            if (invocation.InvocationTarget.IsTypeOf<ModelObject>())
             {
-                if (!invocation.InvocationTarget.CastToType<ISecurity>().IsFrozen)
+                if (!invocation.InvocationTarget.CastToType<ModelObject>().IsFrozen)
                 {
                     invocation.Proceed();
                 }
                 else
                 {
-                    this.ThrowException<SecurityException>("Security Exception. You try to modified obiect for which you don't have an accesss");
+                    this.ThrowException<SecurityException>("Security Exception. You try to modified object for which you don't have an accesss");
                 }
             }
             else

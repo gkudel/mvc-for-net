@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Internal.Validation;
+using MVCEngine.Model.Interceptors;
 
 namespace MVCEngine.Model.Attributes
 {
@@ -23,15 +24,16 @@ namespace MVCEngine.Model.Attributes
         public Interceptor(string interceptorName, params string[] methodsName)
         {
             Validator.GetInstnace().
-                IsNotNull(interceptorName, "interceptorName").
+                IsNotEmpty(interceptorName, "interceptorName").
                 IsNotNull(methodsName, "methodsName");
 
             this.interceptorName = interceptorName;
             this.methodsName = methodsName;
             switch (interceptorName)
             {
-                case "SecurityInterceptor" :
-                case "ModifyInterceptor" :
+                case DefaultInterceptors.SecurityInterceptor:
+                case DefaultInterceptors.ModificationInterceptor:
+                case DefaultInterceptors.CollectionInterceptor:
                     Namespace = "MVCEngine.Model.Interceptors";
                     break;
             }

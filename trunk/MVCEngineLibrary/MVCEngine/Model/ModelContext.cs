@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Internal;
 using Castle.DynamicProxy;
-using MVCEngine.Model.Interceptors.Interface;
 
 namespace MVCEngine.Model
 {
@@ -19,14 +18,14 @@ namespace MVCEngine.Model
         #endregion Constructor
 
         #region Freeze & UnFreeze
-        public void Freeze<T>(T obj) where T : ISecurity
+        public void Freeze<T>(T obj) where T : ModelObject
         {
-            obj.CastToType<ISecurity>().IsFrozen = true;
+            obj.IsFrozen = true;
         }
 
-        public void UnFreeze<T>(T obj) where T : ISecurity
+        public void UnFreeze<T>(T obj) where T : ModelObject
         {
-            obj.CastToType<ISecurity>().IsFrozen = false;
+            obj.IsFrozen = false;
         }
         #endregion Freeze & UnFreeze
     }
