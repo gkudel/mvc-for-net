@@ -8,6 +8,8 @@ using Castle.Core.Interceptor;
 using MVCEngine.Internal;
 using System.Text.RegularExpressions;
 using MVCEngine.Model.Exceptions;
+using MVCEngine.Attributes;
+using System.Reflection;
 
 namespace MVCEngine.Model.Internal
 {
@@ -86,7 +88,20 @@ namespace MVCEngine.Model.Internal
                             Methods = new List<string>(i.MethodsName),
                             RegEx = i.RegEx
                         });
-                        model.InterceptorObjects.Add(CmnTools.GetObjectActivator(i.Namespace + "." + i.InterceptorName, i.Assembly)().CastToType<IInterceptor>());
+                        IInterceptor interceptor = CmnTools.GetObjectActivator(i.Namespace + "." + i.InterceptorName, i.Assembly)().CastToType<IInterceptor>();
+                        model.InterceptorObjects.Add(interceptor);
+
+                        interceptor.GetType().GetProperties().AsEnumerable().Where(p => p.CanWrite).
+                        SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),
+                        (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromAttribute>() }).
+                        ToList().ForEach((pa) =>
+                        {
+                            PropertyInfo info = i.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
+                            if (info.IsNotNull())
+                            {
+                                pa.Property.SetValue(interceptor, info.GetValue(i, null), null);
+                            }
+                        });
                     }).Catch((Message, Source, StackTrace, Exception) =>
                     {
                         this.ThrowException<InterceptorDispatcherException>(Message);
@@ -98,6 +113,5 @@ namespace MVCEngine.Model.Internal
 
         }
         #endregion Methods
-
     }
 }

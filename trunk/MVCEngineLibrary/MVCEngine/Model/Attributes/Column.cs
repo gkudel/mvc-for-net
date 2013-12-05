@@ -8,7 +8,7 @@ using MVCEngine.Internal.Validation;
 namespace MVCEngine.Model.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class Column : System.Attribute
+    public sealed class Column : System.Attribute
     {
         #region Members
         private string columnName;
