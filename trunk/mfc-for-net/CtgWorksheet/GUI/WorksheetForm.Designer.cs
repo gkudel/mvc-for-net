@@ -42,7 +42,10 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.btnClose = new System.Windows.Forms.Button();
             this.btnAddScreening = new System.Windows.Forms.Button();
             this.tabScreening = new System.Windows.Forms.TabControl();
+            this.pnlTop = new System.Windows.Forms.Panel();
+            this.txtDescription = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
+            this.pnlTop.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
@@ -93,11 +96,27 @@ namespace MvcForNet.CtgWorksheet.GUI
             // tabScreening
             // 
             this.tabScreening.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabScreening.Location = new System.Drawing.Point(0, 0);
+            this.tabScreening.Location = new System.Drawing.Point(0, 42);
             this.tabScreening.Name = "tabScreening";
             this.tabScreening.SelectedIndex = 0;
-            this.tabScreening.Size = new System.Drawing.Size(669, 448);
+            this.tabScreening.Size = new System.Drawing.Size(669, 406);
             this.tabScreening.TabIndex = 1;
+            // 
+            // pnlTop
+            // 
+            this.pnlTop.Controls.Add(this.txtDescription);
+            this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTop.Location = new System.Drawing.Point(0, 0);
+            this.pnlTop.Name = "pnlTop";
+            this.pnlTop.Size = new System.Drawing.Size(669, 42);
+            this.pnlTop.TabIndex = 2;
+            // 
+            // txtDescription
+            // 
+            this.txtDescription.Location = new System.Drawing.Point(12, 12);
+            this.txtDescription.Name = "txtDescription";
+            this.txtDescription.Size = new System.Drawing.Size(645, 20);
+            this.txtDescription.TabIndex = 0;
             // 
             // WorksheetForm
             // 
@@ -106,11 +125,14 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(669, 492);
             this.Controls.Add(this.tabScreening);
+            this.Controls.Add(this.pnlTop);
             this.Controls.Add(this.panel1);
             this.Name = "WorksheetForm";
             this.Text = "Worksheet Dialog";
             this.Load += new System.EventHandler(this.WorksheetFormLoad);
             this.panel1.ResumeLayout(false);
+            this.pnlTop.ResumeLayout(false);
+            this.pnlTop.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -122,6 +144,8 @@ namespace MvcForNet.CtgWorksheet.GUI
         private System.Windows.Forms.Button btnAddScreening;
         private System.Windows.Forms.TabControl tabScreening;
         private System.Windows.Forms.Button btnDeleteScreening;
+        private System.Windows.Forms.Panel pnlTop;
+        private System.Windows.Forms.TextBox txtDescription;
     }
 }
 

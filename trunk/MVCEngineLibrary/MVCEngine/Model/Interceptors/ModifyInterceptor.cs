@@ -27,6 +27,7 @@ namespace MVCEngine.Model.Interceptors
                 {
                     obj.State = ObjectState.Modified;
                 }
+                invocation.Proceed();
             }
             else
             {
