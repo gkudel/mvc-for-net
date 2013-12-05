@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCEngine.Internal;
+using MVCEngine.Model.Internal;
+using System.Reflection;
 
 namespace MVCEngine.Model.Interceptors
 {
@@ -13,25 +14,30 @@ namespace MVCEngine.Model.Interceptors
     {
         #region SelectInterceptors
         public IInterceptor[] SelectInterceptors(Type type, System.Reflection.MethodInfo method, IInterceptor[] interceptors)
-        {
-            var query = from a in System.Attribute.GetCustomAttributes(type)
-                        where a.IsTypeOf<Interceptor>() && a.CastToType<Interceptor>().ColumnsName.Contains(GetMethodName(method))
-                        join i in interceptors on a.CastToType<Interceptor>().InterceptorName equals i.GetType().Name
+        {               
+            var query = from a in InterceptorDispatcher.GetInstnace().GetInterceptors(type, method)
+                        join i in interceptors on new
+                        {
+                            a.Name,
+                            a.Namespace,
+                            Assembly = GetAssemblyName(a.Assembly.IfNullOrEmptyDefault(Assembly.GetExecutingAssembly().FullName))
+                        }
+                        equals new
+                        {
+                            i.GetType().Name,
+                            i.GetType().Namespace,
+                            Assembly = GetAssemblyName(i.GetType().Assembly.FullName)
+                        }
                         select i;
             return query.ToList().ToArray();
         }
-        #endregion SelectInterceptors
 
-        #region Get Method Name
-        private string GetMethodName(System.Reflection.MethodInfo method)
+        private string GetAssemblyName(string assembly)
         {
-            if (method.IsSpecialName && method.Name.StartsWith("set_", StringComparison.Ordinal))
-            {
-                return method.Name.Substring(4);
-            }
-            return method.Name;
+            return string.IsNullOrEmpty(assembly) ? string.Empty :
+                assembly.Substring(0, assembly.IndexOf(','));
         }
-        #endregion Get Method Name
+        #endregion SelectInterceptors
 
         #region Equals & GetHashCode
         public override bool Equals(object obj)

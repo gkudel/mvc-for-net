@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CtgWorksheet.Model;
 using MVCEngine.View;
+using MVCEngine.Session;
+using MVCEngine;
 
 namespace CtgWorksheet.Controllers
 {
@@ -22,6 +24,10 @@ namespace CtgWorksheet.Controllers
         [ActionMethod("Load")]
         public object Load(int id)
         {
+            WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
+            Worksheet w = ctx._worksheets.AddNew();
+            w.Id = 1;
+            w.Description = "AA";
             return new RedirectView("AddScreening") { Params = new { Model = new Worksheet() { Id = id } } };
         }
 
@@ -40,5 +46,9 @@ namespace CtgWorksheet.Controllers
             return new { ScreeningNumber };
         }
         #endregion Action Method
+
+        #region Property
+        public string SessionId { get; set; }
+        #endregion Property
     }
 }

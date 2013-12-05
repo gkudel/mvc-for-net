@@ -21,10 +21,14 @@ namespace MVCEngine
             return thisObject == null ? fun() : thisObject;
         }
 
-        internal delegate T Func<T>();
         internal static T2 IfNullDefault<T1, T2>(this T1 thisObject, Func<T2> fun, T2 defaultValue)
         {
             return thisObject != null ? fun() : defaultValue;
+        }
+        
+        internal static T2 IfNullDefault<T1, T2>(this T1 thisObject, Func<T1, T2> fun, T2 defaultValue)
+        {
+            return thisObject != null ? fun(thisObject) : defaultValue;
         }
         #endregion IfNullDefault
 
@@ -62,7 +66,7 @@ namespace MVCEngine
         #endregion IsNull
 
         #region IsTypeOf
-        internal static bool IsTypeOf<T>(this object thisObject) where T : class
+        public static bool IsTypeOf<T>(this object thisObject) where T : class
         {
             if (thisObject != null)
             {

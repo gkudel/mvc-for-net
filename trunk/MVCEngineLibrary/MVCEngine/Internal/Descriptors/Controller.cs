@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine.Internal.Descriptor
+namespace MVCEngine.Internal.Descriptors
 {
     internal class Controller
     {

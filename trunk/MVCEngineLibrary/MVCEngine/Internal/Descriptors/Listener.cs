@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
 
-namespace MVCEngine.Internal.Descriptor
+namespace MVCEngine.Internal.Descriptors
 {
     internal class Listener
     {

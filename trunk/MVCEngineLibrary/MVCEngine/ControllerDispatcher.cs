@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using descriptor = MVCEngine.Internal.Descriptor;
+using descriptor = MVCEngine.Internal.Descriptors;
 using MVCEngine;
 using System.Configuration;
 using MVCEngine.View;
@@ -364,7 +364,7 @@ namespace MVCEngine
                             return c;
                         });
 
-                        controller.ControllerActivator = controlActivator.IfNullDefault(() => { return GetControllerActivator(type); });
+                        controller.ControllerActivator = controlActivator.IfNullDefault(() => { return CmnTools.GetObjectActivator(type); });
                         AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, GetMethodTriger(type, ma.Method), ma.Method);
                     });
 
@@ -400,7 +400,7 @@ namespace MVCEngine
                         };
                     });
                     descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, GetMethodTriger(controllerType, mInfo), mInfo);
-                    method.ControllerActivator = GetControllerActivator(controllerType);
+                    method.ControllerActivator = CmnTools.GetObjectActivator(controllerType);
                     _controllers.Value.AddIfNotContains(controller);
                 }
                 else
@@ -598,21 +598,6 @@ namespace MVCEngine
         #endregion Dispose & Desctructor
 
         #region Lambda Expressions
-        private Func<object> GetControllerActivator(Type controllerType)
-        {
-            Func<object> ret = null;
-            ConstructorInfo ctor = controllerType.GetConstructors().FirstOrDefault(c => c.GetParameters().Count() == 0);
-            if (ctor != null)
-            {
-                ret = (Func<object>)Expression.Lambda(typeof(Func<object>), Expression.New(ctor, null), null).Compile();
-            }
-            else
-            {
-                this.ThrowException<ControllerRegistrationException>("Type[" + controllerType.FullName + "] should have no arguments constructor");
-            }
-            return ret;
-        }
-
         private Action<object, object> GetPropertySetter(Type objectType, string name)
         {
             PropertyInfo pinfo = objectType.GetProperty(name);
@@ -690,7 +675,7 @@ namespace MVCEngine
                             TryCatchStatment.Try().Invoke(() =>
                             {
                                 Type type = Type.GetType(controller.Class + controller.Assembly.IfNotNullOrEmptyDefault("," + controller.Assembly));
-                                Func<object> objectActivator = GetControllerActivator(type);
+                                Func<object> objectActivator = CmnTools.GetObjectActivator(type);
                                 obj = objectActivator();
                                 RegisterController(obj.GetType(), objectActivator);
                             }).Catch((Message, Source, StackTrace, Exception) =>
@@ -715,7 +700,7 @@ namespace MVCEngine
                             TryCatchStatment.Try().Invoke(() =>
                             {
                                 Type type = Type.GetType(view.Class + view.Assembly.IfNotNullOrEmptyDefault("," + view.Assembly));
-                                Func<object> objectActivator = GetControllerActivator(type);
+                                Func<object> objectActivator = CmnTools.GetObjectActivator(type);
                                 obj = objectActivator();
                                 if (obj.IsNotNull())
                                 {

@@ -24,7 +24,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             InitializeComponent();
             SessionId = Session.CreateSession();
-            Session.SetSessionData(SessionId, "ModelContext", new ModelContext());            
+            Session.SetSessionData(SessionId, "WorksheetContext", new WorksheetContext());            
         }
         #endregion Constructor
 
@@ -34,7 +34,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             ControllerDispatcher.GetInstance().RegisterListener(this);
             try
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 }, new { Test = "Ala ma kota" });
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { Id = 1 }, new { SessionId });
             }
             catch(ActionMethodInvocationException exc)
             {

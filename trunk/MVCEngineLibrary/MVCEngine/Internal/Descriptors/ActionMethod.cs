@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine.Internal.Descriptor
+namespace MVCEngine.Internal.Descriptors
 {
     internal class ActionMethod
     {
