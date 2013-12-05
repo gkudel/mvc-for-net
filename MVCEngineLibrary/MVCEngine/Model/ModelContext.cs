@@ -6,34 +6,28 @@ using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Internal;
 using Castle.DynamicProxy;
+using MVCEngine.Model.Interceptors.Interface;
 
 namespace MVCEngine.Model
 {
     public class ModelContext
     {
-        #region Members
-        private static readonly ProxyGenerator _generator = new ProxyGenerator(new PersistentProxyBuilder());
-        #endregion Members
-
         #region Constructor
         public ModelContext()
         {
         }
         #endregion Constructor
 
-        #region Create Object
-        public static T CreateInstance<T>() where T : class
+        #region Freeze & UnFreeze
+        public void Freeze<T>(T obj) where T : ISecurity
         {
-            return CreateInstance<T>(null);
+            obj.CastToType<ISecurity>().IsFrozen = true;
         }
 
-        public static T CreateInstance<T>(object[] constuctorparams) where T : class
+        public void UnFreeze<T>(T obj) where T : ISecurity
         {
-            var options = new ProxyGenerationOptions(new InterceptorGenerationHook()) { Selector = new InterceptorSelector() };
-            var proxy = constuctorparams.IsNull() ? _generator.CreateClassProxy(typeof(T), options, new SecurityInterceptor())
-                : _generator.CreateClassProxy(typeof(T), options, constuctorparams, new SecurityInterceptor());
-            return proxy as T;
+            obj.CastToType<ISecurity>().IsFrozen = false;
         }
-        #endregion Create Object
+        #endregion Freeze & UnFreeze
     }
 }

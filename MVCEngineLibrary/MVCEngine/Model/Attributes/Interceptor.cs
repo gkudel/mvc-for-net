@@ -7,11 +7,11 @@ using MVCEngine.Internal.Validation;
 
 namespace MVCEngine.Model.Attributes
 {
-    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct, AllowMultiple = true)]
     public class Interceptor : System.Attribute
     {
         #region Members
-        private string[] columnsName;
+        private string[] methodsName;
         private string interceptorName;
         #endregion Members
 
@@ -20,14 +20,21 @@ namespace MVCEngine.Model.Attributes
             : this(interceptorName, new string[0])
         { }
 
-        public Interceptor(string interceptorName, params string[] columnsName)
+        public Interceptor(string interceptorName, params string[] methodsName)
         {
             Validator.GetInstnace().
                 IsNotNull(interceptorName, "interceptorName").
-                IsNotNull(columnsName, "columnsName");
+                IsNotNull(methodsName, "methodsName");
 
             this.interceptorName = interceptorName;
-            this.columnsName = columnsName;
+            this.methodsName = methodsName;
+            switch (interceptorName)
+            {
+                case "SecurityInterceptor" :
+                case "ModifyInterceptor" :
+                    Namespace = "MVCEngine.Model.Interceptors";
+                    break;
+            }
         }
         #endregion Constructor
 
@@ -37,10 +44,14 @@ namespace MVCEngine.Model.Attributes
             get { return interceptorName; }
         }
 
-        public string[] ColumnsName
+        public string[] MethodsName
         {
-            get { return columnsName; }
+            get { return methodsName; }
         }
+
+        public virtual string Namespace { get; set; }
+        public virtual string Assembly { get; set; }
+        public virtual string RegEx { get; set; }
         #endregion Properties
 
     }

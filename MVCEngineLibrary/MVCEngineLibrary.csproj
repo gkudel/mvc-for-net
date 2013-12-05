@@ -66,21 +66,33 @@
     <Compile Include="MVCEngine\ControllerDispatcher.cs" />
     <Compile Include="MVCEngine\Exceptions\ActionMethodInvocationException.cs" />
     <Compile Include="MVCEngine\Exceptions\ControllerRegistrationException.cs" />
+    <Compile Include="MVCEngine\Exceptions\ObjectActivatorException.cs" />
     <Compile Include="MVCEngine\Exceptions\ViewRegistrationException.cs" />
-    <Compile Include="MVCEngine\Internal\Descriptor\ActionMethod.cs" />
-    <Compile Include="MVCEngine\Internal\Descriptor\Controller.cs" />
-    <Compile Include="MVCEngine\Internal\Descriptor\Listener.cs" />
-    <Compile Include="MVCEngine\Internal\Descriptor\Method.cs" />
-    <Compile Include="MVCEngine\Internal\Descriptor\Parameter.cs" />
+    <Compile Include="MVCEngine\Internal\CmnTools.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptors\ActionMethod.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptors\Controller.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptors\Listener.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptors\Method.cs" />
+    <Compile Include="MVCEngine\Internal\Descriptors\Parameter.cs" />
     <Compile Include="MVCEngine\Internal\TryCatchStatment.cs" />
     <Compile Include="MVCEngine\Internal\Validation\Validation.cs" />
     <Compile Include="MVCEngine\Internal\Validation\ValidationExtensions.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Column.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Table.cs" />
+    <Compile Include="MVCEngine\Model\Exceptions\InterceptorDispatcherException.cs" />
+    <Compile Include="MVCEngine\Model\Exceptions\ModelListException.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\Exceptions\SecurityException.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\InterceptorGenerationHook.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\InterceptorSelector.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\Interface\IObjectState.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\Interface\ISecurity.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\ModifyInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\SecurityInterceptor.cs" />
+    <Compile Include="MVCEngine\Model\Internal\Interceptor.cs" />
+    <Compile Include="MVCEngine\Model\Internal\InterceptorDispatcher.cs" />
+    <Compile Include="MVCEngine\Model\Internal\ModelClass.cs" />
+    <Compile Include="MVCEngine\Model\ModelList.cs" />
     <Compile Include="MVCEngine\Model\ModelContext.cs" />
     <Compile Include="MVCEngine\MVCExtensions.cs" />
     <Compile Include="MVCEngine\Session\Exceptions\InvalidSessionIdException.cs" />
@@ -90,6 +102,7 @@
     <Compile Include="MVCEngine\View\RedirectView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
