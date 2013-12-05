@@ -26,9 +26,10 @@ namespace CtgWorksheet.Controllers
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx._worksheets.AddNew();
-            w.Id = 1;
-            w.Description = "AA";
-            return new RedirectView("AddScreening") { Params = new { Model = new Worksheet() { Id = id } } };
+            w.Id = id;
+            w.Description = "Testowy opisik";
+            ctx.Freeze<Worksheet>(w);
+            return new RedirectView("AddScreening") { Params = new { Model = w } };
         }
 
         private static int screeningrecid = 0;

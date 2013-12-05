@@ -111,7 +111,7 @@ namespace MVCEngine
                         if (ret.IsTypeOf<RedirectView>())
                         {
                             redirect = ret.CastToType<RedirectView>();
-                            ret = redirect.Params;
+                            actionMethodData.ControllerReturnData = ret = redirect.Params;
                         }
                     }
                     else
@@ -635,7 +635,8 @@ namespace MVCEngine
             {
                 Expression index = Expression.Constant(i);
                 Type paramType = paramsInfo[i].ParameterType;
-                if (_miChangeType.IsNotNull())
+                if (_miChangeType.IsNotNull() 
+                    && (paramType.IsPrimitive || paramType == typeof(string)))
                 {
                     argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.Call(_miChangeType, Expression.ArrayIndex(param, index), Expression.Constant(paramType)),paramType),
                                  Expression.Catch(typeof(Exception), Expression.Default(paramType)));

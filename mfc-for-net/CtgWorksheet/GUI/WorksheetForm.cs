@@ -88,6 +88,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         [ActionMethodCallBack("Worksheet", "Load")]
         public void Loaded(Worksheet model)
         {
+            txtDescription.DataBindings.Add(new Binding("Text", model, "Description"));
         }
 
         [ActionMethodCallBack("Worksheet", "AddScreening")]
