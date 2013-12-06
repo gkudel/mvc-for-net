@@ -7,8 +7,8 @@ namespace MVCEngine.Model.Interceptors
 {
     public static class DefaultInterceptors
     {
-        public const string SecurityInterceptor = "SecurityInterceptor";
-        public const string ModificationInterceptor = "ModificationInterceptor";
-        public const string CollectionInterceptor = "CollectionInterceptor";
+        public const string SecurityInterceptor = "MVCEngine.Model.Interceptors.SecurityInterceptor";
+        public const string ModificationInterceptor = "MVCEngine.Model.Interceptors.ModificationInterceptor";
+        public const string CollectionInterceptor = "MVCEngine.Model.Interceptors.CollectionInterceptor";
     }
 }

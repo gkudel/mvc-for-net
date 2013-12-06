@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MVCEngine.Model.Interceptors;
 
 namespace MVCEngine.Model.Attributes
 {
@@ -16,7 +17,7 @@ namespace MVCEngine.Model.Attributes
 
         #region Constructor
         public CollectionInterceptor(string propertyName, string tableName, string id, string foreignKey)
-            : base("CollectionInterceptor", new string[] { "get_" + propertyName })
+            : base(DefaultInterceptors.CollectionInterceptor, new string[] { "get_" + propertyName })
         {
             Validator.GetInstnace().
                 IsNotEmpty(tableName, "tableName").

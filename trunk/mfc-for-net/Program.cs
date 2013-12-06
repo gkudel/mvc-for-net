@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MVCEngine.Model;
+using CtgWorksheet.Model;
 
 namespace mfc_for_net
 {
@@ -19,6 +21,7 @@ namespace mfc_for_net
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);           
             ControllerDispatcher.GetInstance().AppeConfigInitialization();
+            ModelContext.ModelContextInitialization<WorksheetContext>();
 
             Application.Run(new WorksheetForm());
         }

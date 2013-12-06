@@ -10,6 +10,7 @@ namespace MVCEngine.Session
     {
         #region Members
         private static Lazy<List<Session>> _sessions;
+        private static Lazy<Dictionary<string, string>> _userSessions;
         private Lazy<List<KeyValuePair<string, object>>> _values;
         private static object _threadLock;
         #endregion Members
@@ -19,6 +20,7 @@ namespace MVCEngine.Session
         {
             _threadLock = new object();
             _sessions = new Lazy<List<Session>>(() => { return new List<Session>(); }, true);
+            _userSessions = new Lazy<Dictionary<string, string>>(() => { return new Dictionary<string, string>(); }, true);
         }
 
         private Session()
@@ -32,11 +34,39 @@ namespace MVCEngine.Session
         #endregion Properties
 
         #region Methods
+        public static string CreateUserSession(string user)
+        {
+            lock (_threadLock)
+            {
+                if (!_userSessions.Value.ContainsKey(user))
+                {
+                    string sesionId = CreateSession();
+                    _userSessions.Value.Add(user, sesionId);
+                    return sesionId;
+                }
+                else
+                {
+                    return _userSessions.Value[user];
+                }
+            }
+        }
+
         public static string CreateSession()
         {
-            Session session = new Session() { SessionId = Guid.NewGuid().ToString() };
-            _sessions.Value.Add(session);
-            return session.SessionId;
+            lock (_threadLock)
+            {
+                Session session = new Session() { SessionId = Guid.NewGuid().ToString() };
+                _sessions.Value.Add(session);
+                return session.SessionId;
+            }
+        }
+
+        public static bool IsUserSessionExists(string user)
+        {
+            lock (_threadLock)
+            {
+                return _userSessions.Value.ContainsKey(user);
+            }
         }
 
         public static bool IsSessionExists(string sessionId)
@@ -44,6 +74,21 @@ namespace MVCEngine.Session
             lock (_threadLock)
             {
                 return _sessions.Value.Exists(s => s.SessionId == sessionId);
+            }
+        }
+
+        public static string GetUserSessionId(string user)
+        {
+            lock (_threadLock)
+            {
+                if (IsUserSessionExists(user))
+                {
+                    return _userSessions.Value[user];
+                }
+                else
+                {
+                    throw new InvalidSessionIdException("Session doesn't exist or was released");
+                }
             }
         }
 
@@ -62,6 +107,17 @@ namespace MVCEngine.Session
                         }
                     }
                     _sessions.Value.Remove(session);
+                }
+                if (_userSessions.Value.ContainsValue(sessionId))
+                {
+                    for (int i = _userSessions.Value.Keys.Count - 1; i >= 0; i--)
+                    {
+                        string key = _userSessions.Value.Keys.ElementAt(i);
+                        if (_userSessions.Value[key] == sessionId)
+                        {
+                            _userSessions.Value.Remove(key);
+                        }
+                    }
                 }
             }
         }

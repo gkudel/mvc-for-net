@@ -26,7 +26,7 @@ namespace MVCEngine.Model.Internal
             _instance = new Lazy<InterceptorDispatcher>(() =>
             {
                 return new InterceptorDispatcher();
-            });
+            }, true);
         }
 
         private InterceptorDispatcher()
@@ -45,14 +45,12 @@ namespace MVCEngine.Model.Internal
         #region Methods
         public bool ShouldBeIntercept(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            Initialize(type);
             return _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => m).Count() > 0 ||
                    _modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i =>  !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).Count() > 0;
         }
 
         public List<Interceptor> GetInterceptors(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            Initialize(type);
             List<Interceptor> interceptors = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => i).ToList();
             interceptors.AddRange(_modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i => !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).ToList());
             return interceptors;
@@ -60,11 +58,10 @@ namespace MVCEngine.Model.Internal
 
         public List<IInterceptor> GetInterceptorsObject(Type type)
         {
-            Initialize(type);
             return _modelClass.FirstOrDefault(m => m.FullName == type.FullName).InterceptorObjects;
         }
 
-        private void Initialize(Type type)
+        internal void Initialize(Type type)
         {
             var query = from a in System.Attribute.GetCustomAttributes(type)
                         where a.IsTypeOf<attribute.Interceptor>()
@@ -79,17 +76,17 @@ namespace MVCEngine.Model.Internal
                 query.ToList().ForEach((i) =>
                 {
                     TryCatchStatment.Try().Invoke(() =>
-                    {
-                        model.Interceptors.Add(new Interceptor()
+                    {                        
+                        IInterceptor interceptor = CmnTools.GetObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
+                        model.InterceptorObjects.Add(interceptor);
+                        
+                        Interceptor inter = new Interceptor()
                         {
-                            Name = i.InterceptorName,
-                            Namespace = i.Namespace,
-                            Assembly = i.Assembly, 
+                            InterceptorFullName = interceptor.GetType().FullName,
                             Methods = new List<string>(i.MethodsName),
                             RegEx = i.RegEx
-                        });
-                        IInterceptor interceptor = CmnTools.GetObjectActivator(i.Namespace + "." + i.InterceptorName, i.Assembly)().CastToType<IInterceptor>();
-                        model.InterceptorObjects.Add(interceptor);
+                        };
+                        model.Interceptors.Add(inter);
 
                         interceptor.GetType().GetProperties().AsEnumerable().Where(p => p.CanWrite).
                         SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),

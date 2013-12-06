@@ -12,10 +12,22 @@ namespace MVCEngine.Internal
     internal static class CmnTools
     {
         #region GetObjectActivator
-        public static Func<object> GetObjectActivator(string classname, string assembly)
+        public static Func<object> GetObjectActivator(string objectType, string genericType)
         {
-            Type type = Type.GetType(classname + assembly.IfNotNullOrEmptyDefault("," + assembly));
-            return CmnTools.GetObjectActivator(type);
+            string typeString = objectType;
+            if (!genericType.IsNullOrEmpty())
+            {
+                typeString += "`1[[" + genericType + "]]";
+            }
+            Type type = Type.GetType(typeString);
+            if(type.IsNotNull())
+            {
+                return CmnTools.GetObjectActivator(type);
+            }
+            else
+            {
+                throw new ArgumentException();
+            }
         }
 
         public static Func<object> GetObjectActivator(Type objectType)

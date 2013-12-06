@@ -18,15 +18,11 @@ namespace MVCEngine.Model.Interceptors
             var query = from a in InterceptorDispatcher.GetInstnace().GetInterceptors(type, method)
                         join i in interceptors on new
                         {
-                            a.Name,
-                            a.Namespace,
-                            Assembly = GetAssemblyName(a.Assembly.IfNullOrEmptyDefault(Assembly.GetExecutingAssembly().FullName))
+                            Name = a.InterceptorFullName
                         }
                         equals new
                         {
-                            i.GetType().Name,
-                            i.GetType().Namespace,
-                            Assembly = GetAssemblyName(i.GetType().Assembly.FullName)
+                            Name = i.GetType().FullName
                         }
                         select i;
             return query.ToList().ToArray();

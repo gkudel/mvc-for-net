@@ -13,37 +13,29 @@ namespace MVCEngine.Model.Attributes
     {
         #region Members
         private string[] methodsName;
-        private string interceptorName;
+        private string interceptorClass;
         #endregion Members
 
         #region Constructor
-        public Interceptor(string interceptorName)
-            : this(interceptorName, new string[0])
+        public Interceptor(string interceptorClass)
+            : this(interceptorClass, new string[0])
         { }
 
-        public Interceptor(string interceptorName, params string[] methodsName)
+        public Interceptor(string interceptorClass, params string[] methodsName)
         {
             Validator.GetInstnace().
-                IsNotEmpty(interceptorName, "interceptorName").
+                IsNotEmpty(interceptorClass, "interceptorClass").
                 IsNotNull(methodsName, "methodsName");
 
-            this.interceptorName = interceptorName;
+            this.interceptorClass = interceptorClass;
             this.methodsName = methodsName;
-            switch (interceptorName)
-            {
-                case DefaultInterceptors.SecurityInterceptor:
-                case DefaultInterceptors.ModificationInterceptor:
-                case DefaultInterceptors.CollectionInterceptor:
-                    Namespace = "MVCEngine.Model.Interceptors";
-                    break;
-            }
         }
         #endregion Constructor
 
         #region Properties
-        public string InterceptorName
+        public string InterceptorClass
         {
-            get { return interceptorName; }
+            get { return interceptorClass; }
         }
 
         public string[] MethodsName
@@ -51,9 +43,8 @@ namespace MVCEngine.Model.Attributes
             get { return methodsName; }
         }
 
-        public virtual string Namespace { get; set; }
-        public virtual string Assembly { get; set; }
         public virtual string RegEx { get; set; }
+        public virtual string GenericType { get; set; }
         #endregion Properties
 
     }
