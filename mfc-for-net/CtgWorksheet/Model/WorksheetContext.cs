@@ -10,6 +10,7 @@ namespace CtgWorksheet.Model
     {
         #region Tables
         public ModelBindingList<Worksheet> _worksheets = new ModelBindingList<Worksheet>();
+        public ModelBindingList<Screening> _screenings = new ModelBindingList<Screening>();
         #endregion Tables
     }
 }

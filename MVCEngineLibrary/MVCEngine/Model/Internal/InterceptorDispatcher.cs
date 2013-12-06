@@ -77,7 +77,7 @@ namespace MVCEngine.Model.Internal
                 {
                     TryCatchStatment.Try().Invoke(() =>
                     {                        
-                        IInterceptor interceptor = CmnTools.GetObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
+                        IInterceptor interceptor = LambdaTools.GetObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
                         model.InterceptorObjects.Add(interceptor);
                         
                         Interceptor inter = new Interceptor()
