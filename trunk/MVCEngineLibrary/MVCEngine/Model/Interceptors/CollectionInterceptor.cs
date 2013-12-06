@@ -8,7 +8,7 @@ using System.Text;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    public class CollectionInterceptor<T> : IInterceptor where T : ModelObject
+    public class CollectionInterceptor<T> : IInterceptor where T : Entity
     {
         #region Members
         private Lazy<List<T>> _list;

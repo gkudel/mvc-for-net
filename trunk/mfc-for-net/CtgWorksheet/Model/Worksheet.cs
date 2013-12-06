@@ -12,10 +12,10 @@ namespace CtgWorksheet.Model
     [attributes.Table("GP_RESWORKSHEET")]
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "set_Id", "set_Description", "set_Name")]
     [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Screenings|!get_Screenings).)*$).*?set_*|get_*")]
-    [attributes.CollectionInterceptor("Screenings", "GP_FISHSCREENING", "Id", "WorksheetId", GenericType = "CtgWorksheet.Model.Screening, mfc-for-net")]
-    public class Worksheet : ModelObject
+    [attributes.Interceptor(DefaultInterceptors.CollectionInterceptor, "get_Screenings", GenericType = "CtgWorksheet.Model.Screening, mfc-for-net")]
+    public class Worksheet : Entity
     {
-        [attributes.Column("GP_RES_RECID")]
+        [attributes.Column("GP_RES_RECID", IsPrimaryKey=true)]
         public virtual long Id { get; set; }
 
         [attributes.Column("GP_RES_STRING")]        
@@ -24,6 +24,7 @@ namespace CtgWorksheet.Model
         [attributes.Column("GP_RES_NAME")]
         public virtual string Name { get; set; }
 
+        [attributes.Table("GP_FISHSCREENING")]
         public virtual List<Screening> Screenings { get; set; }
     }
 }

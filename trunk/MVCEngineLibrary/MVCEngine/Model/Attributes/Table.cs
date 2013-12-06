@@ -7,7 +7,7 @@ using MVCEngine.Internal.Validation;
 
 namespace MVCEngine.Model.Attributes
 {
-    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct | AttributeTargets.Property)]
     public sealed class Table : System.Attribute
     {
         #region Members

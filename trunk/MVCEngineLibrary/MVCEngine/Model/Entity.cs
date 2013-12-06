@@ -6,9 +6,9 @@ using System.Text;
 
 namespace MVCEngine.Model
 {
-    public enum ObjectState { Added, Modified, Deleted, Unchanged };
+    public enum EntityState { Added, Modified, Deleted, Unchanged };
 
-    public abstract class ModelObject : INotifyPropertyChanged
+    public abstract class Entity : INotifyPropertyChanged
     {
         #region Members
         private bool _isFrozen = false;
@@ -30,11 +30,11 @@ namespace MVCEngine.Model
         #endregion IsFroze
 
         #region Object State
-        public ObjectState State { get; set; }
+        public EntityState State { get; set; }
         public void AcceptChanges()
         {
-            if (State == ObjectState.Modified) State = ObjectState.Unchanged;
-            if (State == ObjectState.Added) State = ObjectState.Unchanged;
+            if (State == EntityState.Modified) State = EntityState.Unchanged;
+            if (State == EntityState.Added) State = EntityState.Unchanged;
         }
         #endregion Object State
 

@@ -7,21 +7,21 @@ using System.Runtime.Serialization;
 namespace MVCEngine.Model.Exceptions
 {
     [Serializable]
-    public class ModelListException : Exception
+    public class ModelException : Exception
     {
         #region Constructors
-        public ModelListException()
+        public ModelException()
         { }
 
-        public ModelListException(string message)
+        public ModelException(string message)
             : base(message)
         { }
 
-        public ModelListException(string message, Exception innerException)
+        public ModelException(string message, Exception innerException)
             : base(message, innerException)
         { }
 
-        protected ModelListException(SerializationInfo info, StreamingContext context)
+        protected ModelException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         { }
         #endregion Constructors

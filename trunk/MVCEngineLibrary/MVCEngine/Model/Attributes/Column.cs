@@ -8,7 +8,7 @@ using MVCEngine.Internal.Validation;
 namespace MVCEngine.Model.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public sealed class Column : System.Attribute
+    public class Column : System.Attribute
     {
         #region Members
         private string columnName;
@@ -29,6 +29,10 @@ namespace MVCEngine.Model.Attributes
         {
             get { return columnName; }
         }
+
+        public virtual bool IsPrimaryKey { get; set; }
+        public virtual bool IsForeignKey { get; set; }
+        public virtual string ForeignTable { get; set; }
         #endregion Properties
     }
 }

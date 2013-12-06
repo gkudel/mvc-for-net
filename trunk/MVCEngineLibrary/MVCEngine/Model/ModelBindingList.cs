@@ -11,7 +11,7 @@ using MVCEngine.Model.Internal;
 
 namespace MVCEngine.Model
 {
-    public class ModelBindingList<T> : BindingList<T> where T : ModelObject
+    public class ModelBindingList<T> : BindingList<T> where T : Entity
     {
         #region Members
         private static readonly Lazy<ProxyGenerator> _generator;
@@ -50,7 +50,7 @@ namespace MVCEngine.Model
         }
         #endregion New Method Implmentation
 
-        #region Override        
+        #region Override
         protected override object AddNewCore()
         {
             if (AllowNew)
@@ -69,15 +69,15 @@ namespace MVCEngine.Model
         {
             if (AllowRemove && index < Count)
             {
-                ModelObject obj = base[index];
+                Entity obj = base[index];
                 switch (obj.State)
                 {
-                    case ObjectState.Modified: 
-                    case ObjectState.Unchanged: obj.State = ObjectState.Deleted;
+                    case EntityState.Modified: 
+                    case EntityState.Unchanged: obj.State = EntityState.Deleted;
                                                 break;
-                    case ObjectState.Added: base.RemoveItem(index);
+                    case EntityState.Added: base.RemoveItem(index);
                                             break;
-                    case ObjectState.Deleted: throw new InvalidOperationException();
+                    case EntityState.Deleted: throw new InvalidOperationException();
                 }
             }
             else
@@ -92,9 +92,9 @@ namespace MVCEngine.Model
         {            
             var options = new ProxyGenerationOptions(new InterceptorGenerationHook()) { Selector = new InterceptorSelector() };
             var proxy = _generator.Value.CreateClassProxy(typeof(T), options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(typeof(T)).ToArray());
-            if (proxy.IsTypeOf<ModelObject>())
+            if (proxy.IsTypeOf<Entity>())
             {
-                proxy.CastToType<ModelObject>().State = ObjectState.Added;
+                proxy.CastToType<Entity>().State = EntityState.Added;
             }
             return proxy as T;
         }
@@ -109,9 +109,9 @@ namespace MVCEngine.Model
             }
             for (int i = Count - 1; i >= 0; i--)
             {
-                if (base[i].State == ObjectState.Deleted)
+                if (base[i].State == EntityState.Deleted)
                 {
-                    base[i].State = ObjectState.Added;
+                    base[i].State = EntityState.Added;
                     RemoveAt(i);
                 }
             }

@@ -23,7 +23,6 @@ namespace MVCEngine
         #region Members
         private Lazy<List<descriptor.Controller>> _controllers;
         private Lazy<List<string>> _views;
-        private MethodInfo _miChangeType;
         private static ControllerDispatcher _instance = null;
         private readonly object _threadlock = new object();
         #endregion Members
@@ -32,8 +31,7 @@ namespace MVCEngine
         private ControllerDispatcher() 
         {
             _controllers = new Lazy<List<descriptor.Controller>>(() => { return new List<descriptor.Controller>(); }, true);
-            _views = new Lazy<List<string>>(() => { return new List<string>(); }, true);
-            _miChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
+            _views = new Lazy<List<string>>(() => { return new List<string>(); }, true);            
         }
         #endregion Constructor
 
@@ -82,7 +80,7 @@ namespace MVCEngine
                             {
                                 if (!controller.PropertiesSetters.ContainsKey(p.Name))
                                 {
-                                    Action<object, object> a = GetPropertySetter(objectToInvokeMethod.GetType(), p.Name);
+                                    Action<object, object> a = LambdaTools.GetPropertySetter(objectToInvokeMethod.GetType(), p.Name);
                                     if (a.IsNotNull())
                                     {
                                         controller.PropertiesSetters.Add(p.Name, a);
@@ -358,14 +356,14 @@ namespace MVCEngine
                                 if (info.IsNotNull())
                                 {
                                     c.DefaultValues.Add(info.Name, info.GetValue(controlerAttribute, null));
-                                    c.PropertiesSetters.Add(info.Name, GetPropertySetter(type, pa.Property));
+                                    c.PropertiesSetters.Add(info.Name, LambdaTools.GetPropertySetter(type, pa.Property));
                                 }
                             });
                             return c;
                         });
 
-                        controller.ControllerActivator = controlActivator.IfNullDefault(() => { return CmnTools.GetObjectActivator(type); });
-                        AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, GetMethodTriger(type, ma.Method), ma.Method);
+                        controller.ControllerActivator = controlActivator.IfNullDefault(() => { return LambdaTools.GetObjectActivator(type); });
+                        AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, LambdaTools.GetMethodTriger(type, ma.Method), ma.Method);
                     });
 
                     if (controller.IsNotNull())
@@ -399,8 +397,8 @@ namespace MVCEngine
                             Name = controllerName
                         };
                     });
-                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, GetMethodTriger(controllerType, mInfo), mInfo);
-                    method.ControllerActivator = CmnTools.GetObjectActivator(controllerType);
+                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, LambdaTools.GetMethodTriger(controllerType, mInfo), mInfo);
+                    method.ControllerActivator = LambdaTools.GetObjectActivator(controllerType);
                     _controllers.Value.AddIfNotContains(controller);
                 }
                 else
@@ -507,11 +505,11 @@ namespace MVCEngine
                     descriptor.Method callbackmethod = null;
                     if (m.Attribute.IsTypeOf<ActionMethodCallBack>())
                     {
-                        callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodTriger = GetMethodTriger(type, m.Method) };
+                        callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodTriger = LambdaTools.GetMethodTriger(type, m.Method) };
                     }
                     else if (m.Attribute.IsTypeOf<ActionMethodErrorBack>())
                     {
-                        callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodTriger = GetMethodTriger(type, m.Method) };
+                        callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodTriger = LambdaTools.GetMethodTriger(type, m.Method) };
                     }
                     if (callbackmethod.IsNotNull())
                     {
@@ -596,7 +594,6 @@ namespace MVCEngine
             {
                 _views.Value.Clear();
             }
-            _miChangeType = null;
             _instance = null;
         }
 
@@ -605,68 +602,6 @@ namespace MVCEngine
             Dispose();
         }
         #endregion Dispose & Desctructor
-
-        #region Lambda Expressions
-        private Action<object, object> GetPropertySetter(Type objectType, string name)
-        {
-            PropertyInfo pinfo = objectType.GetProperty(name);
-            if (pinfo.IsNotNull())
-            {
-                return GetPropertySetter(objectType, pinfo);
-            }
-            return null;
-       }
-
-        private Action<object, object> GetPropertySetter(Type objectType, PropertyInfo propertyInfo)
-        {
-            ParameterExpression obj = Expression.Parameter(typeof(object));
-            Expression convertObj = Expression.Convert(obj, objectType);
-            ParameterExpression value = Expression.Parameter(typeof(object));
-            DefaultExpression defaultvalue = Expression.Default(propertyInfo.PropertyType);
-            return Expression.Lambda<Action<object, object>>(Expression.TryCatch(
-                    Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), Expression.Convert(value, propertyInfo.PropertyType)),
-                    Expression.Catch(typeof(InvalidCastException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
-                    Expression.Catch(typeof(FormatException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
-                    Expression.Catch(typeof(OverflowException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
-                    Expression.Catch(typeof(ArgumentNullException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
-                obj, value).Compile();
-        }
-
-        private Func<object, object[], object> GetMethodTriger(Type objectType, MethodInfo info)
-        {
-            
-            ParameterExpression obj = Expression.Parameter(typeof(object));
-            Expression convertObj = Expression.Convert(obj, objectType);
-            ParameterExpression param = Expression.Parameter(typeof(object[]));
-            ParameterInfo[] paramsInfo = info.GetParameters();
-            Expression[] argsExp = new Expression[paramsInfo.Length];
-            for (int i = 0; i < paramsInfo.Length; i++)
-            {
-                Expression index = Expression.Constant(i);
-                Type paramType = paramsInfo[i].ParameterType;
-                if (_miChangeType.IsNotNull() 
-                    && (paramType.IsPrimitive || paramType == typeof(string)))
-                {
-                    argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.Call(_miChangeType, Expression.ArrayIndex(param, index), Expression.Constant(paramType)),paramType),
-                                 Expression.Catch(typeof(Exception), Expression.Default(paramType)));
-                }
-                else
-                {
-                    argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.ArrayIndex(param, index), paramType),
-                                                     Expression.Catch(typeof(Exception), Expression.Default(paramType)));
-                }
-            }          
-            if (!info.ReturnType.Equals(typeof(void)))
-            {                
-                return Expression.Lambda<Func<object, object[], object>>(Expression.Call(convertObj, info, argsExp), obj, param).Compile();
-            }
-            else
-            {
-                return Expression.Lambda<Func<object, object[], object>>(Expression.Block(Expression.Call(convertObj, info, argsExp), 
-                                                                          Expression.Constant(null)), obj, param).Compile();
-            }
-        }
-        #endregion Lambda Expressions
 
         #region App Config
         public void AppeConfigInitialization()
@@ -685,7 +620,7 @@ namespace MVCEngine
                             TryCatchStatment.Try().Invoke(() =>
                             {
                                 Type type = Type.GetType(controller.Class);
-                                Func<object> objectActivator = CmnTools.GetObjectActivator(type);
+                                Func<object> objectActivator = LambdaTools.GetObjectActivator(type);
                                 obj = objectActivator();
                                 RegisterController(obj.GetType(), objectActivator);
                             }).Catch((Message, Source, StackTrace, Exception) =>
@@ -710,7 +645,7 @@ namespace MVCEngine
                             TryCatchStatment.Try().Invoke(() =>
                             {
                                 Type type = Type.GetType(view.Class);
-                                Func<object> objectActivator = CmnTools.GetObjectActivator(type);
+                                Func<object> objectActivator = LambdaTools.GetObjectActivator(type);
                                 obj = objectActivator();
                                 if (obj.IsNotNull())
                                 {

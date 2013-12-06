@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MVCEngine
 {
-    public static class MVCExtensions
+    public static class Extensions
     {
         #region IfNullDefault
         internal static T IfNullDefault<T>(this T thisObject, T defaultValue)

@@ -23,14 +23,14 @@ namespace MvcForNet.CtgWorksheet.GUI
         public WorksheetForm()
         {
             InitializeComponent();
-            SessionId = Session.CreateSession();
-            Session.SetSessionData(SessionId, "WorksheetContext", new WorksheetContext());            
         }
         #endregion Constructor
 
         #region GUI Events
         private void WorksheetFormLoad(object sender, EventArgs e)
         {
+            SessionId = Session.CreateSession();
+            Session.SetSessionData(SessionId, "WorksheetContext", new WorksheetContext());            
             ControllerDispatcher.GetInstance().RegisterListener(this);
             try
             {

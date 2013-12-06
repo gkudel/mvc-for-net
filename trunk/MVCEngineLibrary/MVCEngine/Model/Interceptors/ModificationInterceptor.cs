@@ -19,11 +19,11 @@ namespace MVCEngine.Model.Interceptors
         #region Inetercept
         public void Intercept(IInvocation invocation)
         {
-            ModelObject obj = null;
-            if (invocation.InvocationTarget.IsTypeOf<ModelObject>())
+            Entity obj = null;
+            if (invocation.InvocationTarget.IsTypeOf<Entity>())
             {
-                obj = invocation.InvocationTarget.CastToType<ModelObject>();
-                if(obj.State == ObjectState.Deleted)
+                obj = invocation.InvocationTarget.CastToType<Entity>();
+                if(obj.State == EntityState.Deleted)
                 {
                     throw new InvalidOperationException();
                 }
@@ -33,9 +33,9 @@ namespace MVCEngine.Model.Interceptors
             
             if(obj.IsNotNull() && invocation.Method.Name.StartsWith("set_"))
             {                                           
-                if (obj.State == ObjectState.Unchanged)
+                if (obj.State == EntityState.Unchanged)
                 {
-                    obj.State = ObjectState.Modified;
+                    obj.State = EntityState.Modified;
                 }                
                 obj.FirePropertyChanged(invocation.Method.Name.Substring(4, invocation.Method.Name.Length - 4));
             }
