@@ -8,6 +8,8 @@ namespace CtgWorksheet.Model
 {
     public class WorksheetContext : ModelContext
     {
+        #region Tables
         public ModelBindingList<Worksheet> _worksheets = new ModelBindingList<Worksheet>();
+        #endregion Tables
     }
 }

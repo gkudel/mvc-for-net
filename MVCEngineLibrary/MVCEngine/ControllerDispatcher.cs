@@ -14,6 +14,7 @@ using MVCEngine.View;
 using appconfig = MVCEngine.AppConfig;
 using System.Linq.Expressions;
 using MVCEngine.Internal.Validation;
+using System.Threading;
 
 namespace MVCEngine
 {
@@ -24,7 +25,7 @@ namespace MVCEngine
         private Lazy<List<string>> _views;
         private MethodInfo _miChangeType;
         private static ControllerDispatcher _instance = null;
-        private object _threadlock;
+        private readonly object _threadlock = new object();
         #endregion Members
 
         #region Constructor
@@ -33,7 +34,6 @@ namespace MVCEngine
             _controllers = new Lazy<List<descriptor.Controller>>(() => { return new List<descriptor.Controller>(); }, true);
             _views = new Lazy<List<string>>(() => { return new List<string>(); }, true);
             _miChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
-            _threadlock = new object();
         }
         #endregion Constructor
 
@@ -579,16 +579,25 @@ namespace MVCEngine
         #region Dispose & Desctructor
         public void Dispose()
         {
-            _controllers.Value.ForEach((c) =>
+            if(_controllers.IsValueCreated)
             {
-                c.ActionMethods.ForEach((a) =>
+                _controllers.Value.ForEach((c) =>
                 {
-                    a.Listernes.ForEach((l) =>
+                    c.ActionMethods.ForEach((a) =>
                     {
-                        l.ThisObject = null;
+                        a.Listernes.ForEach((l) =>
+                        {
+                            l.ThisObject = null;
+                        });
                     });
                 });
-            });
+            }
+            if (_views.IsValueCreated)
+            {
+                _views.Value.Clear();
+            }
+            _miChangeType = null;
+            _instance = null;
         }
 
         ~ControllerDispatcher()
@@ -661,8 +670,8 @@ namespace MVCEngine
 
         #region App Config
         public void AppeConfigInitialization()
-        {            
-            Task t = Task.Factory.StartNew(() =>
+        {
+            Task.Factory.StartNew(() =>
             {
                 lock (_threadlock)
                 {
@@ -675,7 +684,7 @@ namespace MVCEngine
                             object obj = null;
                             TryCatchStatment.Try().Invoke(() =>
                             {
-                                Type type = Type.GetType(controller.Class + controller.Assembly.IfNotNullOrEmptyDefault("," + controller.Assembly));
+                                Type type = Type.GetType(controller.Class);
                                 Func<object> objectActivator = CmnTools.GetObjectActivator(type);
                                 obj = objectActivator();
                                 RegisterController(obj.GetType(), objectActivator);
@@ -688,7 +697,7 @@ namespace MVCEngine
                                 {
                                     obj.CastToType<IDisposable>().Dispose();
                                 }
-                            });
+                            });                            
                         }
                     }
 
@@ -700,7 +709,7 @@ namespace MVCEngine
                             object obj = null;
                             TryCatchStatment.Try().Invoke(() =>
                             {
-                                Type type = Type.GetType(view.Class + view.Assembly.IfNotNullOrEmptyDefault("," + view.Assembly));
+                                Type type = Type.GetType(view.Class);
                                 Func<object> objectActivator = CmnTools.GetObjectActivator(type);
                                 obj = objectActivator();
                                 if (obj.IsNotNull())
@@ -720,7 +729,7 @@ namespace MVCEngine
                             });
                         }
                     }
-                }
+                }                
             });
         }
         #endregion App Config

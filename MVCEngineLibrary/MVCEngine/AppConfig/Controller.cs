@@ -34,19 +34,5 @@ namespace MVCEngine.AppConfig
                 this["class"] = value;
             }
         }
-
-        [ConfigurationProperty("assembly", IsRequired = false)]
-        public string Assembly
-        {
-            get
-            {
-                return this["assembly"] as string;
-            }
-            set
-            {
-                this["assembly"] = value;
-            }
-        }
-
     }
 }

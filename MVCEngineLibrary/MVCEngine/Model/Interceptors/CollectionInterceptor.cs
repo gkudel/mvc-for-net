@@ -8,18 +8,26 @@ using System.Text;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class CollectionInterceptor : IInterceptor
+    public class CollectionInterceptor<T> : IInterceptor where T : ModelObject
     {
+        #region Members
+        private Lazy<List<T>> _list;
+        #endregion Members
+
         #region Constructor
         public CollectionInterceptor()
         {
+            _list = new Lazy<List<T>>(() =>
+            {
+                return new List<T>();
+            });
         }
         #endregion Constructor
 
         #region Inetercept
         public void Intercept(IInvocation invocation)
         {
-            invocation.Proceed();     
+            invocation.ReturnValue = _list.Value;
         }
         #endregion Inetercept
 
