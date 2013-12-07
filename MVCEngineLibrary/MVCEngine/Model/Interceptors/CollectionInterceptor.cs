@@ -12,22 +12,21 @@ namespace MVCEngine.Model.Interceptors
     public class CollectionInterceptor<T> : IInterceptor where T : Entity
     {
         #region Members
-        private Lazy<List<T>> _list;
+        private List<T> _list;
+        private string _uid;
         #endregion Members
 
         #region Constructor
         public CollectionInterceptor()
         {
-            _list = new Lazy<List<T>>(() =>
-            {
-                return new List<T>();
-            });
+            _uid = string.Empty;
+            _list = new List<T>();
         }
         #endregion Constructor
 
         #region Inetercept
         public void Intercept(IInvocation invocation)
-        {
+        {                                  
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
@@ -39,19 +38,20 @@ namespace MVCEngine.Model.Interceptors
                 Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
                 if (parentTable.IsNotNull() && childTable.IsNotNull())
                 {
-                    Relation relation = entity.Context.Relations.FirstOrDefault(r => r.ParentTable == parentTable.TableName 
-                                                                              && r.ChildTable == childTable.TableName);
-                    if (relation.IsNotNull())
+                    if (childTable.Uid != _uid)
                     {
-                        _list = new Lazy<List<T>>(() =>
+                        Relation relation = entity.Context.Relations.FirstOrDefault(r => r.ParentTable == parentTable.TableName
+                                                                                  && r.ChildTable == childTable.TableName);
+                        if (relation.IsNotNull())
                         {
-                            return childTable.Rows.Cast<T>().Where(c => relation.ParentValue(invocation.InvocationTarget).
-                                Equals(relation.ChildValue(c)) && c.State != EntityState.Deleted).ToList();
-                        });
+                            _list = childTable.Rows.Cast<T>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
+                                        Equals(relation.ChildValue(c))).ToList();                                
+                        }
+                        _uid = childTable.Uid;
                     }
                 }
             }
-            invocation.ReturnValue = _list.Value;
+            invocation.ReturnValue = _list;
         }
         #endregion Inetercept
     }

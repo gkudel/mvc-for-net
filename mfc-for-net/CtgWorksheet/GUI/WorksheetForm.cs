@@ -67,7 +67,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 {
                     try
                     {
-                        ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Worksheetid = _model.Id, Id = control.Id }, new { SessionId });
+                        ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Id = control.Id }, new { SessionId });
                     }
                     catch(ActionMethodInvocationException exc) 
                     {

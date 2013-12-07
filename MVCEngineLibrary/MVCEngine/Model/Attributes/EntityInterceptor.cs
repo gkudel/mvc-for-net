@@ -6,11 +6,11 @@ using System.Text;
 
 namespace MVCEngine.Model.Attributes
 {
-    public class CollectionInterceptor : Interceptor
+    public class EntityInterceptor : Interceptor
     {
         #region Constructor
-        public CollectionInterceptor(string propertyName, string genericType)
-            : base(DefaultInterceptors.CollectionInterceptor, new string[] { "get_" + propertyName})
+        public EntityInterceptor(string propertyName, string genericType)
+            : base(DefaultInterceptors.EntityInterceptor, new string[] { "get_" + propertyName })
         {
             GenericType = genericType;
         }
@@ -19,7 +19,7 @@ namespace MVCEngine.Model.Attributes
         
         #region Properties
         public override string RegEx 
-        {
+        { 
             get { return string.Empty; }
             set { throw new NotSupportedException(); }
         }

@@ -10,5 +10,6 @@ namespace MVCEngine.Model.Interceptors
         public const string SecurityInterceptor = "MVCEngine.Model.Interceptors.SecurityInterceptor";
         public const string ModificationInterceptor = "MVCEngine.Model.Interceptors.ModificationInterceptor";
         internal const string CollectionInterceptor = "MVCEngine.Model.Interceptors.CollectionInterceptor";
+        internal const string EntityInterceptor = "MVCEngine.Model.Interceptors.EntityInterceptor";
     }
 }

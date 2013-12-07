@@ -51,18 +51,15 @@ namespace CtgWorksheet.Controllers
         }
 
         [ActionMethod("DeleteScreening")]
-        public object DeleteScreening(int worksheetid, int id)
+        public object DeleteScreening(int id)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
-            Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id && s.WorksheetId == worksheetid);
+            Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);
             if (screening != null)
             {
+                Worksheet w = screening.Worksheet;                
                 ctx.Screenings.Remove(screening);
-                Worksheet worksheet = ctx.Worksheets.FirstOrDefault(w => w.Id == worksheetid);
-                if (worksheet != null)
-                {
-                    worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
-                }
+                w.Description = "Workshet(" + w.Screenings.Count() + ")";
                 return new { Id = id };
             }
             else

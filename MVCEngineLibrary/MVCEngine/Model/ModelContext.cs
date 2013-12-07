@@ -173,12 +173,12 @@ namespace MVCEngine.Model
         #endregion Context Initializtion
 
         #region Freeze & UnFreeze
-        public void Freeze<T>(T obj) where T : Entity
+        public static void Freeze(Entity obj)
         {
             obj.IsFrozen = true;
         }
 
-        public void UnFreeze<T>(T obj) where T : Entity
+        public static void UnFreeze(Entity obj)
         {
             obj.IsFrozen = false;
         }

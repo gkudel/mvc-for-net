@@ -13,6 +13,7 @@ namespace CtgWorksheet.Model
     [Table("GP_FISHSCREENING")]
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "set_Id", "set_WorksheetId")]
     [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet|!get_Worksheet).)*$).*?set_*|get_*")]
+    [attributes.EntityInterceptor("Worksheet", "CtgWorksheet.Model.Worksheet, mfc-for-net")]
     public class Screening : Entity
     {
         [Column("GP_FISH_RECID", IsPrimaryKey=true)]
@@ -21,7 +22,6 @@ namespace CtgWorksheet.Model
         [Column("GP_FISH_WORKSHEETID", IsForeignKey = true, ForeignTable = "GP_RESWORKSHEET")]
         public virtual long WorksheetId { get; set; }
 
-        [Table("GP_RESWORKSHEET")]
         public virtual Worksheet Worksheet { get; set; }
     }
 }

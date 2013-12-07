@@ -62,6 +62,11 @@ namespace MVCEngine.Model
             {
                 T obj = CreateInstance();
                 base.Add(obj);
+                Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                if (table.IsNotNull())
+                {
+                    table.Uid = Guid.NewGuid().ToString();
+                }
                 return obj;
             }
             else
@@ -88,6 +93,11 @@ namespace MVCEngine.Model
             else
             {
                 base.RemoveItem(index);
+            }
+            Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+            if (table.IsNotNull())
+            {
+                table.Uid = Guid.NewGuid().ToString();
             }
         }
         #endregion Override

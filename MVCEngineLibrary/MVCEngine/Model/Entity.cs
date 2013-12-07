@@ -25,7 +25,7 @@ namespace MVCEngine.Model
             set
             {
                 _isFrozen = value;
-                //Freeze(this); TODO Freeze child Objects
+                EnumerateByChildren((e) => { e.IsFrozen = value; });
             }
         }
         #endregion IsFroze
@@ -36,8 +36,35 @@ namespace MVCEngine.Model
         {
             if (State == EntityState.Modified) State = EntityState.Unchanged;
             if (State == EntityState.Added) State = EntityState.Unchanged;
+            if (State == EntityState.Deleted) EnumerateByChildren((e) => { e.State = EntityState.Deleted; });
         }
         #endregion Object State
+
+        #region Enumerate by Children
+        public void EnumerateByChildren(Action<Entity> action)
+        {
+            Table table = Context.Tables.FirstOrDefault(t => t.ClassName == GetType().Name);
+            if (table.IsNull() && GetType().BaseType.IsNotNull())
+            {
+                table = Context.Tables.FirstOrDefault(t => t.ClassName == GetType().BaseType.Name);
+            }
+            if (table.IsNotNull())
+            {
+                Context.Relations.Where(r => r.ParentTable == table.TableName).ToList().ForEach((r) =>
+                {
+                    Table childTable = Context.Tables.FirstOrDefault(t => t.TableName == r.ChildTable);
+                    if (childTable.IsNotNull())
+                    {
+                        childTable.Rows.Where(row => row.State != EntityState.Deleted &&
+                        r.ChildValue(row).Equals(r.ParentValue(this))).ToList().ForEach((row) =>
+                        {
+                            action(row);
+                        });
+                    }
+                });
+            }
+        }
+        #endregion Enumerate by Children
 
         #region INotifyPropertyChanged
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
