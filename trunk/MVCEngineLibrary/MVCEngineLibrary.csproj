@@ -79,7 +79,9 @@
     <Compile Include="MVCEngine\Internal\Validation\ValidationExtensions.cs" />
     <Compile Include="MVCEngine\Model\Attributes\CollectionInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Column.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\EntityInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Interceptor.cs" />
+    <Compile Include="MVCEngine\Model\Interceptors\EntityInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Internal\Descriptions\Relation.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Table.cs" />
     <Compile Include="MVCEngine\Model\Exceptions\InterceptorDispatcherException.cs" />
