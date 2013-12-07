@@ -49,7 +49,7 @@ namespace MVCEngine.Model
             Context ctx = _contexts.Value.FirstOrDefault(c => c.Name == name);
             if (ctx.IsNotNull())
             {
-                ctx = ctx.Copy().InitailizeRows(this); 
+                Context = ctx.Copy().InitailizeRows(this); 
             }
             else
             {
@@ -58,6 +58,10 @@ namespace MVCEngine.Model
         }
         #endregion Constructor
 
+        #region Context
+        internal Context Context { get; set; }
+        #endregion Context
+        
         #region Context Initializtion
         public static void ModelContextInitialization<T>() where T : ModelContext
         {            
@@ -183,9 +187,30 @@ namespace MVCEngine.Model
         }
         #endregion Freeze & UnFreeze
 
+        #region AcceptChanges
+        public void AcceptChanges()
+        {
+            if (Context.IsNotNull())
+            {
+                Context.Tables.ForEach((t) =>
+                {
+                    t.Rows.ToList().ForEach((r) =>
+                    {
+                        r.AcceptChanges();
+                    });
+                });
+            }
+        }
+        #endregion AcceptChanges
+
         #region Dispose & Destructor
         public void Dispose()
-        {           
+        {
+            if (Context.IsNotNull())
+            {
+                Context.Dispose();
+                Context = null;
+            }
         }
 
         ~ModelContext()
