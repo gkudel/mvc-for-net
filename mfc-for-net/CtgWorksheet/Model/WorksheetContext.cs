@@ -9,8 +9,8 @@ namespace CtgWorksheet.Model
     public class WorksheetContext : ModelContext
     {
         #region Tables
-        public ModelBindingList<Worksheet> _worksheets = new ModelBindingList<Worksheet>();
-        public ModelBindingList<Screening> _screenings = new ModelBindingList<Screening>();
+        public ModelBindingList<Worksheet> Worksheets = new ModelBindingList<Worksheet>();
+        public ModelBindingList<Screening> Screenings = new ModelBindingList<Screening>();
         #endregion Tables
     }
 }

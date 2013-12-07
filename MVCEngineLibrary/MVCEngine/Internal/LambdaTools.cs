@@ -22,8 +22,8 @@ namespace MVCEngine.Internal
         }
         #endregion Constructor
         
-        #region GetObjectActivator
-        public static Func<object> GetObjectActivator(string objectType, string genericType)
+        #region ObjectActivator
+        public static Func<object> ObjectActivator(string objectType, string genericType)
         {
             string typeString = objectType;
             if (!genericType.IsNullOrEmpty())
@@ -33,7 +33,7 @@ namespace MVCEngine.Internal
             Type type = Type.GetType(typeString);
             if(type.IsNotNull())
             {
-                return LambdaTools.GetObjectActivator(type);
+                return LambdaTools.ObjectActivator(type);
             }
             else
             {
@@ -41,7 +41,7 @@ namespace MVCEngine.Internal
             }
         }
 
-        public static Func<object> GetObjectActivator(Type objectType)
+        public static Func<object> ObjectActivator(Type objectType)
         {
             Func<object> ret = null;
             ConstructorInfo ctor = objectType.GetConstructors().FirstOrDefault(c => c.GetParameters().Count() == 0);
@@ -55,20 +55,20 @@ namespace MVCEngine.Internal
             }
             return ret;
         }
-        #endregion GetObjectActivator
+        #endregion ObjectActivator
 
-        #region GetPropertySetter
-        public static Action<object, object> GetPropertySetter(Type objectType, string name)
+        #region PropertySetter
+        public static Action<object, object> PropertySetter(Type objectType, string name)
         {
             PropertyInfo pinfo = objectType.GetProperty(name);
             if (pinfo.IsNotNull())
             {
-                return GetPropertySetter(objectType, pinfo);
+                return PropertySetter(objectType, pinfo);
             }
             return null;
         }
 
-        public static Action<object, object> GetPropertySetter(Type objectType, PropertyInfo propertyInfo)
+        public static Action<object, object> PropertySetter(Type objectType, PropertyInfo propertyInfo)
         {
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);
@@ -82,12 +82,31 @@ namespace MVCEngine.Internal
                     Expression.Catch(typeof(ArgumentNullException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
                 obj, value).Compile();
         }
-        #endregion GetPropertySetter
+        #endregion PropertySetter
 
-        #region GetMethodTriger
-        public static Func<object, object[], object> GetMethodTriger(Type objectType, MethodInfo info)
+        #region PropertyGetter
+        public static Func<object, object> PropertyGetter(Type objectType, string name)
         {
-            
+            PropertyInfo pinfo = objectType.GetProperty(name);
+            if (pinfo.IsNotNull())
+            {
+                return PropertyGetter(objectType, pinfo);
+            }
+            return null;
+        }
+
+        public static Func<object, object> PropertyGetter(Type objectType, PropertyInfo propertyInfo)
+        {
+            ParameterExpression obj = Expression.Parameter(typeof(object));
+            Expression convertObj = Expression.Convert(obj, objectType);
+            return Expression.Lambda<Func<object, object>>(Expression.Convert(Expression.MakeMemberAccess(convertObj, propertyInfo), typeof(object)), obj).Compile();
+        }
+        #endregion PropertyGetter
+
+
+        #region MethodTriger
+        public static Func<object, object[], object> MethodTriger(Type objectType, MethodInfo info)
+        {            
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);
             ParameterExpression param = Expression.Parameter(typeof(object[]));
@@ -119,6 +138,15 @@ namespace MVCEngine.Internal
                                                                           Expression.Constant(null)), obj, param).Compile();
             }
         }
-        #endregion GetMethodTriger
+        #endregion MethodTriger
+
+        #region FieldGetter
+        public static Func<object, object> FieldGetter(Type objectType, FieldInfo finfo)
+        {
+            ParameterExpression obj = Expression.Parameter(typeof(object));
+            Expression convertObj = Expression.Convert(obj, objectType);
+            return Expression.Lambda<Func<object, object>>(Expression.Convert(Expression.MakeMemberAccess(convertObj, finfo), typeof(object)), obj).Compile();
+        }
+        #endregion FieldGetter 
     }
 }

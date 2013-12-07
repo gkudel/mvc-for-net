@@ -25,30 +25,50 @@ namespace CtgWorksheet.Controllers
         public object Load(int id)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
-            Worksheet w = ctx._worksheets.AddNew();
+            Worksheet w = ctx.Worksheets.AddNew();
             w.Id = id;
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
-            ctx._worksheets.AcceptChanges();
-            return new RedirectView("AddScreening") { Params = new { Model = w } };
+            return new RedirectView("AddScreening") { Params = new { Model = w }, RedirectParams = new { Id = w.Id } };
         }
 
-        private static int screeningrecid = 0;
         [ActionMethod("AddScreening")]
-        public object AddScreening()
+        public object AddScreening(int id)
         {
-            int ScreeningNumber = ++screeningrecid;
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
-            ctx._worksheets[0].Description = "Workshet(" + screeningrecid + ")";
-            return new { Model = new Screening() { Id = ScreeningNumber }, ScreeningNumber };
+            Worksheet worksheet = ctx.Worksheets.FirstOrDefault(w => w.Id == id);
+            if( worksheet != null)
+            {
+                Screening screening = ctx.Screenings.AddNew();
+                screening.Id = ctx.Screenings.Select(s => s.Id).Max() + 1;
+                screening.WorksheetId = worksheet.Id;
+                worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
+                return new { Model = screening};
+            }
+            else
+            {
+                return new ErrorView();
+            }
         }
 
         [ActionMethod("DeleteScreening")]
-        public object AddScreening(int id)
+        public object DeleteScreening(int worksheetid, int id)
         {
-            int ScreeningNumber = --screeningrecid;
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
-            ctx._worksheets[0].Description = "Workshet(" + screeningrecid + ")";
-            return new { ScreeningNumber };
+            Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id && s.WorksheetId == worksheetid);
+            if (screening != null)
+            {
+                ctx.Screenings.Remove(screening);
+                Worksheet worksheet = ctx.Worksheets.FirstOrDefault(w => w.Id == worksheetid);
+                if (worksheet != null)
+                {
+                    worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
+                }
+                return new { Id = id };
+            }
+            else
+            {
+                return new ErrorView();
+            }            
         }
         #endregion Action Method
 

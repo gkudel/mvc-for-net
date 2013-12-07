@@ -8,14 +8,19 @@ using Castle.DynamicProxy;
 using MVCEngine.Model.Interceptors;
 using MVCEngine.Model.Exceptions;
 using MVCEngine.Model.Internal;
+using MVCEngine.Model.Internal.Descriptions;
 
 namespace MVCEngine.Model
 {
-    public class ModelBindingList<T> : BindingList<T> where T : Entity
+    public class ModelBindingList<T> : BindingList<T>, IDisposable where T : Entity
     {
         #region Members
         private static readonly Lazy<ProxyGenerator> _generator;
         #endregion Members
+
+        #region Context
+        public Context Context { get; set; }
+        #endregion Context
 
         #region Constructors
         static ModelBindingList()
@@ -88,13 +93,15 @@ namespace MVCEngine.Model
         #endregion Override
 
         #region Create Object
-        private static T CreateInstance()
+        private T CreateInstance()
         {            
             var options = new ProxyGenerationOptions(new InterceptorGenerationHook()) { Selector = new InterceptorSelector() };
             var proxy = _generator.Value.CreateClassProxy(typeof(T), options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(typeof(T)).ToArray());
             if (proxy.IsTypeOf<Entity>())
             {
-                proxy.CastToType<Entity>().State = EntityState.Added;
+                Entity entity = proxy.CastToType<Entity>();
+                entity.Context = this.Context;
+                entity.State = EntityState.Added;
             }
             return proxy as T;
         }
@@ -117,5 +124,17 @@ namespace MVCEngine.Model
             }
         }
         #endregion AcceptChanges
+
+        #region Dispose
+        public void Dispose()
+        {
+            Context = null;
+        }
+
+        ~ModelBindingList()
+        {
+            Dispose();
+        }
+        #endregion Dispose
     }
 }

@@ -13,15 +13,17 @@ namespace MVCEngine.Model.Internal.Descriptions
         internal Context()
         {
             Tables = new List<Table>();
+            Relations = new List<Relation>();
         }
         #endregion Constructor
 
         #region Properties
         public string Name { get; set; }
         public List<Table> Tables { get; set; }
+        internal List<Relation> Relations { get; set; }
         #endregion Properties
 
-        /*#region Copy
+        #region Copy
         internal Context Copy()
         {
             Context ctx = new Context() 
@@ -33,48 +35,64 @@ namespace MVCEngine.Model.Internal.Descriptions
                 Table table = new Table()
                 {
                     TableName = t.TableName,
-                    FieldName = t.FieldName,
-                    EntityType = t.EntityType
+                    ClassName = t.ClassName, 
+                    RowsFieldName = t.RowsFieldName,
+                    RowsFieldGetter = t.RowsFieldGetter,
+                    ContextSetter = t.ContextSetter
                 };
                 t.Columns.ForEach((c) => 
                 {
                     Column column = new Column() 
                     {
                         Name = c.Name,
+                        Property = c.Property,
                         ColumnType = c.ColumnType,
-                        ForeignKey = c.ForeignKey,
-                        ForeignTable = c.ForeignTable,                        
                         PrimaryKey = c.PrimaryKey
                     };
                     table.Columns.Add(c);
                 });
-                t.Parents.ForEach((p) =>
-                {
-                    Relation parent = new Relation() 
-                    {
-                        PropertyName = p.PropertyName,
-                        TableName = p.TableName
-                    };
-                    table.Parents.Add(parent);
-                });
-                t.Children.ForEach((c) =>
-                {
-                    Relation child = new Relation()
-                    {
-                        PropertyName = c.PropertyName,
-                        TableName = c.TableName
-                    };
-                    table.Children.Add(child);
-                });
                 ctx.Tables.Add(table);
+            });
+            Relations.ForEach((r) => 
+            {
+                ctx.Relations.Add(new Relation() 
+                {
+                    ParentTable = r.ParentTable,
+                    ChildTable = r.ChildTable,
+                    ParentKey = r.ParentKey,
+                    ParentValue = r.ParentValue,
+                    ChildKey = r.ChildKey, 
+                    ChildValue = r.ChildValue
+                });
             });
             return ctx;
         }
-        #endregion Copy*/
+        #endregion Copy
+
+        #region Initialize 
+        internal Context InitailizeRows(ModelContext mctx)
+        {
+            Tables.ForEach((t) =>
+            {
+                t.Rows = t.RowsFieldGetter(mctx).CastToType<IEnumerable<Entity>>();
+                t.ContextSetter(t.RowsFieldGetter(mctx), this);
+            });
+            return this;
+        }
+        #endregion Initialize
 
         #region Dispose
         public void Dispose()
         {
+            Tables.ForEach((t) =>
+            {
+                t.Rows = null;
+            });
+        }
+
+        ~Context()
+        {
+            Dispose();
         }
         #endregion Dispose
     }
