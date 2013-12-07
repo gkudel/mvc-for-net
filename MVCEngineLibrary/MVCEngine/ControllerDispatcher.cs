@@ -44,7 +44,7 @@ namespace MVCEngine
         #endregion Instance Factory
 
         #region Invoke Action Method
-        public object InvokeActionMethod(string controllerName, string actionMethodName, object actionMethodParameters = null, object controllerPropertiesValues = null)
+        public object InvokeActionMethod(string controllerName, string actionMethodName, object actionMethodParameters = null, object controllerPropertiesValues = null, bool asynchronous = false)
         {
             Validator.GetInstnace().
                 IsNotEmpty(controllerName, "controllerName").
@@ -99,10 +99,11 @@ namespace MVCEngine
                 }
 
                 ret = actionMethodParameters;
-                ActionMethodData actionMethodData = new ActionMethodData(action.IsAsynchronousInvoke, controller, action, objectToInvokeMethod, actionMethodParameters);
+                asynchronous = !asynchronous ? action.IsAsynchronousInvoke : asynchronous;
+                ActionMethodData actionMethodData = new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters);
                 if (objectToInvokeMethod.IsNotNull())
                 {
-                    if (!action.IsAsynchronousInvoke)
+                    if (!asynchronous)
                     {
                         InvokeAntecedent(actionMethodData);
                         ret = actionMethodData.ControllerReturnData;
@@ -114,12 +115,21 @@ namespace MVCEngine
                     }
                     else
                     {
-                        Task<object> task = new Task<object>(() =>
+                        Task currentTask = action.AsynchronousTask;
+                        action.AsynchronousTask = new Task<object>(() =>
                         {
+                            if (currentTask.IsNotNull() && (currentTask.Status == TaskStatus.Created
+                                || currentTask.Status == TaskStatus.Running
+                                || currentTask.Status == TaskStatus.WaitingForActivation
+                                || currentTask.Status == TaskStatus.WaitingForChildrenToComplete
+                                || currentTask.Status == TaskStatus.WaitingToRun))
+                            {
+                                currentTask.Wait();
+                            }
                             return InvokeAntecedent(actionMethodData);
                         });
 
-                        task.ContinueWith((antecedent) =>
+                        action.AsynchronousTask.ContinueWith((antecedent) =>
                         {
                             ActionMethodData data = antecedent.Result.CastToType<ActionMethodData>();
                             if (data.IsNotNull())
@@ -127,10 +137,10 @@ namespace MVCEngine
                                 InvokeContinuations(data);
                             }
                         }, TaskContinuationOptions.OnlyOnRanToCompletion);
-                        task.Start();
+                        action.AsynchronousTask.Start();
                     }
                 }
-                if (!action.IsAsynchronousInvoke)
+                if (!asynchronous)
                 {
                     InvokeContinuations(actionMethodData);
                     if (redirect.IsNotNull())
@@ -363,7 +373,7 @@ namespace MVCEngine
                         });
 
                         controller.ControllerActivator = controlActivator.IfNullDefault(() => { return LambdaTools.ObjectActivator(type); });
-                        AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, LambdaTools.MethodTriger(type, ma.Method), ma.Method);
+                        AddActionMethod(controller, action.ActionName, action.IsAsynchronousInvoke, LambdaTools.MethodTriger(type, ma.Method), ma.Method);
                     });
 
                     if (controller.IsNotNull())

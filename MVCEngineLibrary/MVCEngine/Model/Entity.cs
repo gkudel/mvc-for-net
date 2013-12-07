@@ -13,6 +13,7 @@ namespace MVCEngine.Model
     {
         #region Members
         private bool _isFrozen = false;
+        private EntityState _entityState = EntityState.Added;
         #endregion Members
 
         #region IsFrozen
@@ -22,7 +23,7 @@ namespace MVCEngine.Model
             { 
                 return _isFrozen; 
             }
-            set
+            internal set
             {
                 _isFrozen = value;
                 EnumerateByChildren((e) => { e.IsFrozen = value; });
@@ -31,12 +32,24 @@ namespace MVCEngine.Model
         #endregion IsFroze
 
         #region Object State
-        public EntityState State { get; set; }
+
+        public EntityState State
+        {
+            get 
+            { 
+                return _entityState; 
+            }
+            internal set
+            {
+                _entityState = value;
+                if (_entityState == EntityState.Deleted) EnumerateByChildren((e) => { e.State = EntityState.Deleted; });
+            }
+        }
+
         public void AcceptChanges()
         {
             if (State == EntityState.Modified) State = EntityState.Unchanged;
-            if (State == EntityState.Added) State = EntityState.Unchanged;
-            if (State == EntityState.Deleted) EnumerateByChildren((e) => { e.State = EntityState.Deleted; });
+            if (State == EntityState.Added) State = EntityState.Unchanged;            
         }
         #endregion Object State
 

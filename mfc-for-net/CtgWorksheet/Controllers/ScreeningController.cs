@@ -38,7 +38,8 @@ namespace CtgWorksheet.Controllers
             Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);
             if (screening.IsNotNull())
             {
-                screening.IsFrozen = !screening.IsFrozen;                 
+                if (screening.IsFrozen) WorksheetContext.UnFreeze(screening);
+                else WorksheetContext.Freeze(screening);  
             }
             return new { Id = id };
         }
