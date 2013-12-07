@@ -31,6 +31,10 @@ namespace MvcForNet.CtgWorksheet.GUI
             ControllerDispatcher.GetInstance().RegisterListener(this);
             SessionId = sessionId;
             _model = screening;
+
+            txtA.DataBindings.Add(new Binding("Text", _model, "ValueA"));
+            txtB.DataBindings.Add(new Binding("Text", _model, "ValueB"));
+            lblResult.DataBindings.Add(new Binding("Text", _model, "ValueResult"));
         }
         #endregion Constructor
 
@@ -50,28 +54,33 @@ namespace MvcForNet.CtgWorksheet.GUI
         private void Recalculation(object sender, EventArgs e)
         {
             try
-            {            
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { Id = Id, A = txtA.Text, B = txtB.Text });
+            {
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { _model.Id } , new { SessionId });
             }
             catch(ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
             }
+        }
 
+        private void LockClick(object sender, EventArgs e)
+        {
+            try
+            {
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { _model.Id }, new { SessionId });
+            }
+            catch (ActionMethodInvocationException exc)
+            {
+                MessageBox.Show(exc.Message);
+            }            
         }
         #endregion GUI Events
 
         #region Calls Back
-        [ActionMethodCallBack("Screening", "Recalculate")]
-        public void Recalculate(int Result)
-        {            
-            Invoke(new Action<int>((r) => { lblResult.Text = r.ToString(); }), new object[] { Result });            
-        }
-
-        [ActionMethodErrorBack("Screening", "Recalculate")]
-        public void Recalculate(string Message, string StackTrace)
+        [ActionMethodCallBack("Screening", "Lock")]
+        public void Locked()
         {
-            Invoke(new Action<string>((r) => { lblResult.Text = r; }), new object[] { Message });
+            btnLock.Text = _model.IsFrozen ? "UnLock" : "Lock";
         }
         #endregion Calls Back
     }

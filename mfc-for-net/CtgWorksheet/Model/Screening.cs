@@ -11,7 +11,7 @@ using MVCEngine.Model.Interceptors;
 namespace CtgWorksheet.Model
 {
     [Table("GP_FISHSCREENING")]
-    [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "set_Id", "set_WorksheetId")]
+    [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*")]
     [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet|!get_Worksheet).)*$).*?set_*|get_*")]
     [attributes.EntityInterceptor("Worksheet", "CtgWorksheet.Model.Worksheet, mfc-for-net")]
     public class Screening : Entity
@@ -21,6 +21,15 @@ namespace CtgWorksheet.Model
 
         [Column("GP_FISH_WORKSHEETID", IsForeignKey = true, ForeignTable = "GP_RESWORKSHEET")]
         public virtual long WorksheetId { get; set; }
+        
+        [Column("GP_FISH_VALUEA")]
+        public virtual string ValueA { get; set; }
+
+        [Column("GP_FISH_VALUEB")]
+        public virtual string ValueB { get; set; }
+
+        [Column("GP_FISH_VALUERESULT")]
+        public virtual string ValueResult { get; set; }
 
         public virtual Worksheet Worksheet { get; set; }
     }

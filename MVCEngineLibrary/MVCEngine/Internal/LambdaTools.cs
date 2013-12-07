@@ -76,10 +76,7 @@ namespace MVCEngine.Internal
             DefaultExpression defaultvalue = Expression.Default(propertyInfo.PropertyType);
             return Expression.Lambda<Action<object, object>>(Expression.TryCatch(
                     Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), Expression.Convert(value, propertyInfo.PropertyType)),
-                    Expression.Catch(typeof(InvalidCastException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
-                    Expression.Catch(typeof(FormatException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
-                    Expression.Catch(typeof(OverflowException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
-                    Expression.Catch(typeof(ArgumentNullException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
+                    Expression.Catch(typeof(Exception), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
                 obj, value).Compile();
         }
         #endregion PropertySetter

@@ -40,6 +40,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.txtB = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.lblResult = new System.Windows.Forms.Label();
+            this.btnLock = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnRecalculation
@@ -94,17 +95,29 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.lblResult.TabIndex = 5;
             this.lblResult.Text = "NaN";
             // 
-            // Screenig
+            // btnLock
+            // 
+            this.btnLock.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLock.Location = new System.Drawing.Point(343, 333);
+            this.btnLock.Name = "btnLock";
+            this.btnLock.Size = new System.Drawing.Size(95, 23);
+            this.btnLock.TabIndex = 6;
+            this.btnLock.Text = "Lock";
+            this.btnLock.UseVisualStyleBackColor = true;
+            this.btnLock.Click += new System.EventHandler(this.LockClick);
+            // 
+            // ScreeningControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.btnLock);
             this.Controls.Add(this.lblResult);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.txtB);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtA);
             this.Controls.Add(this.btnRecalculation);
-            this.Name = "Screenig";
+            this.Name = "ScreeningControl";
             this.Size = new System.Drawing.Size(577, 372);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -119,5 +132,6 @@ namespace MvcForNet.CtgWorksheet.GUI
         private System.Windows.Forms.TextBox txtB;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblResult;
+        private System.Windows.Forms.Button btnLock;
     }
 }
