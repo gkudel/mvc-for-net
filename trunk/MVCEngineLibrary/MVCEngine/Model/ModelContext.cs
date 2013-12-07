@@ -60,13 +60,12 @@ namespace MVCEngine.Model
 
         #region Context Initializtion
         public static void ModelContextInitialization<T>() where T : ModelContext
-        {
+        {            
             if (_contexts.Value.FirstOrDefault(c => c.Name == (typeof(T).Name)).IsNull())
             {
                 string sessionid = MVCEngine.Session.Session.CreateUserSession(typeof(T).Name);
                 Task task = new Task(() =>
                 {
-                    PropertyInfo pRows = typeof(Table).GetProperty("Rows");
                     Context ctx = new Context()
                     {
                         Name = typeof(T).Name,
