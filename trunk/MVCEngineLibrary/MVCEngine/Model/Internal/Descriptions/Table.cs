@@ -10,19 +10,22 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Constructor
         internal Table()
         {
-            Children = new List<Relation>();
-            Parents = new List<Relation>();
             Columns = new List<Column>();
+            Uid = Guid.NewGuid().ToString();
         }
         #endregion Constructor
 
         #region Properties
-        public string TableName { get; internal set; }
-        internal string FieldName { get; set; }
+        internal string ClassName { get; set; }
+        internal string RowsFieldName { get; set; }
+        internal Func<object, object> RowsFieldGetter{ get; set; }
+        internal Action<object, object> ContextSetter { get; set; }
+        internal IEnumerable<Entity> Rows { get; set; }
+        internal string Uid { get; set; }
+        internal Func<object, object> PrimaryKey { get; set; }
         internal Type EntityType { get; set; }
-        internal List<Relation> Children { get; set; }
-        internal List<Relation> Parents { get; set; }
         public List<Column> Columns { get; internal set; }
+        public string TableName { get; internal set; }
         #endregion Properties
     }
 }

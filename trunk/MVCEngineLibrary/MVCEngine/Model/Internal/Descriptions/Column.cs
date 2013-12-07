@@ -9,10 +9,9 @@ namespace MVCEngine.Model.Internal.Descriptions
     {
         #region Properties
         public string Name { get; internal set; }
+        internal string Property { get; set; }
         public Type ColumnType { get; internal set; }
         public bool PrimaryKey { get; internal set; }
-        public bool ForeignKey { get; internal set; }
-        public string ForeignTable { get; internal set; }
         #endregion Properties
     }
 }

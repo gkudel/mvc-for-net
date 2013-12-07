@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MVCEngine.Model.Internal.Descriptions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace MVCEngine.Model
 {
     public enum EntityState { Added, Modified, Deleted, Unchanged };
 
-    public abstract class Entity : INotifyPropertyChanged
+    public abstract class Entity : INotifyPropertyChanged,  IDisposable
     {
         #region Members
         private bool _isFrozen = false;
@@ -49,5 +50,21 @@ namespace MVCEngine.Model
             }
         }
         #endregion INotifyPropertyChanged
+
+        #region Context
+        internal Context Context { get; set; }
+        #endregion Context
+
+        #region Dispose
+        public void Dispose()
+        {
+            Context = null;
+        }
+
+        ~Entity()
+        {
+            Dispose();
+        }
+        #endregion Dispose
     }
 }

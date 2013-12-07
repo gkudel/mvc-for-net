@@ -15,6 +15,10 @@ namespace MvcForNet.CtgWorksheet.GUI
 {
     public partial class ScreeningControl : UserControl
     {
+        #region Memebers
+        private Screening _model;
+        #endregion Members
+
         #region Constructor
         public ScreeningControl()
         {
@@ -24,10 +28,9 @@ namespace MvcForNet.CtgWorksheet.GUI
         public ScreeningControl(Screening screening, string sessionId)
             : this()
         {
-
             ControllerDispatcher.GetInstance().RegisterListener(this);
             SessionId = sessionId;
-            Model = screening;
+            _model = screening;
         }
         #endregion Constructor
 
@@ -39,11 +42,8 @@ namespace MvcForNet.CtgWorksheet.GUI
         [ViewId("")]
         public long Id 
         {
-            get { return Model.Id; }
+            get { return _model.Id; }
         }
-
-        [Browsable(false)]
-        private Screening Model { get; set; }
         #endregion Properties
 
         #region GUI Events

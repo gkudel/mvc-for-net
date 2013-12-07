@@ -18,7 +18,11 @@ using MVCEngine.Internal;
 namespace MvcForNet.CtgWorksheet.GUI
 {
     public partial class WorksheetForm : Form
-    {        
+    {
+        #region Members
+        private Worksheet _model;
+        #endregion Members
+
         #region Constructor
         public WorksheetForm()
         {
@@ -46,7 +50,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             try
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", null, new { SessionId });
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", new { Id = _model.Id }, new { SessionId });
             }
             catch(ActionMethodInvocationException exc)
             {
@@ -63,7 +67,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 {
                     try
                     {
-                        ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Id = control.Id }, new { SessionId });
+                        ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Worksheetid = _model.Id, Id = control.Id }, new { SessionId });
                     }
                     catch(ActionMethodInvocationException exc) 
                     {
@@ -88,11 +92,12 @@ namespace MvcForNet.CtgWorksheet.GUI
         [ActionMethodCallBack("Worksheet", "Load")]
         public void Loaded(Worksheet model)
         {
-            txtDescription.DataBindings.Add(new Binding("Text", model, "Description"));
+            _model = model;
+            txtDescription.DataBindings.Add(new Binding("Text", _model, "Description"));
         }
 
         [ActionMethodCallBack("Worksheet", "AddScreening")]
-        public void ScreeningAdded(Screening model, int screeningNumber)
+        public void ScreeningAdded(Screening model)
         {
             ScreeningControl screening = new ScreeningControl(model, SessionId);
             screening.Dock = DockStyle.Fill;
@@ -101,11 +106,11 @@ namespace MvcForNet.CtgWorksheet.GUI
             tabScreening.TabPages.Add(tabpage);
             tabScreening.SelectedTab = tabpage;
 
-            btnDeleteScreening.Enabled = screeningNumber > 0;
+            btnDeleteScreening.Enabled = _model.Screenings.Count() > 0;
         }
 
         [ActionMethodCallBack("Worksheet", "DeleteScreening")]
-        public void ScreeningDeleted(int screeningNumber)
+        public void ScreeningDeleted(int id)
         {
             if (tabScreening.SelectedTab.IsNotNull())
             {
@@ -113,7 +118,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 tabScreening.TabPages.Remove(tp);
                 tp.Dispose();
             }
-            btnDeleteScreening.Enabled = screeningNumber > 0;
+            btnDeleteScreening.Enabled = _model.Screenings.Count() > 0;
         }
         #endregion Calls Back
     }

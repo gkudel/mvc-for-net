@@ -33,6 +33,7 @@ namespace MVCEngine.Model.Attributes
         public virtual bool IsPrimaryKey { get; set; }
         public virtual bool IsForeignKey { get; set; }
         public virtual string ForeignTable { get; set; }
+        public virtual string ForeignColumn { get; set; }
         #endregion Properties
     }
 }

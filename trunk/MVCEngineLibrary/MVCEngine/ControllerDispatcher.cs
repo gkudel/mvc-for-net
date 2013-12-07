@@ -80,7 +80,7 @@ namespace MVCEngine
                             {
                                 if (!controller.PropertiesSetters.ContainsKey(p.Name))
                                 {
-                                    Action<object, object> a = LambdaTools.GetPropertySetter(objectToInvokeMethod.GetType(), p.Name);
+                                    Action<object, object> a = LambdaTools.PropertySetter(objectToInvokeMethod.GetType(), p.Name);
                                     if (a.IsNotNull())
                                     {
                                         controller.PropertiesSetters.Add(p.Name, a);
@@ -356,14 +356,14 @@ namespace MVCEngine
                                 if (info.IsNotNull())
                                 {
                                     c.DefaultValues.Add(info.Name, info.GetValue(controlerAttribute, null));
-                                    c.PropertiesSetters.Add(info.Name, LambdaTools.GetPropertySetter(type, pa.Property));
+                                    c.PropertiesSetters.Add(info.Name, LambdaTools.PropertySetter(type, pa.Property));
                                 }
                             });
                             return c;
                         });
 
-                        controller.ControllerActivator = controlActivator.IfNullDefault(() => { return LambdaTools.GetObjectActivator(type); });
-                        AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, LambdaTools.GetMethodTriger(type, ma.Method), ma.Method);
+                        controller.ControllerActivator = controlActivator.IfNullDefault(() => { return LambdaTools.ObjectActivator(type); });
+                        AddActionMethod(controller, action.ActionName, /*action.IsAsynchronousInvoke*/false, LambdaTools.MethodTriger(type, ma.Method), ma.Method);
                     });
 
                     if (controller.IsNotNull())
@@ -397,8 +397,8 @@ namespace MVCEngine
                             Name = controllerName
                         };
                     });
-                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, LambdaTools.GetMethodTriger(controllerType, mInfo), mInfo);
-                    method.ControllerActivator = LambdaTools.GetObjectActivator(controllerType);
+                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, LambdaTools.MethodTriger(controllerType, mInfo), mInfo);
+                    method.ControllerActivator = LambdaTools.ObjectActivator(controllerType);
                     _controllers.Value.AddIfNotContains(controller);
                 }
                 else
@@ -505,11 +505,11 @@ namespace MVCEngine
                     descriptor.Method callbackmethod = null;
                     if (m.Attribute.IsTypeOf<ActionMethodCallBack>())
                     {
-                        callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodTriger = LambdaTools.GetMethodTriger(type, m.Method) };
+                        callbackmethod = listener.ActionCallBack = new descriptor.Method() { MethodTriger = LambdaTools.MethodTriger(type, m.Method) };
                     }
                     else if (m.Attribute.IsTypeOf<ActionMethodErrorBack>())
                     {
-                        callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodTriger = LambdaTools.GetMethodTriger(type, m.Method) };
+                        callbackmethod = listener.ActionErrorBack = new descriptor.Method() { MethodTriger = LambdaTools.MethodTriger(type, m.Method) };
                     }
                     if (callbackmethod.IsNotNull())
                     {
@@ -620,7 +620,7 @@ namespace MVCEngine
                             TryCatchStatment.Try().Invoke(() =>
                             {
                                 Type type = Type.GetType(controller.Class);
-                                Func<object> objectActivator = LambdaTools.GetObjectActivator(type);
+                                Func<object> objectActivator = LambdaTools.ObjectActivator(type);
                                 obj = objectActivator();
                                 RegisterController(obj.GetType(), objectActivator);
                             }).Catch((Message, Source, StackTrace, Exception) =>
@@ -645,7 +645,7 @@ namespace MVCEngine
                             TryCatchStatment.Try().Invoke(() =>
                             {
                                 Type type = Type.GetType(view.Class);
-                                Func<object> objectActivator = LambdaTools.GetObjectActivator(type);
+                                Func<object> objectActivator = LambdaTools.ObjectActivator(type);
                                 obj = objectActivator();
                                 if (obj.IsNotNull())
                                 {
