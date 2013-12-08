@@ -45,7 +45,7 @@ namespace MVCEngine.Model.Interceptors
                                                                                   && r.ChildTable == childTable.TableName);
                         if (relation.IsNotNull())
                         {
-                            List<T> list = parentTable.Rows.Cast<T>().Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
+                            List<T> list = parentTable.Entities.Cast<T>().Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
                                     Equals(relation.ChildValue(invocation.InvocationTarget))).ToList();
                             if (list.Count() == 1)
                             {
