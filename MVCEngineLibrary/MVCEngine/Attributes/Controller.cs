@@ -17,7 +17,7 @@ namespace MVCEngine.Attributes
         #region Constructor
         public Controller(string controllerName)
         {
-            Validator.GetInstnace().
+            ArgumentValidator.GetInstnace().
                        IsNotEmpty(controllerName, "controllerName");
 
             this.controllerName = controllerName;

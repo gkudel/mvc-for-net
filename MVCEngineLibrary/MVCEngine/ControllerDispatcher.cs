@@ -45,8 +45,8 @@ namespace MVCEngine
 
         #region Invoke Action Method
         public object InvokeActionMethod(string controllerName, string actionMethodName, object actionMethodParameters = null, object controllerPropertiesValues = null, bool asynchronous = false)
-        {
-            Validator.GetInstnace().
+        {            
+            ArgumentValidator.GetInstnace().
                 IsNotEmpty(controllerName, "controllerName").
                 IsNotEmpty(actionMethodName, "actionMethodName");
 
@@ -64,7 +64,7 @@ namespace MVCEngine
                 Func<object> controllerActivator = controller.ControllerActivator.IfNullDefault(action.ControllerActivator);
                 if (controllerActivator.IsNotNull())
                 {
-                    TryCatchStatment.Try().Invoke(() =>
+                    try
                     {
                         objectToInvokeMethod = controllerActivator();
                         if (controller.ControllerActivator.IsNotNull())
@@ -92,57 +92,77 @@ namespace MVCEngine
                                 }
                             });
                         }
-                    }).Catch((Message, Source, StackTrace, Exception) =>
+                    }
+                    catch (Exception ex)
                     {
-                        this.ThrowException<ActionMethodInvocationException>(Message);
-                    });
+                        this.ThrowException<ActionMethodInvocationException>(ex.Message);
+                    }
                 }
 
                 ret = actionMethodParameters;
                 asynchronous = !asynchronous ? action.IsAsynchronousInvoke : asynchronous;
-                ActionMethodData actionMethodData = new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters);
+                ThreadLocal<ActionMethodData> actionMethodData = new ThreadLocal<ActionMethodData>(() =>
+                {
+                    return new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters);
+                });                
                 if (objectToInvokeMethod.IsNotNull())
                 {
-                    if (!asynchronous)
+                    Task currentTask = action.Task;
+                    action.Task = new Task<object>(() =>
                     {
-                        InvokeAntecedent(actionMethodData);
-                        ret = actionMethodData.ControllerReturnData;
-                        if (ret.IsTypeOf<RedirectView>())
+                        ActionMethodData data = actionMethodData.Value;
+                        if (currentTask.IsNotNull() && (currentTask.Status == TaskStatus.Created
+                            || currentTask.Status == TaskStatus.Running
+                            || currentTask.Status == TaskStatus.WaitingForActivation
+                            || currentTask.Status == TaskStatus.WaitingForChildrenToComplete
+                            || currentTask.Status == TaskStatus.WaitingToRun))
                         {
-                            redirect = ret.CastToType<RedirectView>();
-                            actionMethodData.ControllerReturnData = ret = redirect.Params;
-                        }
-                    }
-                    else
-                    {
-                        Task currentTask = action.AsynchronousTask;
-                        action.AsynchronousTask = new Task<object>(() =>
-                        {
-                            if (currentTask.IsNotNull() && (currentTask.Status == TaskStatus.Created
-                                || currentTask.Status == TaskStatus.Running
-                                || currentTask.Status == TaskStatus.WaitingForActivation
-                                || currentTask.Status == TaskStatus.WaitingForChildrenToComplete
-                                || currentTask.Status == TaskStatus.WaitingToRun))
+                            try
                             {
                                 currentTask.Wait();
                             }
-                            return InvokeAntecedent(actionMethodData);
-                        });
-
-                        action.AsynchronousTask.ContinueWith((antecedent) =>
-                        {
-                            ActionMethodData data = antecedent.Result.CastToType<ActionMethodData>();
-                            if (data.IsNotNull())
+                            catch (AggregateException aex)
                             {
-                                InvokeContinuations(data);
+                                data.ControllerReturnData = new ErrorView() { Params = new { ErrorMessage = aex.InnerException.Message } };
+                                return actionMethodData;
                             }
-                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
-                        action.AsynchronousTask.Start();
-                    }
+                        }
+                        return InvokeAntecedent(data);
+                    });
+
+                    action.Task.ContinueWith((antecedent) =>
+                    {
+                        ActionMethodData data = actionMethodData.Value;
+                        if (data.IsNotNull())
+                        {
+                            if (!data.IsAsynchronousInvoke)
+                            {
+                                ret = data.ControllerReturnData;
+                                if (ret.IsTypeOf<RedirectView>())
+                                {
+                                    redirect = ret.CastToType<RedirectView>();
+                                    data.ControllerReturnData = ret = redirect.Params;
+                                }
+                            }
+                            InvokeContinuations(data);
+                        }
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+
+                    action.Task.ContinueWith((antecedent) =>
+                    {
+                        ActionMethodData data = actionMethodData.Value;
+                        if (data.IsNotNull())
+                        {
+                            data.ControllerReturnData = new ErrorView() { Params = new { ErrorMessage = antecedent.Exception.InnerException.Message } };
+                            InvokeContinuations(data);
+                        }
+                    }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+
+                    if (asynchronous) action.Task.Start();
+                    else action.Task.RunSynchronously();
                 }
                 if (!asynchronous)
                 {
-                    InvokeContinuations(actionMethodData);
                     if (redirect.IsNotNull())
                     {
                         return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controller.Name), redirect.ActionMethod, redirect.RedirectParams, redirect.ControllerProperties.IfNullDefault(controllerPropertiesValues));
@@ -166,28 +186,17 @@ namespace MVCEngine
 
         private ActionMethodData InvokeAntecedent(ActionMethodData actionMethodData)
         {
-            TryCatchStatment.Try().Invoke(() =>
+            try
             {
                 actionMethodData.ControllerReturnData = InvokeMethod(actionMethodData.ActionMethod.Action, actionMethodData.ObjectToInvokeMethod, actionMethodData.ActionMethodParameters);
-            }).Catch((Message, Source, StackTrace, Exception) =>
-            {
-                if (actionMethodData.IsAsynchronousInvoke)
-                {
-                    actionMethodData.IsFault = true;
-                    actionMethodData.Message = Message;
-                    actionMethodData.StackTrace = StackTrace;
-                }
-                else
-                {
-                    this.ThrowException<ActionMethodInvocationException>(Message);
-                }
-            }).Finally(() =>
+            }
+            finally
             {
                 if (actionMethodData.ObjectToInvokeMethod.IsTypeOf<IDisposable>())
                 {
                     actionMethodData.ObjectToInvokeMethod.CastToType<IDisposable>().Dispose();
                 }
-            });
+            }
             return actionMethodData;
         }
 
@@ -248,8 +257,7 @@ namespace MVCEngine
                         if (viewid.IsNotEquals(retid)) continue;
                     }
 
-                    if ((actionMethodData.ControllerReturnData.IsNull() && actionMethodData.IsFault)
-                        || actionMethodData.ControllerReturnData.IsTypeOf<ErrorView>())
+                    if (actionMethodData.ControllerReturnData.IsNotNull() && actionMethodData.ControllerReturnData.IsTypeOf<ErrorView>())
                     {
                         if (l.ActionErrorBack.IsNotNull())
                         {
@@ -258,10 +266,6 @@ namespace MVCEngine
                                 if (actionMethodData.ControllerReturnData.IsNotNull())
                                 {
                                     InvokeMethod(l.ActionErrorBack, l.ThisObject, actionMethodData.ControllerReturnData.CastToType<ErrorView>().Params);
-                                }
-                                else
-                                {
-                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, new { Message = actionMethodData.Message, StackTrace = actionMethodData.StackTrace });
                                 }
                             }).Catch((Message, Source, StackTrace, Exception) =>
                             {
@@ -363,7 +367,7 @@ namespace MVCEngine
                             ToList().ForEach((pa) =>
                             {
                                 PropertyInfo info = controlerAttribute.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
-                                if (info.IsNotNull())
+                                if (info.IsNotNull() && info.CanRead)
                                 {
                                     c.DefaultValues.Add(info.Name, info.GetValue(controlerAttribute, null));
                                     c.PropertiesSetters.Add(info.Name, LambdaTools.PropertySetter(type, pa.Property));
@@ -464,7 +468,7 @@ namespace MVCEngine
         {
             if (!_views.Value.Contains(type.FullName))
             {
-                var propertyquery = type.GetProperties().
+                var propertyquery = type.GetProperties().Where(p => p.CanRead).
                     SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ViewId>()),
                     (p, a) => new { Property = p, Attribute = a.CastToType<ViewId>() });
                 var propertyid = propertyquery.FirstOrDefault();
@@ -700,9 +704,6 @@ namespace MVCEngine
             public object ObjectToInvokeMethod { get; private set; }
             public object ActionMethodParameters { get; private set; }
             public object ControllerReturnData { get; set; }
-            public bool IsFault { get; set; }
-            public string Message { get; set; }
-            public string StackTrace { get; set; }
             #endregion Properties
         }
         #endregion Asynchronous Action Method Data

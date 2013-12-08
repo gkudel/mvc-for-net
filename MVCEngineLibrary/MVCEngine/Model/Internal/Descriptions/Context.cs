@@ -57,6 +57,7 @@ namespace MVCEngine.Model.Internal.Descriptions
             {
                 ctx.Relations.Add(new Relation() 
                 {
+                    Name = r.Name, 
                     ParentTable = r.ParentTable,
                     ChildTable = r.ChildTable,
                     ParentKey = r.ParentKey,
