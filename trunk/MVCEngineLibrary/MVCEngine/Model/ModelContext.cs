@@ -58,6 +58,103 @@ namespace MVCEngine.Model
         }
         #endregion Constructor
 
+        #region GetChildEntities
+        public List<C> GetChildEntities<P, C>(P parent, Relation relation) where P : Entity
+                                                                           where C: Entity
+        {
+            List<C> ret = new List<C>();
+            if (Context.IsNotNull())
+            {
+                Table parentTable = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(P).Name);
+                if (parentTable.IsNotNull())
+                {
+                    Table childTable = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(C).Name);
+                    if (childTable.IsNotNull())
+                    {
+                        if (relation.ParentTable == parentTable.TableName && relation.ChildTable == childTable.TableName)
+                        {
+                            ret = childTable.Rows.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
+                                        Equals(relation.ChildValue(c))).ToList();                                
+                        }
+                        else
+                        {
+                            throw new ModelException("Parent table["+relation.ParentTable+"] and child table["+relation.ChildTable+"] " +
+                                                     " are not match to objects type of " + typeof(P).Name + " and "  + typeof(C).Name);
+                        }
+                    }
+                    else
+                    {
+                        throw new ModelException("There is not table mapped to class " + typeof(C).Name);
+                    }
+                }
+                else
+                {
+                    throw new ModelException("There is not table mapped to class " + typeof(P).Name);
+                }
+            }
+            else
+            {
+                throw new ModelException("Context is null");
+            }
+            return ret;
+        }
+        #endregion GetChildEntities
+
+        #region GetRelatedEntity
+        public C GetRelatedEntity<P, C>(P parent, Relation relation)
+            where P : Entity
+            where C : Entity
+        {
+            C entity = default(C);
+            if (Context.IsNotNull())
+            {
+                Table parentTable = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(P).Name);
+                if (parentTable.IsNotNull())
+                {
+                    Table childTable = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(C).Name);
+                    if (childTable.IsNotNull())
+                    {
+                        if (relation.ParentTable == parentTable.TableName && relation.ChildTable == childTable.TableName)
+                        {
+                            List<C> list = childTable.Rows.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
+                                        Equals(relation.ChildValue(c))).ToList();
+                            if (list.Count() == 1)
+                            {
+                                entity = list.First();
+                            }
+                            else if (list.Count() > 1)
+                            {
+                                throw new ModelException("Integrity constraint exception");
+                            }
+                            else
+                            {
+                                entity = default(C);
+                            }
+                        }
+                        else
+                        {
+                            throw new ModelException("Parent table[" + relation.ParentTable + "] and child table[" + relation.ChildTable + "] " +
+                                                     " are not match to objects type of " + typeof(P).Name + " and " + typeof(C).Name);
+                        }
+                    }
+                    else
+                    {
+                        throw new ModelException("There is not table mapped to class " + typeof(C).Name);
+                    }
+                }
+                else
+                {
+                    throw new ModelException("There is not table mapped to class " + typeof(P).Name);
+                }
+            }
+            else
+            {
+                throw new ModelException("Context is null");
+            }
+            return entity;
+        }
+        #endregion GetChildEntity
+
         #region Context
         internal Context Context { get; set; }
         #endregion Context
@@ -101,7 +198,7 @@ namespace MVCEngine.Model
                                     table.RowsFieldGetter = LambdaTools.FieldGetter(typeof(T), f);
                                     table.ContextSetter = LambdaTools.PropertySetter(f.FieldType, ctxInfo);
 
-                                    var columnquery = entityType.GetProperties().Where(p => p.CanWrite && System.Attribute.GetCustomAttributes(p).Count() > 0).
+                                    var columnquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
                                         SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Column>()).Select(a => a.CastToType<attribute.Column>()),
                                         (p, a) => new { Property = p, Attrubute = a });
                                     columnquery.ToList().ForEach((pa) =>
@@ -121,6 +218,7 @@ namespace MVCEngine.Model
                                         {
                                             ctx.Relations.Add(new Relation()
                                             {
+                                                Name = pa.Attrubute.RelationName, 
                                                 ChildKey = pa.Property.Name,
                                                 ChildTable = table.TableName,
                                                 ParentKey = pa.Attrubute.ForeignColumn,
@@ -168,7 +266,13 @@ namespace MVCEngine.Model
                     MVCEngine.Session.Session.ReleaseSession(sessionid);
                 });
 
+                task.ContinueWith((antecedent) =>
+                {      
+                    //ToDo log exception into log file
+                }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
+
                 MVCEngine.Session.Session.SetSessionData(sessionid, "InitializeTask", task);
+
 
                 task.Start();
             }

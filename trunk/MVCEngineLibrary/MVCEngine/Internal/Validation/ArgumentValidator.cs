@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace MVCEngine.Internal.Validation
 {
-    internal sealed class Validator
+    internal sealed class ArgumentValidator
     {
         #region Constructor
-        internal Validator()
+        internal ArgumentValidator()
         {
         }
         #endregion Constructor
@@ -22,7 +22,7 @@ namespace MVCEngine.Internal.Validation
         #endregion Throw Exception
 
         #region Begin Validation
-        internal static Validator GetInstnace()
+        internal static ArgumentValidator GetInstnace()
         {
             return null;
         }

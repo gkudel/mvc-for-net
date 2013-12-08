@@ -17,7 +17,7 @@ namespace MVCEngine.Attributes
         #region Constructor
         public ActionMethod(string actionName)
         {
-            Validator.GetInstnace().
+            ArgumentValidator.GetInstnace().
                 IsNotNull(actionName, "actionName");
 
             this.actionName = actionName;

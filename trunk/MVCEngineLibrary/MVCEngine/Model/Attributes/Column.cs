@@ -17,7 +17,7 @@ namespace MVCEngine.Model.Attributes
         #region Constructor
         public Column(string columnName)
         {
-            Validator.GetInstnace().
+            ArgumentValidator.GetInstnace().
                        IsNotNull(columnName, "columnName");
 
             this.columnName = columnName;
@@ -31,6 +31,7 @@ namespace MVCEngine.Model.Attributes
         }
 
         public virtual bool IsPrimaryKey { get; set; }
+        public virtual string RelationName { get; set; }
         public virtual bool IsForeignKey { get; set; }
         public virtual string ForeignTable { get; set; }
         public virtual string ForeignColumn { get; set; }

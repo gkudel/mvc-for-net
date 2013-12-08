@@ -23,7 +23,7 @@ namespace MVCEngine.Model.Attributes
 
         public Interceptor(string interceptorClass, params string[] methodsName)
         {
-            Validator.GetInstnace().
+            ArgumentValidator.GetInstnace().
                 IsNotEmpty(interceptorClass, "interceptorClass").
                 IsNotNull(methodsName, "methodsName");
 

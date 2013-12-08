@@ -11,7 +11,7 @@ namespace MVCEngine.View
         #region Constructor
         public RedirectView(string actionMethod)
         {
-            Validator.GetInstnace().
+            ArgumentValidator.GetInstnace().
             IsNotEmpty(actionMethod, "actionMethod");
 
             ActionMethod = actionMethod;

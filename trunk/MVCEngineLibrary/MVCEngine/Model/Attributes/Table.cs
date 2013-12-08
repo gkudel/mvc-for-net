@@ -17,7 +17,7 @@ namespace MVCEngine.Model.Attributes
         #region Constructor
         public Table(string tableName)
         {
-            Validator.GetInstnace().
+            ArgumentValidator.GetInstnace().
                        IsNotNull(tableName, "tableName");
 
             this.tableName = tableName;

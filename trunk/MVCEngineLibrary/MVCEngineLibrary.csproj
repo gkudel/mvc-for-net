@@ -75,8 +75,8 @@
     <Compile Include="MVCEngine\Internal\Descriptors\Method.cs" />
     <Compile Include="MVCEngine\Internal\Descriptors\Parameter.cs" />
     <Compile Include="MVCEngine\Internal\TryCatchStatment.cs" />
-    <Compile Include="MVCEngine\Internal\Validation\Validation.cs" />
-    <Compile Include="MVCEngine\Internal\Validation\ValidationExtensions.cs" />
+    <Compile Include="MVCEngine\Internal\Validation\ArgumentValidator.cs" />
+    <Compile Include="MVCEngine\Internal\Validation\ArgumentValidatorExtensions.cs" />
     <Compile Include="MVCEngine\Model\Attributes\CollectionInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Column.cs" />
     <Compile Include="MVCEngine\Model\Attributes\EntityInterceptor.cs" />
