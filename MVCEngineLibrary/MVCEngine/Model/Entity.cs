@@ -110,6 +110,7 @@ namespace MVCEngine.Model
         #region GetValue
         public T GetValue<T>(string column)
         {
+            if (this.State == EntityState.Deleted) throw new InvalidOperationException();
             if (!_propertiesGetter.Value.ContainsKey(GetType().Name))
             {
                 _propertiesGetter.Value.Add(GetType().Name, new Dictionary<string, Func<object, object>>());

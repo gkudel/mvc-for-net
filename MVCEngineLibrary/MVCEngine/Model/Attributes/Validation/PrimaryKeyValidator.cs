@@ -29,7 +29,7 @@ namespace MVCEngine.Model.Attributes.Validation
                 description.Column primaryColumn = table.Columns.FirstOrDefault(c => c.PrimaryKey);
                 if (primaryColumn.IsNotNull())
                 {
-                    return table.Entities.FirstOrDefault(e => !e.Equals(entity)
+                    return table.Entities.FirstOrDefault(e => e.State != EntityState.Deleted && !e.Equals(entity)
                            && e.GetValue<object>(primaryColumn.Property).Equals(value)).IsNull();
                 }
             }
