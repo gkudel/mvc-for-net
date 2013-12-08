@@ -36,10 +36,11 @@ namespace MVCEngine.Model.Internal.Descriptions
                 {
                     TableName = t.TableName,
                     ClassName = t.ClassName, 
-                    RowsFieldName = t.RowsFieldName,
-                    RowsFieldGetter = t.RowsFieldGetter,
+                    EntityFieldName = t.EntityFieldName,
+                    EntityFieldGetter = t.EntityFieldGetter,
                     ContextSetter = t.ContextSetter
                 };
+                table.Validators.AddRange(t.Validators);
                 t.Columns.ForEach((c) => 
                 {
                     Column column = new Column() 
@@ -49,6 +50,7 @@ namespace MVCEngine.Model.Internal.Descriptions
                         ColumnType = c.ColumnType,
                         PrimaryKey = c.PrimaryKey
                     };
+                    column.Validators.AddRange(c.Validators);
                     table.Columns.Add(c);
                 });
                 ctx.Tables.Add(table);
@@ -75,8 +77,8 @@ namespace MVCEngine.Model.Internal.Descriptions
         {
             Tables.ForEach((t) =>
             {
-                t.Rows = t.RowsFieldGetter(mctx).CastToType<IEnumerable<Entity>>();
-                t.ContextSetter(t.RowsFieldGetter(mctx), this);
+                t.Entities = t.EntityFieldGetter(mctx).CastToType<IEnumerable<Entity>>();
+                t.ContextSetter(t.EntityFieldGetter(mctx), this);
             });
             return this;
         }
@@ -87,7 +89,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         {
             Tables.ForEach((t) =>
             {
-                t.Rows = null;
+                t.Entities = null;
             });
         }
 

@@ -73,7 +73,7 @@ namespace MVCEngine.Model
                     {
                         if (relation.ParentTable == parentTable.TableName && relation.ChildTable == childTable.TableName)
                         {
-                            ret = childTable.Rows.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
+                            ret = childTable.Entities.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
                                         Equals(relation.ChildValue(c))).ToList();                                
                         }
                         else
@@ -116,7 +116,7 @@ namespace MVCEngine.Model
                     {
                         if (relation.ParentTable == parentTable.TableName && relation.ChildTable == childTable.TableName)
                         {
-                            List<C> list = childTable.Rows.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
+                            List<C> list = childTable.Entities.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
                                         Equals(relation.ChildValue(c))).ToList();
                             if (list.Count() == 1)
                             {
@@ -184,7 +184,7 @@ namespace MVCEngine.Model
                             InterceptorDispatcher.GetInstnace().Initialize(entityType);
                             Table table = new Table();                            
                             var query = from a in System.Attribute.GetCustomAttributes(entityType)
-                                        where a is attribute.Table
+                                        where a.IsTypeOf<attribute.Table>()
                                         select a.CastToType<attribute.Table>();
                             attribute.Table tableAttribute = query.FirstOrDefault();
                             if (tableAttribute.IsNotNull())
@@ -192,10 +192,10 @@ namespace MVCEngine.Model
                                 if (!ctx.Tables.Exists((t) => { return t.TableName == tableAttribute.TableName; }))
                                 {
                                     table.TableName = tableAttribute.TableName;
-                                    table.RowsFieldName = f.Name;
+                                    table.EntityFieldName = f.Name;
                                     table.ClassName = entityType.Name;
                                     table.EntityType = entityType;
-                                    table.RowsFieldGetter = LambdaTools.FieldGetter(typeof(T), f);
+                                    table.EntityFieldGetter = LambdaTools.FieldGetter(typeof(T), f);
                                     table.ContextSetter = LambdaTools.PropertySetter(f.FieldType, ctxInfo);
 
                                     var columnquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
@@ -203,6 +203,11 @@ namespace MVCEngine.Model
                                         (p, a) => new { Property = p, Attrubute = a });
                                     columnquery.ToList().ForEach((pa) =>
                                     {
+                                        if(table.Columns.Exists(new Predicate<Column>((c) => { return c.Name == pa.Attrubute.ColumnName; })))
+                                        {
+                                            throw new ModelException("Column[" + pa.Attrubute.ColumnName + "] is declared twice");
+                                        }
+
                                         Column column = new Column()
                                         {
                                             Name = pa.Attrubute.ColumnName,
@@ -210,6 +215,10 @@ namespace MVCEngine.Model
                                             ColumnType = pa.Property.PropertyType,
                                             PrimaryKey = pa.Attrubute.IsPrimaryKey,
                                         };
+                                        if (pa.Attrubute.IsPrimaryKey && table.Columns.Exists(new Predicate<Column>((c) => { return c.PrimaryKey; })))
+                                        {
+                                            throw new ModelException("Column[" + pa.Attrubute.ColumnName + "] is defined as PrimaryKey but there is other column marked as Primary Key");
+                                        }
                                         if (pa.Attrubute.IsForeignKey && pa.Attrubute.ForeignTable.IsNullOrEmpty())
                                         {
                                             throw new ModelException("Type[" + entityType.FullName + "] coulmn[" + pa.Attrubute.ColumnName + "] is defined as IsForeignKey but ForeignTable is empty");
@@ -227,6 +236,14 @@ namespace MVCEngine.Model
                                         }
                                         table.Columns.Add(column);
                                     });
+                                    var validatorquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
+                                        SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Validation.ColumnValidator>()).Select(a => a.CastToType<attribute.Validation.ColumnValidator>()),
+                                        (p, a) => new { Property = p, Attrubute = a }).
+                                        SelectMany(pa => table.Columns.Where(c => c.Property == pa.Property.Name), (pa, c) => new { Property = pa.Property, Attribute = pa.Attrubute, Column = c });
+                                    validatorquery.ToList().ForEach((pac) => 
+                                    {
+                                        pac.Column.Validators.Add(pac.Attribute);
+                                    });
                                 }
                                 else
                                 {
@@ -237,6 +254,14 @@ namespace MVCEngine.Model
                             {
                                 throw new ModelException("Type[" + entityType.FullName + "] it cann't be recognise as valid entity.");
                             }
+                            var validatorentityquery = from a in System.Attribute.GetCustomAttributes(entityType)
+                                                 where a.IsTypeOf<attribute.Validation.EntityValidator>()
+                                                 select a.CastToType<attribute.Validation.EntityValidator>();
+                            validatorentityquery.ToList().ForEach((v) =>
+                            {
+                                table.Validators.Add(v);
+                            });
+
                             ctx.Tables.Add(table);
                         }
                     });
@@ -298,7 +323,7 @@ namespace MVCEngine.Model
             {
                 Context.Tables.ForEach((t) =>
                 {
-                    t.Rows.ToList().ForEach((r) =>
+                    t.Entities.ToList().ForEach((r) =>
                     {
                         r.AcceptChanges();
                     });

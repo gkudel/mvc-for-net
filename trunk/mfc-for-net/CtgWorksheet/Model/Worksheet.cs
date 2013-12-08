@@ -13,12 +13,14 @@ namespace CtgWorksheet.Model
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "^(?=(?:(?!set_Screenings).)*$).*?set_*")]
     [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Screenings|!get_Screenings).)*$).*?set_*|get_*")]
     [attributes.CollectionInterceptor("Screenings", "CtgWorksheet.Model.Screening, mfc-for-net")]
+    [attributes.Interceptor(DefaultInterceptors.ValidationInterceptor, "set_Description")]
     public class Worksheet : Entity
     {
         [attributes.Column("GP_RES_RECID", IsPrimaryKey=true)]
         public virtual long Id { get; set; }
 
-        [attributes.Column("GP_RES_STRING")]        
+        [attributes.Column("GP_RES_STRING")]     
+        [attributes.Validation.StringLengthValidator(Length=15, RealTimeValidation=true)]
         public virtual string Description { get; set; }
 
         [attributes.Column("GP_RES_NAME")]

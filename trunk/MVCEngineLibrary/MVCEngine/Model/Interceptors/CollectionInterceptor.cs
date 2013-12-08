@@ -9,7 +9,7 @@ using System.Text;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    public class CollectionInterceptor<T> : IInterceptor where T : Entity
+    internal class CollectionInterceptor<T> : IInterceptor where T : Entity
     {
         #region Members
         private List<T> _list;
@@ -44,7 +44,7 @@ namespace MVCEngine.Model.Interceptors
                                                                                   && r.ChildTable == childTable.TableName);
                         if (relation.IsNotNull())
                         {
-                            _list = childTable.Rows.Cast<T>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
+                            _list = childTable.Entities.Cast<T>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
                                         Equals(relation.ChildValue(c))).ToList();                                
                         }
                         _uid = childTable.Uid;

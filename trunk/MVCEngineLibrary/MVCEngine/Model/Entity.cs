@@ -1,4 +1,5 @@
-﻿using MVCEngine.Model.Internal.Descriptions;
+﻿using MVCEngine.Internal;
+using MVCEngine.Model.Internal.Descriptions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,7 +15,18 @@ namespace MVCEngine.Model
         #region Members
         private bool _isFrozen = false;
         private EntityState _entityState = EntityState.Added;
+        private static Lazy<Dictionary<string, Dictionary<string,Func<object, object>>>> _propertiesGetter;
         #endregion Members
+
+        #region Constructor
+        static Entity()
+        {
+            _propertiesGetter = new Lazy<Dictionary<string, Dictionary<string, Func<object, object>>>>(() =>
+           {
+               return new Dictionary<string, Dictionary<string, Func<object, object>>>();
+           },true);
+        }
+        #endregion Constructor
 
         #region IsFrozen
         public bool IsFrozen 
@@ -68,7 +80,7 @@ namespace MVCEngine.Model
                     Table childTable = Context.Tables.FirstOrDefault(t => t.TableName == r.ChildTable);
                     if (childTable.IsNotNull())
                     {
-                        childTable.Rows.Where(row => row.State != EntityState.Deleted &&
+                        childTable.Entities.Where(row => row.State != EntityState.Deleted &&
                         r.ChildValue(row).Equals(r.ParentValue(this))).ToList().ForEach((row) =>
                         {
                             action(row);
@@ -94,6 +106,21 @@ namespace MVCEngine.Model
         #region Context
         internal Context Context { get; set; }
         #endregion Context
+
+        #region GetValue
+        public T GetValue<T>(string column)
+        {
+            if (!_propertiesGetter.Value.ContainsKey(GetType().Name))
+            {
+                _propertiesGetter.Value.Add(GetType().Name, new Dictionary<string, Func<object, object>>());
+            }
+            if (!_propertiesGetter.Value[GetType().Name].ContainsKey(column))
+            {
+                _propertiesGetter.Value[GetType().Name].Add(column, LambdaTools.PropertyGetter(GetType(), column));
+            }
+            return (T)_propertiesGetter.Value[GetType().Name][column](this);
+        }
+        #endregion GetValue
 
         #region Dispose
         public void Dispose()
