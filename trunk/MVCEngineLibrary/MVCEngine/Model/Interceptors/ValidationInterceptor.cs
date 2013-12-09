@@ -27,15 +27,10 @@ namespace MVCEngine.Model.Interceptors
                                       invocation.Method.Name;
                 if(!propertyName.IsNullOrEmpty())
                 {                    
-                    Table table = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().Name);
-                    if (table.IsNull() && entity.GetType().BaseType.IsNotNull())
-                    {
-                        table = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().BaseType.Name);
-                    }
-                    if (table.IsNotNull())
+                    if (entity.Table.IsNotNull())
                     {
                         bool validated = true;
-                        var validateentityquery = table.Validators.Where(v => v.RealTimeValidation && (v.ColumnsName.IsNull() || v.ColumnsName.Contains(propertyName)));
+                        var validateentityquery = entity.Table.Validators.Where(v => v.RealTimeValidation && (v.ColumnsName.IsNull() || v.ColumnsName.Contains(propertyName)));
                         validateentityquery.ToList().ForEach((v) =>
                         {
                             if (!v.Validate(entity, propertyName, invocation.Arguments[0]))
@@ -47,7 +42,7 @@ namespace MVCEngine.Model.Interceptors
                                 }
                             }
                         });
-                        var validatorcolumnquery = table.Columns.Where(c => c.Property == propertyName).
+                        var validatorcolumnquery = entity.Table.Columns.Where(c => c.Property == propertyName).
                             SelectMany(c => c.Validators.Where(v => v.RealTimeValidation), (c, v) => v);
                         if (validatorcolumnquery.ToList().Count() > 0)
                         {

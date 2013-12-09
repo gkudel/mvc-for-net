@@ -1,4 +1,5 @@
 ﻿using MVCEngine.Internal;
+using MVCEngine.Model.Exceptions;
 using MVCEngine.Model.Internal.Descriptions;
 using System;
 using System.Collections.Generic;
@@ -15,16 +16,12 @@ namespace MVCEngine.Model
         #region Members
         private bool _isFrozen = false;
         private EntityState _entityState = EntityState.Added;
-        private static Lazy<Dictionary<string, Dictionary<string,Func<object, object>>>> _propertiesGetter;
+        private Table _table;       
         #endregion Members
 
         #region Constructor
         static Entity()
         {
-            _propertiesGetter = new Lazy<Dictionary<string, Dictionary<string, Func<object, object>>>>(() =>
-           {
-               return new Dictionary<string, Dictionary<string, Func<object, object>>>();
-           },true);
         }
         #endregion Constructor
 
@@ -44,7 +41,6 @@ namespace MVCEngine.Model
         #endregion IsFroze
 
         #region Object State
-
         public EntityState State
         {
             get 
@@ -68,14 +64,9 @@ namespace MVCEngine.Model
         #region Enumerate by Children
         public void EnumerateByChildren(Action<Entity> action)
         {
-            Table table = Context.Tables.FirstOrDefault(t => t.ClassName == GetType().Name);
-            if (table.IsNull() && GetType().BaseType.IsNotNull())
+            if (Table.IsNotNull())
             {
-                table = Context.Tables.FirstOrDefault(t => t.ClassName == GetType().BaseType.Name);
-            }
-            if (table.IsNotNull())
-            {
-                Context.Relations.Where(r => r.ParentTable == table.TableName).ToList().ForEach((r) =>
+                Context.Relations.Where(r => r.ParentTable == Table.TableName).ToList().ForEach((r) =>
                 {
                     Table childTable = Context.Tables.FirstOrDefault(t => t.TableName == r.ChildTable);
                     if (childTable.IsNotNull())
@@ -107,25 +98,63 @@ namespace MVCEngine.Model
         internal Context Context { get; set; }
         #endregion Context
 
-        #region GetValue
-        public T GetValue<T>(string column)
+        #region Table
+        public Table Table
         {
-            if (this.State == EntityState.Deleted) throw new InvalidOperationException();
-            if (!_propertiesGetter.Value.ContainsKey(GetType().Name))
+            get
             {
-                _propertiesGetter.Value.Add(GetType().Name, new Dictionary<string, Func<object, object>>());
+                if (_table.IsNull())
+                {
+                    _table = Context.Tables.FirstOrDefault(t => t.ClassName == GetType().Name);
+                    if (_table.IsNull() && GetType().BaseType.IsNotNull())
+                    {
+                        _table = Context.Tables.FirstOrDefault(t => t.ClassName == GetType().BaseType.Name);
+                    } 
+                }
+                return _table;
             }
-            if (!_propertiesGetter.Value[GetType().Name].ContainsKey(column))
-            {
-                _propertiesGetter.Value[GetType().Name].Add(column, LambdaTools.PropertyGetter(GetType(), column));
-            }
-            return (T)_propertiesGetter.Value[GetType().Name][column](this);
         }
+        #endregion Table
+
+        #region GetValue
+        public object this[string column]
+        {
+            get 
+            {
+                if (Table.IsNotNull())
+                {
+                    Column c = Table.Columns.FirstOrDefault(col => col.Property == column || col.Name == column);
+                    if (c.IsNotNull())
+                    {
+                        return c.Getter(this);
+                    }
+                    return null;
+                }
+                return null;
+            }
+            set
+            {
+                if (Table.IsNotNull())
+                {
+                    Column c = Table.Columns.FirstOrDefault(col => col.Property == column || col.Name == column);
+                    if (c.IsNotNull())
+                    {
+                        c.Setter(this, value);
+                    }
+                    else
+                    {
+                        throw new ModelException("Type[" + GetType().Name + "] doesn't have column[" + column + "]");
+                    }
+                }
+            }
+        }
+
         #endregion GetValue
 
         #region Dispose
         public void Dispose()
         {
+            _table = null;
             Context = null;
         }
 

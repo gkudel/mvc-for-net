@@ -30,7 +30,7 @@ namespace MVCEngine.Model.Attributes.Validation
                 if (primaryColumn.IsNotNull())
                 {
                     return table.Entities.FirstOrDefault(e => e.State != EntityState.Deleted && !e.Equals(entity)
-                           && e.GetValue<object>(primaryColumn.Property).Equals(value)).IsNull();
+                           && e[primaryColumn.Property].Equals(value)).IsNull();
                 }
             }
             return ret;
@@ -49,7 +49,7 @@ namespace MVCEngine.Model.Attributes.Validation
                 description.Column primaryColumn = table.Columns.FirstOrDefault(c => c.PrimaryKey);
                 if (primaryColumn.IsNotNull())
                 {
-                    return Validate(entity, primaryColumn.Property, entity.GetValue<object>(primaryColumn.Property));
+                    return Validate(entity, primaryColumn.Property, entity[primaryColumn.Property]);
                 }
             }
             return ret;

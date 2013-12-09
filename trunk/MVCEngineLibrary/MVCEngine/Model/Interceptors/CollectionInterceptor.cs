@@ -30,17 +30,12 @@ namespace MVCEngine.Model.Interceptors
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                Table parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().Name);
-                if (parentTable.IsNull() && entity.GetType().BaseType.IsNotNull())
-                {
-                    parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().BaseType.Name);
-                }
                 Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (parentTable.IsNotNull() && childTable.IsNotNull())
+                if (entity.Table.IsNotNull() && childTable.IsNotNull())
                 {
                     if (childTable.Uid != _uid)
                     {
-                        Relation relation = entity.Context.Relations.FirstOrDefault(r => r.ParentTable == parentTable.TableName
+                        Relation relation = entity.Context.Relations.FirstOrDefault(r => r.ParentTable == entity.Table.TableName
                                                                                   && r.ChildTable == childTable.TableName);
                         if (relation.IsNotNull())
                         {

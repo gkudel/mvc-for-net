@@ -63,58 +63,67 @@ namespace MVCEngine.Model.Internal
 
         internal void Initialize(Type type)
         {
-            var query = from a in System.Attribute.GetCustomAttributes(type)
-                        where a.IsTypeOf<attribute.Interceptor>()
-                        select a.CastToType<attribute.Interceptor>();
-
             ModelClass modelclass = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).IfNullDefault(() =>
             {
                 ModelClass model = new ModelClass()
                 {
                     FullName = type.FullName
                 };
-                query.ToList().ForEach((i) =>
-                {
-                    TryCatchStatment.Try().Invoke(() =>
-                    {                        
-                        IInterceptor interceptor = LambdaTools.ObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
-                        if (interceptor.IsNotNull())
-                        {
-                            model.InterceptorObjects.Add(interceptor);
-
-                            Interceptor inter = new Interceptor()
-                            {
-                                InterceptorFullName = interceptor.GetType().FullName,
-                                Methods = new List<string>(i.MethodsName),
-                                RegEx = i.RegEx
-                            };
-                            model.Interceptors.Add(inter);
-
-                            interceptor.GetType().GetProperties().AsEnumerable().Where(p => p.CanWrite).
-                            SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),
-                            (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromAttribute>() }).
-                            ToList().ForEach((pa) =>
-                            {
-                                PropertyInfo info = i.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
-                                if (info.IsNotNull())
-                                {
-                                    pa.Property.SetValue(interceptor, info.GetValue(i, null), null);
-                                }
-                            });
-                        }
-                        else
-                        {
-                            this.ThrowException<InterceptorDispatcherException>("Class[" + i.InterceptorClass + "] should implement IInterceptor interface");
-                        }
-                    }).Catch((Message, Source, StackTrace, Exception) =>
-                    {
-                        this.ThrowException<InterceptorDispatcherException>(Message);
-                    });
-                });
                 return model;
             });
+
             _modelClass.AddIfNotContains(modelclass);
 
+            var query = from a in System.Attribute.GetCustomAttributes(type)
+                        where a.IsTypeOf<attribute.Interceptor>()
+                        select a.CastToType<attribute.Interceptor>();
+            query.ToList().ForEach((i) =>
+            {
+                Initialize(type, i);
+            });           
+        }
+
+        public void Initialize(Type type, attribute.Interceptor i)
+        {
+            ModelClass model = _modelClass.FirstOrDefault(m => m.FullName == type.FullName);
+            if (model.IsNotNull())
+            {
+                TryCatchStatment.Try().Invoke(() =>
+                {
+                    IInterceptor interceptor = LambdaTools.ObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
+                    if (interceptor.IsNotNull())
+                    {
+                        model.InterceptorObjects.Add(interceptor);
+
+                        Interceptor inter = new Interceptor()
+                        {
+                            InterceptorFullName = interceptor.GetType().FullName,
+                            Methods = new List<string>(i.MethodsName),
+                            RegEx = i.RegEx
+                        };
+                        model.Interceptors.Add(inter);
+
+                        interceptor.GetType().GetProperties().AsEnumerable().Where(p => p.CanWrite).
+                        SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),
+                        (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromAttribute>() }).
+                        ToList().ForEach((pa) =>
+                        {
+                            PropertyInfo info = i.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
+                            if (info.IsNotNull())
+                            {
+                                pa.Property.SetValue(interceptor, info.GetValue(i, null), null);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        this.ThrowException<InterceptorDispatcherException>("Class[" + i.InterceptorClass + "] should implement IInterceptor interface");
+                    }
+                }).Catch((Message, Source, StackTrace, Exception) =>
+                {
+                    this.ThrowException<InterceptorDispatcherException>(Message);
+                });
+            }
         }
         #endregion Methods
     }

@@ -13,9 +13,8 @@ namespace CtgWorksheet.Model
 {
     [Table("GP_FISHSCREENING")]
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*")]
-    [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet|!get_Worksheet).)*$).*?set_*|get_*")]
+    [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*|get_*")]
     [attributes.EntityInterceptor("Worksheet", "CtgWorksheet.Model.Worksheet, mfc-for-net")]
-    [attributes.Interceptor(DefaultInterceptors.ValidationInterceptor, "set_ValueB", "set_Id")]
     [attributes.Validation.PrimaryKeyValidator("Id", RealTimeValidation= true)]
     public class Screening : Entity
     {
