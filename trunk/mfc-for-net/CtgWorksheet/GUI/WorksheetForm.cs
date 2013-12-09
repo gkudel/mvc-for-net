@@ -38,7 +38,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             ControllerDispatcher.GetInstance().RegisterListener(this);
             try
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", null, new { SessionId });
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", null , new { SessionId });
             }
             catch(ActionMethodInvocationException exc)
             {

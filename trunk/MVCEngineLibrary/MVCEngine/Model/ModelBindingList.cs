@@ -82,8 +82,12 @@ namespace MVCEngine.Model
                         throw new ValidationException(cv.Validator.ErrrorMessage);
                     }
                 });
-                table.Uid = Guid.NewGuid().ToString();
-            }
+                if (table.Entities.FirstOrDefault(e => e.Equals(item)).IsNotNull())
+                {
+                    throw new ValidationException("You can't add twice the same object["+typeof(T).Name+"] to collection");
+                }
+                table.MarkedAsModified();
+            }            
             base.InsertItem(index, item);
         }
 
@@ -128,7 +132,7 @@ namespace MVCEngine.Model
                 Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
                 if (table.IsNotNull())
                 {
-                    table.Uid = Guid.NewGuid().ToString();
+                    table.MarkedAsModified();
                 }
             }
         }

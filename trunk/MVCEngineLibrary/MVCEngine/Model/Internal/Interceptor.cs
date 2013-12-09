@@ -1,19 +1,20 @@
-﻿using System;
+﻿using Castle.Core.Interceptor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Castle.Core.Interceptor;
-using attribuet = MVCEngine.Model.Attributes;
+using attribute = MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model.Internal
 {
-    internal class Interceptor
+    public abstract class Interceptor : IInterceptor
     {
-        #region Prioperties
-        internal string InterceptorFullName { get; set; }
-        internal List<string> Methods { get; set; }
-        internal string RegEx { get; set; }
-        internal attribuet.Interceptor InterceptorAttribute { get; set; }
-        #endregion Prioperties
+        #region Initialize
+        public abstract void Initialize(Type entityType, attribute.Interceptor interceptor);
+        #endregion Initialize
+
+        #region Intercept
+        public abstract void Intercept(IInvocation invocation);
+        #endregion Intercept
     }
 }

@@ -4,21 +4,21 @@ using System.Linq;
 using System.Text;
 using Castle.Core.Interceptor;
 
-namespace MVCEngine.Model.Internal
+namespace MVCEngine.Model.Internal.Descriptions
 {
-    internal class ModelClass
+    internal class EntityClass
     {
         #region Constructor
-        internal ModelClass()
+        internal EntityClass()
         {
-            Interceptors = new List<Interceptor>();
+            Interceptors = new List<InterceptorDescription>();
             InterceptorObjects = new List<IInterceptor>();
         }
         #endregion Constructor
 
         #region Prtoperties
         internal string FullName { get; set; }
-        internal List<Interceptor> Interceptors { get; set; }
+        internal List<InterceptorDescription> Interceptors { get; set; }
         internal List<IInterceptor> InterceptorObjects { get; set; }
         #endregion Prtoperties
     }

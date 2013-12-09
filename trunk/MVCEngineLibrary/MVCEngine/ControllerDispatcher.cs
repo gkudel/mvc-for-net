@@ -243,7 +243,7 @@ namespace MVCEngine
                             {
                                 retid = Convert.ChangeType(retid, viewid.GetType());
                             }
-                            catch(Exception e)
+                            catch(Exception)
                             {
                                 retid = null;
                             }

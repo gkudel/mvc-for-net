@@ -1,15 +1,17 @@
 ﻿using Castle.Core.Interceptor;
 using MVCEngine.Model.Exceptions;
+using MVCEngine.Model.Internal;
 using MVCEngine.Model.Internal.Descriptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using attribute = MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class ValidationInterceptor : IInterceptor
+    internal class ValidationInterceptor : Interceptor
     {
         #region Constructor
         public ValidationInterceptor()
@@ -18,7 +20,7 @@ namespace MVCEngine.Model.Interceptors
         #endregion Constructor
 
         #region Inetercept
-        public void Intercept(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull() && invocation.Arguments.Count() == 1)
@@ -76,5 +78,10 @@ namespace MVCEngine.Model.Interceptors
             }
         }
         #endregion Inetercept
+
+        #region Initialize
+        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
+        { }
+        #endregion Initialize
     }
 }

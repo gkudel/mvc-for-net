@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using MVCEngine.Model.Exceptions;
 using MVCEngine.Attributes;
 using System.Reflection;
+using MVCEngine.Model.Internal.Descriptions;
 
 namespace MVCEngine.Model.Internal
 {
@@ -17,7 +18,7 @@ namespace MVCEngine.Model.Internal
     {
         #region Mebers
         private static Lazy<InterceptorDispatcher> _instance;
-        private List<ModelClass> _modelClass;
+        private List<EntityClass> _modelClass;
         #endregion Members
 
         #region Constructors
@@ -31,7 +32,7 @@ namespace MVCEngine.Model.Internal
 
         private InterceptorDispatcher()
         {
-            _modelClass = new List<ModelClass>();
+            _modelClass = new List<EntityClass>();
         }
         #endregion Constructors
 
@@ -49,9 +50,9 @@ namespace MVCEngine.Model.Internal
                    _modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i =>  !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).Count() > 0;
         }
 
-        public List<Interceptor> GetInterceptors(Type type, System.Reflection.MethodInfo methodInfo)
+        public List<InterceptorDescription> GetInterceptors(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            List<Interceptor> interceptors = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => i).ToList();
+            List<InterceptorDescription> interceptors = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => i).ToList();
             interceptors.AddRange(_modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i => !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).ToList());
             return interceptors;
         }
@@ -63,9 +64,9 @@ namespace MVCEngine.Model.Internal
 
         internal void Initialize(Type type)
         {
-            ModelClass modelclass = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).IfNullDefault(() =>
+            EntityClass modelclass = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).IfNullDefault(() =>
             {
-                ModelClass model = new ModelClass()
+                EntityClass model = new EntityClass()
                 {
                     FullName = type.FullName
                 };
@@ -85,15 +86,16 @@ namespace MVCEngine.Model.Internal
 
         public void Initialize(Type type, attribute.Interceptor i)
         {
-            ModelClass model = _modelClass.FirstOrDefault(m => m.FullName == type.FullName);
+            EntityClass model = _modelClass.FirstOrDefault(m => m.FullName == type.FullName);
             if (model.IsNotNull())
             {
-                IInterceptor interceptor = LambdaTools.ObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
+                Interceptor interceptor = LambdaTools.ObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<Interceptor>();
                 if (interceptor.IsNotNull())
                 {
+                    interceptor.Initialize(type, i);
                     model.InterceptorObjects.Add(interceptor);
 
-                    Interceptor inter = new Interceptor()
+                    InterceptorDescription inter = new InterceptorDescription()
                     {
                         InterceptorFullName = interceptor.GetType().FullName,
                         Methods = new List<string>(i.MethodsName),
@@ -115,7 +117,7 @@ namespace MVCEngine.Model.Internal
                 }
                 else
                 {
-                    throw new InterceptorDispatcherException("Class[" + i.InterceptorClass + "] should implement IInterceptor interface");
+                    throw new InterceptorDispatcherException("Class[" + i.InterceptorClass + "] should implement Interceptor abstract class");
                 }
             }
         }
