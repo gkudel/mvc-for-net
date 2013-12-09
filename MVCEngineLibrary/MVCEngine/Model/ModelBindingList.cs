@@ -16,7 +16,6 @@ namespace MVCEngine.Model
     {
         #region Members
         private static readonly Lazy<ProxyGenerator> _generator;
-        private object _lockThread = new object();
         #endregion Members
 
         #region Context
@@ -42,14 +41,11 @@ namespace MVCEngine.Model
             }
             set
             {
-                lock (_lockThread)
+                foreach (T obj in this)
                 {
-                    foreach (T obj in this)
-                    {
-                        obj.IsFrozen = !value;
-                    }
-                    base.AllowEdit = value;
+                    obj.IsFrozen = !value;
                 }
+                base.AllowEdit = value;
             }
         }
         #endregion New Method Implmentation
@@ -93,47 +89,41 @@ namespace MVCEngine.Model
 
         protected override object AddNewCore()
         {            
-            lock (_lockThread)
+            if (AllowNew)
             {
-                if (AllowNew)
-                {
-                    T obj = CreateInstance();
-                    base.Add(obj);
-                    return obj;
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
+                T obj = CreateInstance();
+                base.Add(obj);
+                return obj;
+            }
+            else
+            {
+                throw new NotSupportedException();
             }
         }
 
         protected override void RemoveItem(int index)
         {
-            lock (_lockThread)
+            if (AllowRemove && index < Count)
             {
-                if (AllowRemove && index < Count)
+                Entity obj = base[index];
+                switch (obj.State)
                 {
-                    Entity obj = base[index];
-                    switch (obj.State)
-                    {
-                        case EntityState.Modified:
-                        case EntityState.Unchanged: obj.State = EntityState.Deleted;
-                            break;
-                        case EntityState.Added: base.RemoveItem(index);
-                            break;
-                        case EntityState.Deleted: throw new InvalidOperationException();
-                    }
+                    case EntityState.Modified:
+                    case EntityState.Unchanged: obj.State = EntityState.Deleted;
+                        break;
+                    case EntityState.Added: base.RemoveItem(index);
+                        break;
+                    case EntityState.Deleted: throw new InvalidOperationException();
                 }
-                else
-                {
-                    base.RemoveItem(index);
-                }
-                Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (table.IsNotNull())
-                {
-                    table.MarkedAsModified();
-                }
+            }
+            else
+            {
+                base.RemoveItem(index);
+            }
+            Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+            if (table.IsNotNull())
+            {
+                table.MarkedAsModified();
             }
         }
         #endregion Override
@@ -166,19 +156,16 @@ namespace MVCEngine.Model
         #region  AcceptChanges
         public void AcceptChanges()
         {
-            lock (_lockThread)
+            foreach (T obj in this)
             {
-                foreach (T obj in this)
+                obj.AcceptChanges();
+            }
+            for (int i = Count - 1; i >= 0; i--)
+            {
+                if (base[i].State == EntityState.Deleted)
                 {
-                    obj.AcceptChanges();
-                }
-                for (int i = Count - 1; i >= 0; i--)
-                {
-                    if (base[i].State == EntityState.Deleted)
-                    {
-                        base[i].State = EntityState.Added;
-                        RemoveAt(i);
-                    }
+                    base[i].State = EntityState.Added;
+                    RemoveAt(i);
                 }
             }
         }
