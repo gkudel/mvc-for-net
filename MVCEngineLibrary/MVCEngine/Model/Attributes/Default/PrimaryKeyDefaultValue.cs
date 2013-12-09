@@ -18,9 +18,13 @@ namespace MVCEngine.Model.Attributes.Default
                 if(ret.IsNotNull())
                 {
                     decimal d;
-                    if(decimal.TryParse(ret.ToString(), out d))
+                    if (decimal.TryParse(ret.ToString(), out d))
                     {
                         ret = Convert.ChangeType(d + 1, c.ColumnType);
+                    }
+                    else
+                    {
+                        ret = null;
                     }
                 }
             }
