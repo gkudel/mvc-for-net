@@ -16,12 +16,17 @@ namespace MVCEngine.Model
         #region Members
         private bool _isFrozen = false;
         private EntityState _entityState = EntityState.Added;
+        private Lazy<bool> _isvalid;
         private Table _table;       
         #endregion Members
 
         #region Constructor
-        static Entity()
+        public Entity()
         {
+            _isvalid = new Lazy<bool>(() =>
+            {
+                return Validate();
+            }, true);
         }
         #endregion Constructor
 
@@ -41,6 +46,17 @@ namespace MVCEngine.Model
         #endregion IsFroze
 
         #region Object State
+        public void Modified()
+        {
+            if (_isvalid.IsValueCreated)
+            {
+                _isvalid = new Lazy<bool>(() =>
+                {
+                    return Validate();
+                }, true);
+            }
+        }
+
         public EntityState State
         {
             get 
@@ -148,8 +164,46 @@ namespace MVCEngine.Model
                 }
             }
         }
-
         #endregion GetValue
+
+        #region Validate
+        public bool Validate()
+        {
+            bool ret = true;
+            if (Table.IsNotNull())
+            {
+                Table.Validators.ForEach((v) =>
+                {
+                    ret &= v.Validate(this);
+                });
+
+                Table.Columns.SelectMany(c => c.Validators, (c, v) => new { Column = c, Validator = v }).
+                    ToList().ForEach((cv) => 
+                {
+                    ret &= cv.Validator.Validate(this[cv.Column.Name]);
+                });
+            }
+            return ret;
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                return _isvalid.Value;
+            }
+        }
+
+        public bool IsValidWithChildren
+        {
+            get
+            {
+                bool ret = IsValid;
+                EnumerateByChildren((e) => { ret &= e.IsValidWithChildren; });
+                return ret;
+            }
+        }
+        #endregion Validate
 
         #region Dispose
         public void Dispose()
