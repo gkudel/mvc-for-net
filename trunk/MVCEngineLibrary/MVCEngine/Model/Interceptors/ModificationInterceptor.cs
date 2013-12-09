@@ -36,7 +36,8 @@ namespace MVCEngine.Model.Interceptors
                 if (obj.State == EntityState.Unchanged)
                 {
                     obj.State = EntityState.Modified;
-                }                
+                }
+                obj.Modified();
                 obj.FirePropertyChanged(invocation.Method.Name.Substring(4, invocation.Method.Name.Length - 4));
             }
         }
