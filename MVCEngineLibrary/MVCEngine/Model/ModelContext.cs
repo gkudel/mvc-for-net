@@ -177,11 +177,11 @@ namespace MVCEngine.Model
                     typeof(T).GetFields().Where(f => f.FieldType.Name == "ModelBindingList`1" && f.IsPublic).
                     ToList().ForEach((f) =>
                     {
+                        List<string> realTimeValidator = new List<string>();
                         if (f.FieldType.IsGenericType)
                         {
                             PropertyInfo ctxInfo = f.FieldType.GetProperty("Context");                   
-                            Type entityType = f.FieldType.GetGenericArguments().First<Type>();
-                            InterceptorDispatcher.GetInstnace().Initialize(entityType);
+                            Type entityType = f.FieldType.GetGenericArguments().First<Type>();                            
                             Table table = new Table();                            
                             var query = from a in System.Attribute.GetCustomAttributes(entityType)
                                         where a.IsTypeOf<attribute.Table>()
@@ -214,6 +214,8 @@ namespace MVCEngine.Model
                                             Property = pa.Property.Name,
                                             ColumnType = pa.Property.PropertyType,
                                             PrimaryKey = pa.Attrubute.IsPrimaryKey,
+                                            Setter = LambdaTools.PropertySetter(entityType, pa.Property),
+                                            Getter = LambdaTools.PropertyGetter(entityType, pa.Property)
                                         };
                                         if (pa.Attrubute.IsPrimaryKey && table.Columns.Exists(new Predicate<Column>((c) => { return c.PrimaryKey; })))
                                         {
@@ -243,6 +245,7 @@ namespace MVCEngine.Model
                                     validatorquery.ToList().ForEach((pac) => 
                                     {
                                         pac.Column.Validators.Add(pac.Attribute);
+                                        if (pac.Attribute.RealTimeValidation) realTimeValidator.Add("set_" + pac.Property.Name);
                                     });
                                 }
                                 else
@@ -260,11 +263,19 @@ namespace MVCEngine.Model
                             validatorentityquery.ToList().ForEach((v) =>
                             {
                                 table.Validators.Add(v);
+                                if (v.RealTimeValidation && v.ColumnsName.IsNotNull()) realTimeValidator.AddRange(v.ColumnsName.ToList().Select(c => "set_" + c));
                             });
 
                             ctx.Tables.Add(table);
+                            InterceptorDispatcher.GetInstnace().Initialize(entityType);
+                            if (realTimeValidator.Count() > 0)
+                            {
+                                InterceptorDispatcher.GetInstnace().Initialize(entityType, new attribute.Interceptor(DefaultInterceptors.ValidationInterceptor, realTimeValidator.ToArray()));
+                            }
                         }
                     });
+                    
+
                     var relationquery = ctx.Relations.SelectMany(r => ctx.Tables.Where(t => t.TableName == r.ParentTable), (r, t) => new { Relation = r, Parent = t }).
                         SelectMany(pr => ctx.Tables.Where(t => t.TableName == pr.Relation.ChildTable), (pr, c) => new { Parent = pr.Parent, Relation = pr.Relation, Child = c });
                     relationquery.ToList().ForEach((prc) =>
@@ -297,7 +308,6 @@ namespace MVCEngine.Model
                 }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
 
                 MVCEngine.Session.Session.SetSessionData(sessionid, "InitializeTask", task);
-
 
                 task.Start();
             }

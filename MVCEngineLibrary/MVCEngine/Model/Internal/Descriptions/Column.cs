@@ -21,6 +21,8 @@ namespace MVCEngine.Model.Internal.Descriptions
         public string Name { get; internal set; }
         public Type ColumnType { get; internal set; }
         public bool PrimaryKey { get; internal set; }
+        internal Action<object, object> Setter { get; set; }
+        internal Func<object, object> Getter { get; set; }
         #endregion Properties
     }
 }

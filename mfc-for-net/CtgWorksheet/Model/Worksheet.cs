@@ -11,9 +11,9 @@ namespace CtgWorksheet.Model
 {
     [attributes.Table("GP_RESWORKSHEET")]
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "^(?=(?:(?!set_Screenings).)*$).*?set_*")]
-    [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Screenings|!get_Screenings).)*$).*?set_*|get_*")]
+    [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Screenings).)*$).*?set_*|get_*")]
     [attributes.CollectionInterceptor("Screenings", "CtgWorksheet.Model.Screening, mfc-for-net")]
-    [attributes.Interceptor(DefaultInterceptors.ValidationInterceptor, "set_Description")]
+    [attributes.Validation.PrimaryKeyValidator("Id", RealTimeValidation=true)]
     public class Worksheet : Entity
     {
         [attributes.Column("GP_RES_RECID", IsPrimaryKey=true)]

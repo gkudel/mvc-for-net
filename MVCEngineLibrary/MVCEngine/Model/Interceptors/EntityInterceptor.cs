@@ -31,18 +31,13 @@ namespace MVCEngine.Model.Interceptors
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().Name);
-                if (childTable.IsNull() && entity.GetType().BaseType.IsNotNull())
-                {
-                    childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().BaseType.Name);
-                }
                 Table parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (parentTable.IsNotNull() && childTable.IsNotNull())
+                if (parentTable.IsNotNull() && entity.Table.IsNotNull())
                 {
                     if (parentTable.Uid != _uid)
                     {
                         Relation relation = entity.Context.Relations.FirstOrDefault(r => r.ParentTable == parentTable.TableName
-                                                                                  && r.ChildTable == childTable.TableName);
+                                                                                  && r.ChildTable == entity.Table.TableName);
                         if (relation.IsNotNull())
                         {
                             List<T> list = parentTable.Entities.Cast<T>().Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
@@ -60,7 +55,7 @@ namespace MVCEngine.Model.Interceptors
                                 _entity = default(T);
                             }
                         }
-                        _uid = childTable.Uid;
+                        _uid = parentTable.Uid;
                     }
                 }
             }

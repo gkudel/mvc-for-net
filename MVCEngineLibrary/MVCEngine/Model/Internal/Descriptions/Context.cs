@@ -48,7 +48,9 @@ namespace MVCEngine.Model.Internal.Descriptions
                         Name = c.Name,
                         Property = c.Property,
                         ColumnType = c.ColumnType,
-                        PrimaryKey = c.PrimaryKey
+                        PrimaryKey = c.PrimaryKey,
+                        Getter = c.Getter, 
+                        Setter = c.Setter
                     };
                     column.Validators.AddRange(c.Validators);
                     table.Columns.Add(c);
