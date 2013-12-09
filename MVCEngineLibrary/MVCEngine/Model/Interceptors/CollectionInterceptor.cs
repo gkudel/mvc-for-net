@@ -1,19 +1,25 @@
 ﻿using Castle.Core.Interceptor;
 using MVCEngine.Attributes;
+using MVCEngine.Model.Attributes.Discriminators;
+using MVCEngine.Model.Exceptions;
+using MVCEngine.Model.Internal;
 using MVCEngine.Model.Internal.Descriptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using attribute = MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class CollectionInterceptor<T> : IInterceptor where T : Entity
+    internal class CollectionInterceptor<T> : Interceptor where T : Entity
     {
         #region Members
         private List<T> _list;
         private string _uid;
+        private List<Discriminator> _discriminators;
         #endregion Members
 
         #region Constructor
@@ -21,11 +27,12 @@ namespace MVCEngine.Model.Interceptors
         {
             _uid = string.Empty;
             _list = new List<T>();
+            _discriminators = new List<Discriminator>();
         }
         #endregion Constructor
 
         #region Inetercept
-        public void Intercept(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {                                  
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
@@ -35,12 +42,23 @@ namespace MVCEngine.Model.Interceptors
                 {
                     if (childTable.Uid != _uid)
                     {
-                        Relation relation = entity.Context.Relations.FirstOrDefault(r => r.ParentTable == entity.Table.TableName
-                                                                                  && r.ChildTable == childTable.TableName);
-                        if (relation.IsNotNull())
+                        List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable == entity.Table.TableName
+                                                                                  && r.ChildTable == childTable.TableName
+                                                                                  && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
+
+                        if (relations.Count() == 1)
                         {
-                            _list = childTable.Entities.Cast<T>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
-                                        Equals(relation.ChildValue(c))).ToList();                                
+                            Relation relation = relations.First();
+                            if (relation.IsNotNull())
+                            {
+                                _list = childTable.Entities.Cast<T>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
+                                            Equals(relation.ChildValue(c)) &&
+                                            _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).ToList();
+                            }
+                        }
+                        else if(relations.Count() > 1)
+                        {
+                            throw new ModelException();
                         }
                         _uid = childTable.Uid;
                     }
@@ -49,5 +67,30 @@ namespace MVCEngine.Model.Interceptors
             invocation.ReturnValue = _list;
         }
         #endregion Inetercept
+
+        #region Initialize
+        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
+        {
+            if(interceptor.MethodsName.Length == 1)
+            {
+                string name = interceptor.MethodsName[0];
+                if (name.StartsWith("get_"))
+                {
+                    name = name.Substring(4, name.Length - 4);
+                }
+                PropertyInfo info = entityType.GetProperty(name);
+                if (info.IsNotNull())
+                {
+                    _discriminators.AddRange(Attribute.GetCustomAttributes(info).
+                        Where(p => p.IsTypeOf<Discriminator>()).Select(p =>p.CastToType<Discriminator>()));
+                }
+            }
+        }
+        #endregion Initialize
+
+        #region Properties
+        [ValueFromAttribute("")]
+        public string RelationName { get; set; }
+        #endregion Properies
     }
 }

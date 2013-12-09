@@ -82,6 +82,9 @@
     <Compile Include="MVCEngine\Model\Attributes\Default\NumberDefaultValue.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Default\PrimaryKeyDefaultValue.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Default\StringDefaultValue.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Discriminators\Discriminator.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Discriminators\IsNullDiscriminator.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Discriminators\StringDiscriminator.cs" />
     <Compile Include="MVCEngine\Model\Attributes\EntityInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Validation\ColumnValidator.cs" />
@@ -108,9 +111,10 @@
     <Compile Include="MVCEngine\Model\Entity.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\ModificationInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\SecurityInterceptor.cs" />
+    <Compile Include="MVCEngine\Model\Internal\Descriptions\InterceptorDescription.cs" />
     <Compile Include="MVCEngine\Model\Internal\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Internal\InterceptorDispatcher.cs" />
-    <Compile Include="MVCEngine\Model\Internal\ModelClass.cs" />
+    <Compile Include="MVCEngine\Model\Internal\Descriptions\EntityClass.cs" />
     <Compile Include="MVCEngine\Model\ModelBindingList.cs" />
     <Compile Include="MVCEngine\Model\ModelContext.cs" />
     <Compile Include="MVCEngine\Extensions.cs" />

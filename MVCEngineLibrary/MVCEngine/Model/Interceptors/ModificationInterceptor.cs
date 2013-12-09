@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using Castle.Core.Interceptor;
 using MVCEngine;
+using MVCEngine.Model.Internal;
+using attribute = MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class ModificationInterceptor : IInterceptor
+    internal class ModificationInterceptor : Interceptor
     {
         #region Constructor
         public ModificationInterceptor()
@@ -17,7 +19,7 @@ namespace MVCEngine.Model.Interceptors
         #endregion Constructor
 
         #region Inetercept
-        public void Intercept(IInvocation invocation)
+        public override  void Intercept(IInvocation invocation)
         {
             Entity obj = null;
             if (invocation.InvocationTarget.IsTypeOf<Entity>())
@@ -42,5 +44,10 @@ namespace MVCEngine.Model.Interceptors
             }
         }
         #endregion Inetercept
+
+        #region Initialize
+        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
+        { }
+        #endregion Initialize
     }
 }

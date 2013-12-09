@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Model.Interceptors.Exceptions;
+using MVCEngine.Model.Internal;
+using attribute = MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class SecurityInterceptor : IInterceptor
+    internal class SecurityInterceptor : Interceptor
     {
         #region Constructor
         public SecurityInterceptor()
@@ -18,7 +20,7 @@ namespace MVCEngine.Model.Interceptors
         #endregion Constructor
 
         #region Inetercept
-        public void Intercept(IInvocation invocation)
+        public override void Intercept(IInvocation invocation)
         {
             if (invocation.InvocationTarget.IsTypeOf<Entity>())
             {
@@ -37,5 +39,10 @@ namespace MVCEngine.Model.Interceptors
             }
         }
         #endregion Inetercept
+
+        #region Initialize
+        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
+        { }
+        #endregion Initialize
     }
 }

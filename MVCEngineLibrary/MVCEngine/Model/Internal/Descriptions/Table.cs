@@ -13,7 +13,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         {
             Columns = new List<Column>();
             Validators = new List<EntityValidator>();
-            Uid = Guid.NewGuid().ToString();
+            MarkedAsModified();
         }
         #endregion Constructor
 
@@ -30,5 +30,12 @@ namespace MVCEngine.Model.Internal.Descriptions
         public List<Column> Columns { get; internal set; }
         public string TableName { get; internal set; }
         #endregion Properties
+
+        #region Marked as Modified
+        public void MarkedAsModified()
+        {
+            Uid = Guid.NewGuid().ToString();
+        }
+        #endregion Marked as Modified
     }
 }

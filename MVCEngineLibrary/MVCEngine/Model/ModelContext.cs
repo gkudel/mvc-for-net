@@ -44,9 +44,9 @@ namespace MVCEngine.Model
                         task.Wait();
                     }
                 }
-                catch (Session.Exceptions.InvalidSessionIdException e)
+                catch (Session.Exceptions.InvalidSessionIdException)
                 { }
-                catch (AggregateException e)
+                catch (AggregateException)
                 { }
             }
             Context ctx = _contexts.Value.FirstOrDefault(c => c.Name == name);
@@ -233,7 +233,7 @@ namespace MVCEngine.Model
                                             throw new ModelException("Type[" + entityType.FullName + "] coulmn[" + pa.Attrubute.ColumnName + "] is defined as IsForeignKey but ForeignTable is empty");
                                         }
                                         else if (pa.Attrubute.IsForeignKey)
-                                        {
+                                        {                                            
                                             ctx.Relations.Add(new Relation()
                                             {
                                                 Name = pa.Attrubute.RelationName, 
@@ -247,23 +247,21 @@ namespace MVCEngine.Model
                                     });
      
                                     var defaultquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
-                                             SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Default.DefaultValue>()).Select(a => a.CastToType<attribute.Default.DefaultValue>()),
-                                             (p, a) => new { Property = p, Attrubute = a }).
-                                             SelectMany(pa => table.Columns.Where(c => c.Property == pa.Property.Name), (pa, c) => new { Attribute = pa.Attrubute, Column = c });
-
-                                    defaultquery.ToList().ForEach((ac) =>
+                                             SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Default.DefaultValue>() || a.IsTypeOf<attribute.Validation.ColumnValidator>()).
+                                             Select(a => a), (p, a) => new { Property = p, Attrubute = a }).
+                                             SelectMany(pa => table.Columns.Where(c => c.Property == pa.Property.Name), (pa, c) => new { Property = pa.Property, Attribute = pa.Attrubute, Column = c });
+                                    defaultquery.ToList().ForEach((pac) =>
                                     {
-                                        ac.Column.DefaultValue = ac.Attribute;
-                                    });
-
-                                    var validatorquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
-                                        SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Validation.ColumnValidator>()).Select(a => a.CastToType<attribute.Validation.ColumnValidator>()),
-                                        (p, a) => new { Property = p, Attrubute = a }).
-                                        SelectMany(pa => table.Columns.Where(c => c.Property == pa.Property.Name), (pa, c) => new { Property = pa.Property, Attribute = pa.Attrubute, Column = c });
-                                    validatorquery.ToList().ForEach((pac) => 
-                                    {
-                                        pac.Column.Validators.Add(pac.Attribute);
-                                        if (pac.Attribute.RealTimeValidation) realTimeValidator.Add("set_" + pac.Property.Name);
+                                        if(pac.Attribute.IsTypeOf<attribute.Default.DefaultValue>())
+                                        {
+                                            pac.Column.DefaultValue = pac.Attribute.CastToType<attribute.Default.DefaultValue>();
+                                        }
+                                        else
+                                        {
+                                            attribute.Validation.ColumnValidator validator = pac.Attribute.CastToType<attribute.Validation.ColumnValidator>();
+                                            pac.Column.Validators.Add(validator);
+                                            if (validator.RealTimeValidation) realTimeValidator.Add("set_" + pac.Property.Name);
+                                        }
                                     });
                                 }
                                 else
