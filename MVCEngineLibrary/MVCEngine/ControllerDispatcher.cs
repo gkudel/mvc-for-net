@@ -64,38 +64,31 @@ namespace MVCEngine
                 Func<object> controllerActivator = controller.ControllerActivator.IfNullDefault(action.ControllerActivator);
                 if (controllerActivator.IsNotNull())
                 {
-                    try
+                    objectToInvokeMethod = controllerActivator();
+                    if (controller.ControllerActivator.IsNotNull())
                     {
-                        objectToInvokeMethod = controllerActivator();
-                        if (controller.ControllerActivator.IsNotNull())
+                        controller.DefaultValues.Keys.ToList().ForEach((k) =>
                         {
-                            controller.DefaultValues.Keys.ToList().ForEach((k) =>
-                            {
-                                controller.PropertiesSetters[k](objectToInvokeMethod, controller.DefaultValues[k]);
-                            });
-                        }
-                        if (controllerPropertiesValues.IsNotNull() && controllerPropertiesValues.IsAnonymousType())
-                        {
-                            controllerPropertiesValues.GetType().GetProperties().ToList().ForEach((p) =>
-                            {
-                                if (!controller.PropertiesSetters.ContainsKey(p.Name))
-                                {
-                                    Action<object, object> a = LambdaTools.PropertySetter(objectToInvokeMethod.GetType(), p.Name);
-                                    if (a.IsNotNull())
-                                    {
-                                        controller.PropertiesSetters.Add(p.Name, a);
-                                    }
-                                }
-                                if (controller.PropertiesSetters.ContainsKey(p.Name))
-                                {
-                                    controller.PropertiesSetters[p.Name](objectToInvokeMethod, p.GetValue(controllerPropertiesValues, null));
-                                }
-                            });
-                        }
+                            controller.PropertiesSetters[k](objectToInvokeMethod, controller.DefaultValues[k]);
+                        });
                     }
-                    catch (Exception ex)
+                    if (controllerPropertiesValues.IsNotNull() && controllerPropertiesValues.IsAnonymousType())
                     {
-                        this.ThrowException<ActionMethodInvocationException>(ex.Message);
+                        controllerPropertiesValues.GetType().GetProperties().ToList().ForEach((p) =>
+                        {
+                            if (!controller.PropertiesSetters.ContainsKey(p.Name))
+                            {
+                                Action<object, object> a = LambdaTools.PropertySetter(objectToInvokeMethod.GetType(), p.Name);
+                                if (a.IsNotNull())
+                                {
+                                    controller.PropertiesSetters.Add(p.Name, a);
+                                }
+                            }
+                            if (controller.PropertiesSetters.ContainsKey(p.Name))
+                            {
+                                controller.PropertiesSetters[p.Name](objectToInvokeMethod, p.GetValue(controllerPropertiesValues, null));
+                            }
+                        });
                     }
                 }
 
@@ -179,7 +172,7 @@ namespace MVCEngine
             }
             else
             {
-                this.ThrowException<ActionMethodInvocationException>("There is no Controller[" + controllerName + "] or Action Method[" + actionMethodName + "] register");
+                throw new ActionMethodInvocationException("There is no Controller[" + controllerName + "] or Action Method[" + actionMethodName + "] register");
             }
             return ret;
         }
@@ -246,13 +239,14 @@ namespace MVCEngine
                         }
                         if (!viewid.GetType().IsInstanceOfType(retid))
                         {
-                            TryCatchStatment.Try().Invoke(() =>
+                            try
                             {
                                 retid = Convert.ChangeType(retid, viewid.GetType());
-                            }).Catch<InvalidCastException, FormatException, OverflowException, ArgumentNullException>(() =>
+                            }
+                            catch(Exception e)
                             {
                                 retid = null;
-                            });
+                            }
                         }
                         if (viewid.IsNotEquals(retid)) continue;
                     }
@@ -261,27 +255,15 @@ namespace MVCEngine
                     {
                         if (l.ActionErrorBack.IsNotNull())
                         {
-                            TryCatchStatment.Try().Invoke(() =>
+                            if (actionMethodData.ControllerReturnData.IsNotNull())
                             {
-                                if (actionMethodData.ControllerReturnData.IsNotNull())
-                                {
-                                    InvokeMethod(l.ActionErrorBack, l.ThisObject, actionMethodData.ControllerReturnData.CastToType<ErrorView>().Params);
-                                }
-                            }).Catch((Message, Source, StackTrace, Exception) =>
-                            {
-                                this.ThrowException<ActionMethodInvocationException>(Message);
-                            });
+                                InvokeMethod(l.ActionErrorBack, l.ThisObject, actionMethodData.ControllerReturnData.CastToType<ErrorView>().Params);
+                            }
                         }
                     }
                     else if (l.ActionCallBack.IsNotNull())
                     {
-                        TryCatchStatment.Try().Invoke(() =>
-                        {
-                            InvokeMethod(l.ActionCallBack, l.ThisObject, actionMethodData.ControllerReturnData);
-                        }).Catch((Message, Source, StackTrace, Exception) =>
-                        {
-                            this.ThrowException<ActionMethodInvocationException>(Message);
-                        });
+                        InvokeMethod(l.ActionCallBack, l.ThisObject, actionMethodData.ControllerReturnData);
                     }
                 }
             }
@@ -387,12 +369,12 @@ namespace MVCEngine
                 }
                 else
                 {
-                    this.ThrowException<ControllerRegistrationException>(controlerAttribute.ControllerName + " already register ");
+                    throw new ControllerRegistrationException(controlerAttribute.ControllerName + " already register ");
                 }
             }
             else
             {
-                this.ThrowException<ControllerRegistrationException>("Type[" + type.FullName + "] it cann't be recognise as valid Controller. Controller Attribute on class level is required.");
+                throw new ControllerRegistrationException("Type[" + type.FullName + "] it cann't be recognise as valid Controller. Controller Attribute on class level is required.");
             }
         }
 
@@ -417,7 +399,7 @@ namespace MVCEngine
                 }
                 else
                 {
-                    this.ThrowException<ControllerRegistrationException>("Type[" + controllerType.FullName + "] doesn't have public implementation of Method[" + controllerMethod + "]");
+                    throw new ControllerRegistrationException("Type[" + controllerType.FullName + "] doesn't have public implementation of Method[" + controllerMethod + "]");
                 }
             }
         }
@@ -448,7 +430,7 @@ namespace MVCEngine
             }
             else
             {
-                this.ThrowException<ControllerRegistrationException>("Action[" +ActionName + "] is declared at least twice");
+                throw new ControllerRegistrationException("Action[" +ActionName + "] is declared at least twice");
             }
             return method;
         }
@@ -474,7 +456,7 @@ namespace MVCEngine
                 var propertyid = propertyquery.FirstOrDefault();
                 if (propertyquery.Count() > 1)
                 {
-                    this.ThrowException<ViewRegistrationException>("At least two properties is marked as Id");
+                    throw new ViewRegistrationException("At least two properties is marked as Id");
                 }
 
                 type.GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
@@ -631,22 +613,20 @@ namespace MVCEngine
                         foreach (appconfig.Controller controller in controllersection.Controllers)
                         {
                             object obj = null;
-                            TryCatchStatment.Try().Invoke(() =>
+                            try
                             {
                                 Type type = Type.GetType(controller.Class);
                                 Func<object> objectActivator = LambdaTools.ObjectActivator(type);
                                 obj = objectActivator();
                                 RegisterController(obj.GetType(), objectActivator);
-                            }).Catch((Message, Source, StackTrace, Exception) =>
-                            {
-                                this.ThrowException<ControllerRegistrationException>(Message);
-                            }).Finally(() =>
+                            }
+                            finally
                             {
                                 if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
                                 {
                                     obj.CastToType<IDisposable>().Dispose();
                                 }
-                            });                            
+                            }                            
                         }
                     }
 
@@ -656,7 +636,7 @@ namespace MVCEngine
                         foreach (appconfig.View view in viewsection.Views)
                         {
                             object obj = null;
-                            TryCatchStatment.Try().Invoke(() =>
+                            try
                             {
                                 Type type = Type.GetType(view.Class);
                                 Func<object> objectActivator = LambdaTools.ObjectActivator(type);
@@ -666,16 +646,14 @@ namespace MVCEngine
                                     RegisterView(obj.GetType());
                                 }
 
-                            }).Catch((Message, Source, StackTrace, Exception) =>
-                            {
-                                this.ThrowException<ControllerRegistrationException>(Message);
-                            }).Finally(() =>
+                            }
+                            finally
                             {
                                 if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
                                 {
                                     obj.CastToType<IDisposable>().Dispose();
                                 }
-                            });
+                            }
                         }
                     }
                 }                

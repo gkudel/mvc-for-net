@@ -35,7 +35,7 @@ namespace MVCEngine.Model
             string name = this.GetType().Name;
             if (MVCEngine.Session.Session.IsUserSessionExists(name))
             {
-                TryCatchStatment.Try().Invoke(() =>
+                try
                 {
                     string sessionId = MVCEngine.Session.Session.GetUserSessionId(name);
                     Task task = MVCEngine.Session.Session.GetSessionData<Task>(sessionId, "InitializeTask");
@@ -43,8 +43,11 @@ namespace MVCEngine.Model
                     {
                         task.Wait();
                     }
-                }).Catch<MVCEngine.Session.Exceptions.InvalidSessionIdException>((e) =>
-                {}).Throw();                
+                }
+                catch (Session.Exceptions.InvalidSessionIdException e)
+                { }
+                catch (AggregateException e)
+                { }
             }
             Context ctx = _contexts.Value.FirstOrDefault(c => c.Name == name);
             if (ctx.IsNotNull())

@@ -88,41 +88,35 @@ namespace MVCEngine.Model.Internal
             ModelClass model = _modelClass.FirstOrDefault(m => m.FullName == type.FullName);
             if (model.IsNotNull())
             {
-                TryCatchStatment.Try().Invoke(() =>
+                IInterceptor interceptor = LambdaTools.ObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
+                if (interceptor.IsNotNull())
                 {
-                    IInterceptor interceptor = LambdaTools.ObjectActivator(i.InterceptorClass, i.GenericType)().CastToType<IInterceptor>();
-                    if (interceptor.IsNotNull())
-                    {
-                        model.InterceptorObjects.Add(interceptor);
+                    model.InterceptorObjects.Add(interceptor);
 
-                        Interceptor inter = new Interceptor()
-                        {
-                            InterceptorFullName = interceptor.GetType().FullName,
-                            Methods = new List<string>(i.MethodsName),
-                            RegEx = i.RegEx
-                        };
-                        model.Interceptors.Add(inter);
-
-                        interceptor.GetType().GetProperties().AsEnumerable().Where(p => p.CanWrite).
-                        SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),
-                        (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromAttribute>() }).
-                        ToList().ForEach((pa) =>
-                        {
-                            PropertyInfo info = i.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
-                            if (info.IsNotNull())
-                            {
-                                pa.Property.SetValue(interceptor, info.GetValue(i, null), null);
-                            }
-                        });
-                    }
-                    else
+                    Interceptor inter = new Interceptor()
                     {
-                        this.ThrowException<InterceptorDispatcherException>("Class[" + i.InterceptorClass + "] should implement IInterceptor interface");
-                    }
-                }).Catch((Message, Source, StackTrace, Exception) =>
+                        InterceptorFullName = interceptor.GetType().FullName,
+                        Methods = new List<string>(i.MethodsName),
+                        RegEx = i.RegEx
+                    };
+                    model.Interceptors.Add(inter);
+
+                    interceptor.GetType().GetProperties().AsEnumerable().Where(p => p.CanWrite).
+                    SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ValueFromAttribute>()),
+                    (p, a) => new { Property = p, Attribute = a.CastToType<ValueFromAttribute>() }).
+                    ToList().ForEach((pa) =>
+                    {
+                        PropertyInfo info = i.GetType().GetProperty(pa.Attribute.PropertyName.IfNullOrEmptyDefault(pa.Property.Name));
+                        if (info.IsNotNull())
+                        {
+                            pa.Property.SetValue(interceptor, info.GetValue(i, null), null);
+                        }
+                    });
+                }
+                else
                 {
-                    this.ThrowException<InterceptorDispatcherException>(Message);
-                });
+                    throw new InterceptorDispatcherException("Class[" + i.InterceptorClass + "] should implement IInterceptor interface");
+                }
             }
         }
         #endregion Methods
