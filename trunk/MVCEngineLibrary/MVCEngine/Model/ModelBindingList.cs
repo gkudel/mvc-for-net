@@ -104,11 +104,6 @@ namespace MVCEngine.Model
             }
         }
 
-        public override void EndNew(int itemIndex)
-        {
-            base.EndNew(itemIndex);
-        }
-
         protected override void RemoveItem(int index)
         {
             lock (_lockThread)

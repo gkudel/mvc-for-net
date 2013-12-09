@@ -28,7 +28,7 @@ namespace MVCEngine.Model.Interceptors
                 }
                 else
                 {
-                    this.ThrowException<SecurityException>("Security Exception. You try to modified object for which you don't have an accesss");
+                    throw new SecurityException("Security Exception. You try to modified object for which you don't have an accesss");
                 }
             }
             else

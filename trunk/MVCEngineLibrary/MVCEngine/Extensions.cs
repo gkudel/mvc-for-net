@@ -124,13 +124,6 @@ namespace MVCEngine
         }
         #endregion AddOrReplace
 
-        #region ThrowException
-        internal static void ThrowException<T>(this object o, string excMessage) where T : Exception
-        {
-            if (!string.IsNullOrEmpty(excMessage)) throw (T)Activator.CreateInstance(typeof(T), new object[] { excMessage });
-        }
-        #endregion ThrowException
-
         #region AddIfNotContains
         internal static bool AddIfNotContains<T>(this List<T> list, T obj)
         {
