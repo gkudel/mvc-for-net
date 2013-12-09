@@ -238,6 +238,17 @@ namespace MVCEngine.Model
                                         }
                                         table.Columns.Add(column);
                                     });
+     
+                                    var defaultquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
+                                             SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Default.DefaultValue>()).Select(a => a.CastToType<attribute.Default.DefaultValue>()),
+                                             (p, a) => new { Property = p, Attrubute = a }).
+                                             SelectMany(pa => table.Columns.Where(c => c.Property == pa.Property.Name), (pa, c) => new { Attribute = pa.Attrubute, Column = c });
+
+                                    defaultquery.ToList().ForEach((ac) =>
+                                    {
+                                        ac.Column.DefaultValue = ac.Attribute;
+                                    });
+
                                     var validatorquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
                                         SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Validation.ColumnValidator>()).Select(a => a.CastToType<attribute.Validation.ColumnValidator>()),
                                         (p, a) => new { Property = p, Attrubute = a }).

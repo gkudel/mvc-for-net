@@ -22,11 +22,10 @@ namespace CtgWorksheet.Controllers
 
         #region Action Method
         [ActionMethod("Load")]
-        public object Load(int id)
+        public object Load()
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx.Worksheets.AddNew();
-            w.Id = id;
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
             return new RedirectView("AddScreening") { Params = new { Model = w }, RedirectParams = new { Id = w.Id } };
         }
@@ -39,7 +38,6 @@ namespace CtgWorksheet.Controllers
             if( worksheet != null)
             {
                 Screening screening = ctx.Screenings.AddNew();
-                screening.Id = ctx.Screenings.Select(s => s.Id).Max() + 1;
                 screening.WorksheetId = worksheet.Id;
 
                 worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
