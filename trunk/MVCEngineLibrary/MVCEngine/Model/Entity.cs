@@ -73,7 +73,10 @@ namespace MVCEngine.Model
                     {
                         Table.Columns.Where(c => c.DefaultValue.IsNotNull()).ToList().ForEach((c) =>
                         {
-                            this[c.Name] = c.DefaultValue.Value(this, c);
+                            if (this[c.Name].IsNull())
+                            {
+                                this[c.Name] = c.DefaultValue.Value(this, c);
+                            }
                         });
                     }
                 }
