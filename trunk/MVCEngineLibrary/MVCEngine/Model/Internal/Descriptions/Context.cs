@@ -38,7 +38,8 @@ namespace MVCEngine.Model.Internal.Descriptions
                     ClassName = t.ClassName, 
                     EntityFieldName = t.EntityFieldName,
                     EntityFieldGetter = t.EntityFieldGetter,
-                    ContextSetter = t.ContextSetter
+                    ContextSetter = t.ContextSetter,
+                    PrimaryKey = t.PrimaryKey
                 };
                 table.Validators.AddRange(t.Validators);
                 t.Columns.ForEach((c) => 

@@ -67,19 +67,6 @@ namespace MVCEngine.Model
             {
                 _entityState = value;
                 if (_entityState == EntityState.Deleted) EnumerateByChildren((e) => { e.State = EntityState.Deleted; });
-                if (_entityState == EntityState.Added)
-                {
-                    if(Table.IsNotNull())
-                    {
-                        Table.Columns.Where(c => c.DefaultValue.IsNotNull()).ToList().ForEach((c) =>
-                        {
-                            if (this[c.Name].IsNull())
-                            {
-                                this[c.Name] = c.DefaultValue.Value(this, c);
-                            }
-                        });
-                    }
-                }
             }
         }
 

@@ -16,7 +16,7 @@ namespace CtgWorksheet.Model
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*")]
     [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*|get_*")]
     [attributes.EntityInterceptor("Worksheet", "CtgWorksheet.Model.Worksheet, mfc-for-net")]
-    [attributes.Validation.PrimaryKeyValidator("Id", RealTimeValidation= true)]
+    [attributes.Validation.PrimaryKeyValidator(RealTimeValidation= true, ErrrorMessage="Integrity Constraint")]
     public class Screening : Entity
     {
         [Column("GP_FISH_RECID", IsPrimaryKey=true)]
