@@ -9,8 +9,8 @@ namespace MVCEngine.Model.Attributes.Validation
     public class PrimaryKeyValidator : EntityValidator
     {
         #region Constructor
-        public PrimaryKeyValidator(params string[] columnsName)
-            : base(columnsName)
+        public PrimaryKeyValidator()
+            : base(null)
         {
         }
         #endregion Constructor
@@ -19,19 +19,10 @@ namespace MVCEngine.Model.Attributes.Validation
         public override bool Validate(Entity entity, string column, object value)
         {
             bool ret = true;
-            description.Table table = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().Name);
-            if (table.IsNull() && entity.GetType().BaseType.IsNotNull())
+            if (entity.Table.IsNotNull() && entity.Table.PrimaryKey.IsNotNull())
             {
-                table = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().BaseType.Name);
-            }
-            if (table.IsNotNull())
-            {
-                description.Column primaryColumn = table.Columns.FirstOrDefault(c => c.PrimaryKey);
-                if (primaryColumn.IsNotNull())
-                {
-                    return table.Entities.FirstOrDefault(e => e.State != EntityState.Deleted && !e.Equals(entity)
-                           && e[primaryColumn.Property].Equals(value)).IsNull();
-                }
+                return entity.Table.Entities.FirstOrDefault(e => e.State != EntityState.Deleted && !e.Equals(entity)
+                        && entity.Table.PrimaryKey(e).Equals(value)).IsNull();
             }
             return ret;
         }
@@ -39,18 +30,9 @@ namespace MVCEngine.Model.Attributes.Validation
         public override bool Validate(Entity entity)
         {
             bool ret = true;
-            description.Table table = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().Name);
-            if (table.IsNull() && entity.GetType().BaseType.IsNotNull())
+            if (entity.Table.IsNotNull() && entity.Table.PrimaryKey.IsNotNull())
             {
-                table = entity.Context.Tables.FirstOrDefault(t => t.ClassName == entity.GetType().BaseType.Name);
-            }
-            if (table.IsNotNull())
-            {
-                description.Column primaryColumn = table.Columns.FirstOrDefault(c => c.PrimaryKey);
-                if (primaryColumn.IsNotNull())
-                {
-                    return Validate(entity, primaryColumn.Property, entity[primaryColumn.Property]);
-                }
+                return Validate(entity, null, entity.Table.PrimaryKey(entity));
             }
             return ret;
         }

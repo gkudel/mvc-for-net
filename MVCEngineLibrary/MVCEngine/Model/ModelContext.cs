@@ -216,10 +216,14 @@ namespace MVCEngine.Model
                                             PrimaryKey = pa.Attrubute.IsPrimaryKey,
                                             Setter = LambdaTools.PropertySetter(entityType, pa.Property),
                                             Getter = LambdaTools.PropertyGetter(entityType, pa.Property)
-                                        };
+                                        };                                        
                                         if (pa.Attrubute.IsPrimaryKey && table.Columns.Exists(new Predicate<Column>((c) => { return c.PrimaryKey; })))
                                         {
                                             throw new ModelException("Column[" + pa.Attrubute.ColumnName + "] is defined as PrimaryKey but there is other column marked as Primary Key");
+                                        }
+                                        if (pa.Attrubute.IsPrimaryKey)
+                                        {
+                                            table.PrimaryKey = LambdaTools.PropertyGetter(entityType, pa.Property);
                                         }
                                         if (pa.Attrubute.IsForeignKey && pa.Attrubute.ForeignTable.IsNullOrEmpty())
                                         {
@@ -274,7 +278,21 @@ namespace MVCEngine.Model
                             validatorentityquery.ToList().ForEach((v) =>
                             {
                                 table.Validators.Add(v);
-                                if (v.RealTimeValidation && v.ColumnsName.IsNotNull()) realTimeValidator.AddRange(v.ColumnsName.ToList().Select(c => "set_" + c));
+                                if (v.RealTimeValidation)
+                                {
+                                    if (v.ColumnsName.IsNotNull())
+                                    {
+                                        realTimeValidator.AddRange(v.ColumnsName.ToList().Select(c => "set_" + c));
+                                    }
+                                    else if (v.IsTypeOf<attribute.Validation.PrimaryKeyValidator>())
+                                    {
+                                        Column primary = table.Columns.FirstOrDefault(c => c.PrimaryKey);
+                                        if (primary.IsNotNull())
+                                        {
+                                            realTimeValidator.Add("set_" + primary.Property);
+                                        }
+                                    }
+                                }
                             });
 
                             ctx.Tables.Add(table);

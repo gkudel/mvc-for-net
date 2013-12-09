@@ -34,11 +34,6 @@ namespace MVCEngine.Model
         #endregion Constructors
 
         #region New Method Implmentation
-        new public void Add(T item)
-        {
-            throw new NotSupportedException();
-        }
-
         new public bool AllowEdit 
         {
             get
@@ -60,19 +55,46 @@ namespace MVCEngine.Model
         #endregion New Method Implmentation
 
         #region Override
-        protected override object AddNewCore()
+        protected override void InsertItem(int index, T item)
         {
+            if (item.GetType() == typeof(T) 
+                && !item.GetType().Assembly.FullName.Contains("DynamicProxy"))
+            {
+                throw new ModelException("Please use CreateInstance function CreateInstance or AddNew to create proper object entity");
+            }
+            Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+            if (table.IsNotNull())
+            {
+                table.Validators.Where(v => v.RealTimeValidation).ToList().
+                    ForEach((v) =>
+                {
+                    if (!v.Validate(item))
+                    {
+                        throw new ValidationException(v.ErrrorMessage);
+                    }                    
+                });
+                table.Columns.SelectMany(c => c.Validators.Where(v => v.RealTimeValidation),
+                    (c, v) => new { Column = c, Validator = v }).ToList().
+                    ForEach((cv) =>
+                {
+                    if(!cv.Validator.Validate(item[cv.Column.Name]))
+                    {
+                        throw new ValidationException(cv.Validator.ErrrorMessage);
+                    }
+                });
+                table.Uid = Guid.NewGuid().ToString();
+            }
+            base.InsertItem(index, item);
+        }
+
+        protected override object AddNewCore()
+        {            
             lock (_lockThread)
             {
                 if (AllowNew)
                 {
                     T obj = CreateInstance();
                     base.Add(obj);
-                    Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                    if (table.IsNotNull())
-                    {
-                        table.Uid = Guid.NewGuid().ToString();
-                    }
                     return obj;
                 }
                 else
@@ -80,6 +102,11 @@ namespace MVCEngine.Model
                     throw new NotSupportedException();
                 }
             }
+        }
+
+        public override void EndNew(int itemIndex)
+        {
+            base.EndNew(itemIndex);
         }
 
         protected override void RemoveItem(int index)
@@ -113,7 +140,7 @@ namespace MVCEngine.Model
         #endregion Override
 
         #region Create Object
-        private T CreateInstance()
+        public T CreateInstance()
         {            
             var options = new ProxyGenerationOptions(new InterceptorGenerationHook()) { Selector = new InterceptorSelector() };
             var proxy = _generator.Value.CreateClassProxy(typeof(T), options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(typeof(T)).ToArray());
@@ -121,7 +148,17 @@ namespace MVCEngine.Model
             {
                 Entity entity = proxy.CastToType<Entity>();
                 entity.Context = this.Context;
-                entity.State = EntityState.Added;                
+                entity.State = EntityState.Added;
+                if (entity.Table.IsNotNull())
+                {
+                    entity.Table.Columns.Where(c => c.DefaultValue.IsNotNull()).ToList().ForEach((c) =>
+                    {
+                        if (entity[c.Name].IsNull() || entity[c.Name].Equals(c.ColumnType.GetDefaultValue()))
+                        {
+                            entity[c.Name] = c.DefaultValue.Value(entity, c);
+                        }
+                    });
+                }
             }
             return proxy as T;
         }
