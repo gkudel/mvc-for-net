@@ -16,6 +16,7 @@ namespace MVCEngine.Model
     {
         #region Members
         private static readonly Lazy<ProxyGenerator> _generator;
+        private object _lockThread = new object();
         #endregion Members
 
         #region Context
@@ -46,11 +47,14 @@ namespace MVCEngine.Model
             }
             set
             {
-                foreach (T obj in this)
+                lock (_lockThread)
                 {
-                    obj.IsFrozen = !value;
-                } 
-                base.AllowEdit = value;
+                    foreach (T obj in this)
+                    {
+                        obj.IsFrozen = !value;
+                    }
+                    base.AllowEdit = value;
+                }
             }
         }
         #endregion New Method Implmentation
@@ -58,46 +62,52 @@ namespace MVCEngine.Model
         #region Override
         protected override object AddNewCore()
         {
-            if (AllowNew)
+            lock (_lockThread)
             {
-                T obj = CreateInstance();
-                base.Add(obj);
-                Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (table.IsNotNull())
+                if (AllowNew)
                 {
-                    table.Uid = Guid.NewGuid().ToString();
+                    T obj = CreateInstance();
+                    base.Add(obj);
+                    Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                    if (table.IsNotNull())
+                    {
+                        table.Uid = Guid.NewGuid().ToString();
+                    }
+                    return obj;
                 }
-                return obj;
-            }
-            else
-            {
-                throw new NotSupportedException();
+                else
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
 
         protected override void RemoveItem(int index)
         {
-            if (AllowRemove && index < Count)
+            lock (_lockThread)
             {
-                Entity obj = base[index];
-                switch (obj.State)
+                if (AllowRemove && index < Count)
                 {
-                    case EntityState.Modified: 
-                    case EntityState.Unchanged: obj.State = EntityState.Deleted;
-                                                break;
-                    case EntityState.Added: base.RemoveItem(index);
-                                            break;
-                    case EntityState.Deleted: throw new InvalidOperationException();
+                    Entity obj = base[index];
+                    switch (obj.State)
+                    {
+                        case EntityState.Modified:
+                        case EntityState.Unchanged: obj.State = EntityState.Deleted;
+                            break;
+                        case EntityState.Added: base.RemoveItem(index);
+                            break;
+                        case EntityState.Deleted: throw new InvalidOperationException();
+                    }
                 }
-            }
-            else
-            {
-                base.RemoveItem(index);
-            }
-            Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-            if (table.IsNotNull())
-            {
-                table.Uid = Guid.NewGuid().ToString();
+                else
+                {
+                    base.RemoveItem(index);
+                }
+                Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                if (table.IsNotNull())
+                {
+                    table.Uid = Guid.NewGuid().ToString();
+                }
             }
         }
         #endregion Override
@@ -111,7 +121,7 @@ namespace MVCEngine.Model
             {
                 Entity entity = proxy.CastToType<Entity>();
                 entity.Context = this.Context;
-                entity.State = EntityState.Added;
+                entity.State = EntityState.Added;                
             }
             return proxy as T;
         }
@@ -120,16 +130,19 @@ namespace MVCEngine.Model
         #region  AcceptChanges
         public void AcceptChanges()
         {
-            foreach(T obj in this)
+            lock (_lockThread)
             {
-                obj.AcceptChanges();
-            }
-            for (int i = Count - 1; i >= 0; i--)
-            {
-                if (base[i].State == EntityState.Deleted)
+                foreach (T obj in this)
                 {
-                    base[i].State = EntityState.Added;
-                    RemoveAt(i);
+                    obj.AcceptChanges();
+                }
+                for (int i = Count - 1; i >= 0; i--)
+                {
+                    if (base[i].State == EntityState.Deleted)
+                    {
+                        base[i].State = EntityState.Added;
+                        RemoveAt(i);
+                    }
                 }
             }
         }

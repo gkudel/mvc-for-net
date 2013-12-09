@@ -50,7 +50,8 @@ namespace MVCEngine.Model.Internal.Descriptions
                         ColumnType = c.ColumnType,
                         PrimaryKey = c.PrimaryKey,
                         Getter = c.Getter, 
-                        Setter = c.Setter
+                        Setter = c.Setter,
+                        DefaultValue = c.DefaultValue
                     };
                     column.Validators.AddRange(c.Validators);
                     table.Columns.Add(c);

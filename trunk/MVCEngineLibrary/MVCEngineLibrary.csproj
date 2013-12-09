@@ -79,6 +79,10 @@
     <Compile Include="MVCEngine\Internal\Validation\ArgumentValidatorExtensions.cs" />
     <Compile Include="MVCEngine\Model\Attributes\CollectionInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Column.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Default\DefaultValue.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Default\NumberDefaultValue.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Default\PrimaryKeyDefaultValue.cs" />
+    <Compile Include="MVCEngine\Model\Attributes\Default\StringDefaultValue.cs" />
     <Compile Include="MVCEngine\Model\Attributes\EntityInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Attributes\Validation\ColumnValidator.cs" />

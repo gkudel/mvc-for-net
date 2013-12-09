@@ -17,6 +17,7 @@ namespace CtgWorksheet.Model
     public class Worksheet : Entity
     {
         [attributes.Column("GP_RES_RECID", IsPrimaryKey=true)]
+        [attributes.Default.PrimaryKeyDefaultValue()]
         public virtual long Id { get; set; }
 
         [attributes.Column("GP_RES_STRING")]     
