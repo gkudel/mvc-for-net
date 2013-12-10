@@ -21,8 +21,6 @@ namespace MVCEngine.Internal.Descriptors
             set { _thisObject = value; FullTypeName = _thisObject.IsNotNull() ? _thisObject.GetType().FullName : string.Empty; }
         }
         internal string FullTypeName { get; set; }
-        internal PropertyInfo IdProperty { get; set; }
-        internal string IdParameterName { get; set; }
         internal Method ActionCallBack { get; set; }
         internal Method ActionErrorBack { get; set; }
         #endregion Properties

@@ -62,7 +62,6 @@
     <Compile Include="MVCEngine\Attributes\ActionMethodErrorBack.cs" />
     <Compile Include="MVCEngine\Attributes\Controller.cs" />
     <Compile Include="MVCEngine\Attributes\ValueFromAttribute.cs" />
-    <Compile Include="MVCEngine\Attributes\ViewId.cs" />
     <Compile Include="MVCEngine\ControllerDispatcher.cs" />
     <Compile Include="MVCEngine\Exceptions\ActionMethodInvocationException.cs" />
     <Compile Include="MVCEngine\Exceptions\ControllerRegistrationException.cs" />

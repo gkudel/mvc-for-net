@@ -44,7 +44,7 @@ namespace MVCEngine
         #endregion Instance Factory
 
         #region Invoke Action Method
-        public object InvokeActionMethod(string controllerName, string actionMethodName, object actionMethodParameters = null, object controllerPropertiesValues = null, bool asynchronous = false)
+        public object InvokeActionMethod(string controllerName, string actionMethodName, object actionMethodParameters = null, object controllerPropertiesValues = null, bool asynchronous = false, object sender = null)
         {            
             ArgumentValidator.GetInstnace().
                 IsNotEmpty(controllerName, "controllerName").
@@ -96,7 +96,7 @@ namespace MVCEngine
                 asynchronous = !asynchronous ? action.IsAsynchronousInvoke : asynchronous;
                 ThreadLocal<ActionMethodData> actionMethodData = new ThreadLocal<ActionMethodData>(() =>
                 {
-                    return new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters);
+                    return new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters, sender);
                 });                
                 if (objectToInvokeMethod.IsNotNull())
                 {
@@ -138,6 +138,7 @@ namespace MVCEngine
                                 }
                             }
                             InvokeContinuations(data);
+                            data.Dispose();
                         }
                     }, TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
 
@@ -148,6 +149,7 @@ namespace MVCEngine
                         {
                             data.ControllerReturnData = new ErrorView() { Params = new { ErrorMessage = antecedent.Exception.InnerException.Message } };
                             InvokeContinuations(data);
+                            data.Dispose();
                         }
                     }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
@@ -158,7 +160,7 @@ namespace MVCEngine
                 {
                     if (redirect.IsNotNull())
                     {
-                        return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controller.Name), redirect.ActionMethod, redirect.RedirectParams, redirect.ControllerProperties.IfNullDefault(controllerPropertiesValues));
+                        return InvokeActionMethod(redirect.ControllerName.IfNullOrEmptyDefault(controller.Name), redirect.ActionMethod, redirect.RedirectParams, redirect.ControllerProperties.IfNullDefault(controllerPropertiesValues), false, sender);
                     }
                     else
                     {
@@ -217,38 +219,9 @@ namespace MVCEngine
             {
                 foreach (descriptor.Listener l in listeners.Where(l => l.ThisObject.IsNotNull()))
                 {
-                    if (l.IdProperty.IsNotNull())
+                    if (actionMethodData.Sender.IsNotNull())
                     {
-                        object viewid = l.IdProperty.GetValue(l.ThisObject, null);
-                        if (viewid.IsNull()) continue;
-                        PropertyInfo pinfo = null;
-                        if (actionMethodData.ControllerReturnData.IsNotNull())
-                        {
-                            pinfo = actionMethodData.ControllerReturnData.GetType().GetProperty(l.IdParameterName);
-                        }
-                        object retid = null;
-                        if (pinfo.IsNull())
-                        {
-                            pinfo = actionMethodData.ActionMethodParameters.GetType().GetProperty(l.IdParameterName);
-                            if (pinfo.IsNull()) continue;
-                            retid = pinfo.GetValue(actionMethodData.ActionMethodParameters, null);
-                        }
-                        else if(pinfo.IsNotNull())
-                        {
-                            retid = pinfo.GetValue(actionMethodData.ControllerReturnData, null);
-                        }
-                        if (!viewid.GetType().IsInstanceOfType(retid))
-                        {
-                            try
-                            {
-                                retid = Convert.ChangeType(retid, viewid.GetType());
-                            }
-                            catch(Exception)
-                            {
-                                retid = null;
-                            }
-                        }
-                        if (viewid.IsNotEquals(retid)) continue;
+                        if (!actionMethodData.Sender.Equals(l.ThisObject)) continue;
                     }
 
                     if (actionMethodData.ControllerReturnData.IsNotNull() && actionMethodData.ControllerReturnData.IsTypeOf<ErrorView>())
@@ -449,16 +422,7 @@ namespace MVCEngine
         private void RegisterView(Type type)
         {
             if (!_views.Value.Contains(type.FullName))
-            {
-                var propertyquery = type.GetProperties().Where(p => p.CanRead).
-                    SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<ViewId>()),
-                    (p, a) => new { Property = p, Attribute = a.CastToType<ViewId>() });
-                var propertyid = propertyquery.FirstOrDefault();
-                if (propertyquery.Count() > 1)
-                {
-                    throw new ViewRegistrationException("At least two properties is marked as Id");
-                }
-
+            {               
                 type.GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
                         SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
                         (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((m) =>
@@ -491,11 +455,6 @@ namespace MVCEngine
                             FullTypeName = type.FullName
                         };
                     });
-                    if (propertyid.IsNotNull())
-                    {
-                        listener.IdProperty = propertyid.Property;
-                        listener.IdParameterName = propertyid.Attribute.ParameterName.IfNullOrEmptyDefault(propertyid.Property.Name);
-                    }
                     actionmethod.Listernes.Add(listener);
 
                     descriptor.Method callbackmethod = null;
@@ -541,8 +500,6 @@ namespace MVCEngine
                     a.Listernes.Add(new descriptor.Listener()
                     {
                         ThisObject = listener,
-                        IdProperty = l.IdProperty,
-                        IdParameterName = l.IdParameterName,
                         ActionCallBack = l.ActionCallBack,
                         ActionErrorBack = l.ActionErrorBack
                     });
@@ -662,15 +619,16 @@ namespace MVCEngine
         #endregion App Config
 
         #region Asynchronous Action Method Data
-        private class ActionMethodData
+        private class ActionMethodData : IDisposable
         {
             #region Constructor
-            public ActionMethodData(bool IsAsynchronousInvoke, descriptor.Controller Controller, descriptor.ActionMethod ActionMethod, object ObjectToInvokeMethod, object ActionMethodParameters)
+            public ActionMethodData(bool IsAsynchronousInvoke, descriptor.Controller Controller, descriptor.ActionMethod ActionMethod, object ObjectToInvokeMethod, object ActionMethodParameters, object Sender)
             {
                 this.IsAsynchronousInvoke = IsAsynchronousInvoke;
                 this.Controller = Controller;
                 this.ActionMethod = ActionMethod;
                 this.ObjectToInvokeMethod = ObjectToInvokeMethod;
+                this.Sender = Sender;
                 this.ActionMethodParameters = ActionMethodParameters;
             }
             #endregion Constructor
@@ -680,9 +638,23 @@ namespace MVCEngine
             public descriptor.Controller Controller { get; private set; }
             public descriptor.ActionMethod ActionMethod { get; private set; }
             public object ObjectToInvokeMethod { get; private set; }
+            public object Sender { get; private set; }
             public object ActionMethodParameters { get; private set; }
             public object ControllerReturnData { get; set; }
             #endregion Properties
+
+            #region Dispose & Desctructor
+            public void Dispose()
+            {
+                ObjectToInvokeMethod = null;
+                Sender = null;
+            }
+
+            ~ActionMethodData()
+            {
+                Dispose();
+            }
+            #endregion Dispose & Desctructor
         }
         #endregion Asynchronous Action Method Data
     }
