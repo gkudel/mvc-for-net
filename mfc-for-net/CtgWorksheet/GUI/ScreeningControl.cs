@@ -43,7 +43,6 @@ namespace MvcForNet.CtgWorksheet.GUI
         private string SessionId { get; set; }
 
         [Browsable(false)]
-        [ViewId("")]
         public long Id 
         {
             get { return _model.Id; }
@@ -67,7 +66,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             try
             {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { _model.Id }, new { SessionId });
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { _model.Id }, new { SessionId }, sender:this);
             }
             catch (ActionMethodInvocationException exc)
             {
