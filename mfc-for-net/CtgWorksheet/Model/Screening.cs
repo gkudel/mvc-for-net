@@ -23,8 +23,8 @@ namespace CtgWorksheet.Model
         [PrimaryKeyDefaultValue()]
         public virtual long Id { get; set; }
 
-        [Column("GP_FISH_WORKSHEETID", IsForeignKey = true, ForeignTable = "GP_RESWORKSHEET", RelationName="Worksheet_Screening")]
-        public virtual long WorksheetId { get; set; }
+        [Column("GP_FISH_WORKSHEETID", IsForeignKey = true, ForeignTable = "GP_RESWORKSHEET", RelationName="Worksheet_Screening", OnDelete = OnDelete.SetNull)]
+        public virtual long? WorksheetId { get; set; }
         
         [Column("GP_FISH_VALUEA")]        
         [StringDefaultValue(StringValue="10")]

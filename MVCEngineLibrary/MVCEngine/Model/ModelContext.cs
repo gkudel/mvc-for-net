@@ -240,9 +240,11 @@ namespace MVCEngine.Model
                                             {
                                                 Name = pa.Attrubute.RelationName, 
                                                 ChildKey = pa.Property.Name,
+                                                ChildType = pa.Property.PropertyType, 
                                                 ChildTable = table.TableName,
                                                 ParentKey = pa.Attrubute.ForeignColumn,
-                                                ParentTable = pa.Attrubute.ForeignTable
+                                                ParentTable = pa.Attrubute.ForeignTable,
+                                                OnDelete = pa.Attrubute.OnDelete
                                             });
                                         }
                                         table.Columns.Add(column);
@@ -318,6 +320,7 @@ namespace MVCEngine.Model
                             if(parentKey.IsNotNull())
                             {
                                 prc.Relation.ParentKey = parentKey.Property;
+                                prc.Relation.ParentType = parentKey.ColumnType;
                             }
                             else
                             {

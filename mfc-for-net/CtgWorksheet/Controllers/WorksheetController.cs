@@ -39,7 +39,6 @@ namespace CtgWorksheet.Controllers
             {
                 Screening screening = ctx.Screenings.AddNew();
                 screening.WorksheetId = worksheet.Id;
-
                 worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
                 return new { Model = screening};
             }

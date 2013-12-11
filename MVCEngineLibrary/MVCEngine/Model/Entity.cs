@@ -4,6 +4,7 @@ using MVCEngine.Model.Attributes.Validation;
 using MVCEngine.Model.Exceptions;
 using MVCEngine.Model.Internal.Descriptions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace MVCEngine.Model
             internal set
             {
                 _isFrozen = value;
-                EnumerateByChildren((e) => { e.IsFrozen = value; });
+                EnumerateByChildren((e, r) => { e.IsFrozen = value; });
             }
         }
         #endregion IsFroze
@@ -70,12 +71,23 @@ namespace MVCEngine.Model
                 return _entityState; 
             }
             internal set
-            {
-                _entityState = value;
-                if (_entityState == EntityState.Deleted) EnumerateByChildren((e) => 
+            {                
+                if (value == EntityState.Deleted) EnumerateByChildren((e, r) => 
                 {
-                    //TODO Delete Cascade or SetNull
+                    if (r.OnDelete == Attributes.OnDelete.Cascade)
+                    {
+                        IList iList = e.Table.Entities as IList;
+                        if (iList.IsNotNull())
+                        {
+                            iList.Remove(e);
+                        }
+                    }
+                    else if (r.OnDelete == Attributes.OnDelete.SetNull)
+                    {
+                        e[r.ChildKey] = r.ChildType.GetDefaultValue();
+                    }
                 });
+                _entityState = value;
             }
         }
 
@@ -87,7 +99,7 @@ namespace MVCEngine.Model
         #endregion Object State
 
         #region Enumerate by Children
-        public void EnumerateByChildren(Action<Entity> action)
+        public void EnumerateByChildren(Action<Entity,Relation> action)
         {
             if (Table.IsNotNull())
             {
@@ -99,7 +111,7 @@ namespace MVCEngine.Model
                         childTable.Entities.Where(row => row.State != EntityState.Deleted &&
                         r.ChildValue(row).Equals(r.ParentValue(this))).ToList().ForEach((row) =>
                         {
-                            action(row);
+                            action(row, r);
                         });
                     }
                 });
@@ -231,7 +243,7 @@ namespace MVCEngine.Model
             get
             {
                 bool ret = IsValid;
-                EnumerateByChildren((e) => { ret &= e.IsValidWithChildren; });
+                EnumerateByChildren((e, r) => { ret &= e.IsValidWithChildren; });
                 return ret;
             }
         }
