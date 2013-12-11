@@ -102,7 +102,8 @@ namespace MVCEngine.Model
                     case EntityState.Added: obj.State = EntityState.Deleted;
                         base.RemoveItem(index);
                         break;
-                    case EntityState.Deleted: throw new InvalidOperationException();
+                    case EntityState.Deleted: base.RemoveItem(index);
+                        break;
                 }
             }
             else
@@ -137,15 +138,9 @@ namespace MVCEngine.Model
                 Entity entity = proxy.CastToType<Entity>();
                 entity.Context = ctx;
                 entity.State = EntityState.Added;
-                if (entity.Table.IsNotNull() && defaultValue)
+                if (defaultValue)
                 {
-                    entity.Table.Columns.Where(c => c.DefaultValue.IsNotNull()).ToList().ForEach((c) =>
-                    {
-                        if (entity[c.Name].IsNull() || entity[c.Name].Equals(c.ColumnType.GetDefaultValue()))
-                        {
-                            entity[c.Name] = c.DefaultValue.Value(entity, c);
-                        }
-                    });
+                    entity.Default();
                 }
             }
             return proxy;
@@ -155,17 +150,9 @@ namespace MVCEngine.Model
         #region  AcceptChanges
         public void AcceptChanges()
         {
-            foreach (T obj in this)
-            {
-                obj.AcceptChanges();
-            }
             for (int i = Count - 1; i >= 0; i--)
             {
-                if (base[i].State == EntityState.Deleted)
-                {
-                    base[i].State = EntityState.Added;
-                    RemoveAt(i);
-                }
+                this[i].AcceptChanges();
             }
         }
         #endregion AcceptChanges

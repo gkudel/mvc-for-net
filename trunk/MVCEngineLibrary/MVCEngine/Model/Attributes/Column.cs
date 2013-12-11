@@ -22,6 +22,7 @@ namespace MVCEngine.Model.Attributes
                        IsNotNull(columnName, "columnName");
 
             this.columnName = columnName;
+            this.OnDelete = Attributes.OnDelete.Nothing;
         }
         #endregion Constructor
 

@@ -34,7 +34,17 @@ namespace MvcForNet.CtgWorksheet.GUI
         private void WorksheetFormLoad(object sender, EventArgs e)
         {
             SessionId = Session.CreateSession();
-            Session.SetSessionData(SessionId, "WorksheetContext", new WorksheetContext());            
+            Session.SetSessionData(SessionId, "WorksheetContext", new WorksheetContext()
+            {
+                ContextModifed = () =>
+                {
+                    this.Text = "Worksheet Dialog(*)";
+                },
+                ChangesAccepted = () =>
+                {
+                    this.Text = "Worksheet Dialog"; 
+                }
+            });            
             ControllerDispatcher.GetInstance().RegisterListener(this);
             try
             {

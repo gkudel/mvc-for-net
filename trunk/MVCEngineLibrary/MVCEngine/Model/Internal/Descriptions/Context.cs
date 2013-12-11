@@ -7,20 +7,42 @@ using System.Text;
 
 namespace MVCEngine.Model.Internal.Descriptions
 {
-    public class Context : IDisposable 
+    public class Context : IDisposable
     {
+        #region Member
+        private bool _isModified;
+        #endregion Member
+
         #region Constructor
         internal Context()
         {
             Tables = new List<Table>();
             Relations = new List<Relation>();
+            IsModified = false;
         }
         #endregion Constructor
 
         #region Properties
-        public string Name { get; set; }
-        public List<Table> Tables { get; set; }
+        public string Name { get; internal set; }
+        public List<Table> Tables { get; internal set; }
         internal List<Relation> Relations { get; set; }
+        internal Action ContextModifed { get; set; }
+
+        public bool IsModified
+        {
+            get
+            {
+                return _isModified;
+            }
+            internal set
+            {
+                _isModified = value;
+                if (_isModified && ContextModifed.IsNotNull())
+                {
+                    ContextModifed();
+                }
+            }
+        }
         #endregion Properties
 
         #region Copy
@@ -100,6 +122,7 @@ namespace MVCEngine.Model.Internal.Descriptions
             {
                 t.Entities = null;
             });
+            ContextModifed = null;
         }
 
         ~Context()
