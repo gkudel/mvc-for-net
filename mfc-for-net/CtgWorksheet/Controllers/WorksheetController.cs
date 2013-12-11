@@ -27,7 +27,8 @@ namespace CtgWorksheet.Controllers
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx.Worksheets.AddNew();
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
-            return new RedirectView("AddScreening") { Params = new { Model = w }, RedirectParams = new { Id = w.Id } };
+            ctx.AcceptChanges();
+            return new { Model = w };
         }
 
         [ActionMethod("AddScreening")]

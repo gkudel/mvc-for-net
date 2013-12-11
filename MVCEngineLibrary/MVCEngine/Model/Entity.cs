@@ -88,13 +88,25 @@ namespace MVCEngine.Model
                     }
                 });
                 _entityState = value;
+                if (_entityState != EntityState.Unchanged) Context.IsModified = true;
             }
         }
 
         public void AcceptChanges()
         {
-            if (State == EntityState.Modified) State = EntityState.Unchanged;
-            if (State == EntityState.Added) State = EntityState.Unchanged;            
+            switch (State)
+            {
+                case EntityState.Modified:
+                case EntityState.Added: State = EntityState.Unchanged;
+                    break;
+                case EntityState.Deleted: IList iList = Table.Entities as IList;
+                    if (iList.IsNotNull())
+                    {
+                        iList.Remove(this);
+                    }
+                    break;
+            }
+
         }
         #endregion Object State
 
@@ -248,6 +260,19 @@ namespace MVCEngine.Model
             }
         }
         #endregion Validate
+
+        #region Default
+        internal void Default()
+        {
+            Table.Columns.Where(c => c.DefaultValue.IsNotNull()).ToList().ForEach((c) =>
+            {
+                if (this[c.Name].IsNull() || this[c.Name].Equals(c.ColumnType.GetDefaultValue()))
+                {
+                    this[c.Name] = c.DefaultValue.Value(this, c);
+                }
+            });
+        }
+        #endregion Default
 
         #region Dispose
         public void Dispose()

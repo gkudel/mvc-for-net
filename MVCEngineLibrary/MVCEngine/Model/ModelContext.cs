@@ -53,7 +53,7 @@ namespace MVCEngine.Model
             Context ctx = _contexts.Value.FirstOrDefault(c => c.Name == name);
             if (ctx.IsNotNull())
             {
-                Context = ctx.Copy().InitailizeRows(this); 
+                Context = ctx.Copy().InitailizeRows(this);
             }
             else
             {
@@ -158,6 +158,15 @@ namespace MVCEngine.Model
             return entity;
         }
         #endregion GetChildEntity
+
+        #region Properties
+        public Action ContextModifed 
+        {
+            get { return Context.IsNotNull() ? Context.ContextModifed : null; }
+            set { if (Context.IsNotNull()) Context.ContextModifed = value; }
+        }
+        public Action ChangesAccepted { get; set; }
+        #endregion Properties
 
         #region Context
         internal Context Context { get; set; }
@@ -368,11 +377,13 @@ namespace MVCEngine.Model
             {
                 Context.Tables.ForEach((t) =>
                 {
-                    t.Entities.ToList().ForEach((r) =>
+                    t.Entities.ToList().ForEach((e) =>
                     {
-                        r.AcceptChanges();
+                        e.AcceptChanges();
                     });
                 });
+                Context.IsModified = false;
+                if (ChangesAccepted.IsNotNull()) ChangesAccepted();
             }
         }
         #endregion AcceptChanges
@@ -385,6 +396,7 @@ namespace MVCEngine.Model
                 Context.Dispose();
                 Context = null;
             }
+            ChangesAccepted = null;
         }
 
         ~ModelContext()

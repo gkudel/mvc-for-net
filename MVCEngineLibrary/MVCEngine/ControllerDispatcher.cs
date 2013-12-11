@@ -94,12 +94,12 @@ namespace MVCEngine
 
                 ret = actionMethodParameters;
                 asynchronous = !asynchronous ? action.IsAsynchronousInvoke : asynchronous;
-                ThreadLocal<ActionMethodData> actionMethodData = new ThreadLocal<ActionMethodData>(() =>
-                {
-                    return new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters, sender);
-                });                
                 if (objectToInvokeMethod.IsNotNull())
                 {
+                    ThreadLocal<ActionMethodData> actionMethodData = new ThreadLocal<ActionMethodData>(() =>
+                    {
+                        return new ActionMethodData(asynchronous, controller, action, objectToInvokeMethod, actionMethodParameters, sender);
+                    });                
                     Task currentTask = action.Task;
                     action.Task = new Task<object>(() =>
                     {
