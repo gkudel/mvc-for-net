@@ -72,7 +72,10 @@ namespace MVCEngine.Model
             internal set
             {
                 _entityState = value;
-                if (_entityState == EntityState.Deleted) EnumerateByChildren((e) => { e.State = EntityState.Deleted; });
+                if (_entityState == EntityState.Deleted) EnumerateByChildren((e) => 
+                {
+                    //TODO Delete Cascade or SetNull
+                });
             }
         }
 
