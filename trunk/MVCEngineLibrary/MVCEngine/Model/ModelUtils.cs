@@ -36,7 +36,7 @@ namespace MVCEngine.Model
         }
 
         public ModelUtils FillContext(Func<IEnumerator<string>> tables, Func<string, IEnumerator<object>> rows,
-                                Func<object, string, bool> valuePresent, Func<object, string, object> values, Action<string, Entity> added = null)
+                                      Func<object, string, object> values, Action<string, Entity> added = null)
         {
             ArgumentValidator.GetInstnace().
                     IsNotNull(tables, "tables").
@@ -67,10 +67,7 @@ namespace MVCEngine.Model
 
                                 table.Columns.ForEach((c) =>
                                 {
-                                    if (valuePresent(row, table.PrimaryKeyColumn.Name))
-                                    {
-                                        entity[c.Name] = values(row, c.Name);
-                                    }
+                                    entity[c.Name] = values(row, c.Name);
                                 });
                             }
                         }
@@ -81,7 +78,8 @@ namespace MVCEngine.Model
         }
 
         public ModelUtils Merge(Func<IEnumerator<string>> tables, Func<string, IEnumerator<object>> rows, 
-                                Func<object, string, bool> valuePresent, Func<object, string, object> values, Action<string, Entity> added = null)
+                                Func<object, string, bool> valuePresent, Func<object, string, object> values, 
+                                Action<string, Entity> added = null)
         {
             ArgumentValidator.GetInstnace().
                     IsNotNull(tables, "tables").
