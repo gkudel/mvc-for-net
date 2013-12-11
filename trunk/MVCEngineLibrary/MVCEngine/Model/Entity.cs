@@ -1,4 +1,6 @@
 ﻿using MVCEngine.Internal;
+using MVCEngine.Internal.Validation;
+using MVCEngine.Model.Attributes.Validation;
 using MVCEngine.Model.Exceptions;
 using MVCEngine.Model.Internal.Descriptions;
 using System;
@@ -44,6 +46,10 @@ namespace MVCEngine.Model
             }
         }
         #endregion IsFroze
+
+        #region Session
+        internal string Session { get; set; }
+        #endregion Session
 
         #region Object State
         public void Modified()
@@ -169,18 +175,41 @@ namespace MVCEngine.Model
         #region Validate
         public bool Validate()
         {
+            return Validate((v) => { return true; }, (v) => { });
+        }
+
+        public bool Validate(Func<Validator, bool> predict, Action<Validator> validationFaild)
+        {
+            ArgumentValidator.GetInstnace().
+                IsNotNull(predict, "predict").
+                IsNotNull(validationFaild, "validationFaild");
+
             bool ret = true;
             if (Table.IsNotNull())
             {
                 Table.Validators.ForEach((v) =>
                 {
-                    ret &= v.Validate(this);
+                    if (predict(v))
+                    {
+                        if (!v.Validate(this))
+                        {
+                            validationFaild(v);
+                            ret = false;
+                        }
+                    }
                 });
 
                 Table.Columns.SelectMany(c => c.Validators, (c, v) => new { Column = c, Validator = v }).
                     ToList().ForEach((cv) => 
                 {
-                    ret &= cv.Validator.Validate(this[cv.Column.Name]);
+                    if (predict(cv.Validator))
+                    {
+                        if(!cv.Validator.Validate(this[cv.Column.Name]))
+                        {
+                            validationFaild(cv.Validator);
+                            ret = false;
+                        }
+                    }
                 });
             }
             return ret;

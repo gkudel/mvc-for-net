@@ -27,12 +27,6 @@ namespace MVCEngine.Model.Interceptors
                         select i;
             return query.ToList().ToArray();
         }
-
-        private string GetAssemblyName(string assembly)
-        {
-            return string.IsNullOrEmpty(assembly) ? string.Empty :
-                assembly.Substring(0, assembly.IndexOf(','));
-        }
         #endregion SelectInterceptors
 
         #region Equals & GetHashCode

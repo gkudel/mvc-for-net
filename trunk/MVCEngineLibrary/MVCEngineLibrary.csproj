@@ -110,13 +110,14 @@
     <Compile Include="MVCEngine\Model\Entity.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\ModificationInterceptor.cs" />
     <Compile Include="MVCEngine\Model\Interceptors\SecurityInterceptor.cs" />
-    <Compile Include="MVCEngine\Model\Internal\Descriptions\InterceptorDescription.cs" />
+    <Compile Include="MVCEngine\Model\Internal\Descriptions\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Internal\Interceptor.cs" />
     <Compile Include="MVCEngine\Model\Internal\InterceptorDispatcher.cs" />
     <Compile Include="MVCEngine\Model\Internal\Descriptions\EntityClass.cs" />
     <Compile Include="MVCEngine\Model\ModelBindingList.cs" />
     <Compile Include="MVCEngine\Model\ModelContext.cs" />
     <Compile Include="MVCEngine\Extensions.cs" />
+    <Compile Include="MVCEngine\Model\ModelUtils.cs" />
     <Compile Include="MVCEngine\Session\Exceptions\InvalidSessionIdException.cs" />
     <Compile Include="MVCEngine\Session\Session.cs" />
     <Compile Include="MVCEngine\View\ErrorView.cs" />

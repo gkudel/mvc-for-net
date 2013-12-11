@@ -11,10 +11,5 @@ namespace MVCEngine.Model.Attributes.Validation
         #region Validate
         public abstract bool Validate(object value);
         #endregion Validate
-
-        #region Properties
-        public virtual bool RealTimeValidation { get; set; }
-        public virtual bool IfFaildThrowException { get; set; }
-        #endregion Properties
     }
 }

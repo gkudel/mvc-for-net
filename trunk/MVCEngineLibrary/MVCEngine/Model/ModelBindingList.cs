@@ -61,23 +61,11 @@ namespace MVCEngine.Model
             Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
             if (table.IsNotNull())
             {
-                table.Validators.Where(v => v.RealTimeValidation).ToList().
-                    ForEach((v) =>
+                if (item.Session.IsNullOrEmpty())
                 {
-                    if (!v.Validate(item))
-                    {
-                        throw new ValidationException(v.ErrrorMessage);
-                    }                    
-                });
-                table.Columns.SelectMany(c => c.Validators.Where(v => v.RealTimeValidation),
-                    (c, v) => new { Column = c, Validator = v }).ToList().
-                    ForEach((cv) =>
-                {
-                    if(!cv.Validator.Validate(item[cv.Column.Name]))
-                    {
-                        throw new ValidationException(cv.Validator.ErrrorMessage);
-                    }
-                });
+                    item.Validate((v) => { return v.RealTimeValidation; },
+                                   (v) => { throw new ValidationException(v.ErrrorMessage); });
+                }
                 if (table.Entities.FirstOrDefault(e => e.Equals(item)).IsNotNull())
                 {
                     throw new ValidationException("You can't add twice the same object["+typeof(T).Name+"] to collection");
@@ -130,15 +118,25 @@ namespace MVCEngine.Model
 
         #region Create Object
         public T CreateInstance()
+        {
+            return CreateInstance(typeof(T), this.Context) as T;
+        }
+
+        public static object CreateInstance(Type type, Context ctx)
+        {
+            return CreateInstance(type, ctx, true);
+        }
+
+        internal static object CreateInstance(Type type, Context ctx, bool defaultValue)
         {            
             var options = new ProxyGenerationOptions(new InterceptorGenerationHook()) { Selector = new InterceptorSelector() };
-            var proxy = _generator.Value.CreateClassProxy(typeof(T), options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(typeof(T)).ToArray());
+            var proxy = _generator.Value.CreateClassProxy(type, options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(type).ToArray());
             if (proxy.IsTypeOf<Entity>())
             {
                 Entity entity = proxy.CastToType<Entity>();
-                entity.Context = this.Context;
+                entity.Context = ctx;
                 entity.State = EntityState.Added;
-                if (entity.Table.IsNotNull())
+                if (entity.Table.IsNotNull() && defaultValue)
                 {
                     entity.Table.Columns.Where(c => c.DefaultValue.IsNotNull()).ToList().ForEach((c) =>
                     {
@@ -149,7 +147,7 @@ namespace MVCEngine.Model
                     });
                 }
             }
-            return proxy as T;
+            return proxy;
         }
         #endregion Create Object
 
