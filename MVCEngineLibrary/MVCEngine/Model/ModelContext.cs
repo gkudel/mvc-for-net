@@ -12,6 +12,7 @@ using MVCEngine.Session;
 using MVCEngine.Model.Internal.Descriptions;
 using attribute = MVCEngine.Model.Attributes;
 using MVCEngine.Model.Exceptions;
+using MVCEngine.Internal.Validation;
 
 namespace MVCEngine.Model
 {
@@ -227,6 +228,7 @@ namespace MVCEngine.Model
                                         if (pa.Attrubute.IsPrimaryKey)
                                         {
                                             table.PrimaryKey = LambdaTools.PropertyGetter(entityType, pa.Property);
+                                            table.PrimaryKeyColumn = column;
                                         }
                                         if (pa.Attrubute.IsForeignKey && pa.Attrubute.ForeignTable.IsNullOrEmpty())
                                         {

@@ -24,9 +24,7 @@ namespace MVCEngine.Model.Attributes.Validation
         public abstract bool Validate(Entity entity);
         #endregion Validate
 
-        #region Properties
-        public virtual bool RealTimeValidation { get; set; }
-        public virtual bool IfFaildThrowException { get; set; }
+        #region Properties        
         public string[] ColumnsName { get { return columnsName; } }
         #endregion Properties
 

@@ -23,8 +23,9 @@ namespace MVCEngine.Model.Internal.Descriptions
         internal Func<object, object> EntityFieldGetter{ get; set; }
         internal Action<object, object> ContextSetter { get; set; }
         internal IEnumerable<Entity> Entities { get; set; }
-        internal string Uid { get; set; }
+        internal string Uid { get; private set; }
         internal Func<object, object> PrimaryKey { get; set; }
+        internal Column PrimaryKeyColumn { get; set; }
         internal Type EntityType { get; set; }
         internal List<EntityValidator> Validators { get; set; }
         public List<Column> Columns { get; internal set; }

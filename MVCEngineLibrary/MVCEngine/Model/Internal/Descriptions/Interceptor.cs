@@ -7,7 +7,7 @@ using attribuet = MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model.Internal.Descriptions
 {
-    internal class InterceptorDescription
+    internal class Interceptor
     {
         #region Prioperties
         internal string InterceptorFullName { get; set; }

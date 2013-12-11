@@ -11,6 +11,7 @@ using MVCEngine.Model.Exceptions;
 using MVCEngine.Attributes;
 using System.Reflection;
 using MVCEngine.Model.Internal.Descriptions;
+using desription = MVCEngine.Model.Internal.Descriptions;
 
 namespace MVCEngine.Model.Internal
 {
@@ -50,9 +51,9 @@ namespace MVCEngine.Model.Internal
                    _modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i =>  !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).Count() > 0;
         }
 
-        public List<InterceptorDescription> GetInterceptors(Type type, System.Reflection.MethodInfo methodInfo)
+        public List<desription.Interceptor> GetInterceptors(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            List<InterceptorDescription> interceptors = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => i).ToList();
+            List<desription.Interceptor> interceptors = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => i).ToList();
             interceptors.AddRange(_modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i => !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).ToList());
             return interceptors;
         }
@@ -95,7 +96,7 @@ namespace MVCEngine.Model.Internal
                     interceptor.Initialize(type, i);
                     model.InterceptorObjects.Add(interceptor);
 
-                    InterceptorDescription inter = new InterceptorDescription()
+                    desription.Interceptor inter = new desription.Interceptor()
                     {
                         InterceptorFullName = interceptor.GetType().FullName,
                         Methods = new List<string>(i.MethodsName),

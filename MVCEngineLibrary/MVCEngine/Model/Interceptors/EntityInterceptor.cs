@@ -14,7 +14,7 @@ using attribute = MVCEngine.Model.Attributes;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    public class EntityInterceptor<T> : Interceptor where T : Entity
+    public class EntityInterceptor<T> : MVCEngine.Model.Internal.Interceptor where T : Entity
     {
         #region Members
         private T _entity;

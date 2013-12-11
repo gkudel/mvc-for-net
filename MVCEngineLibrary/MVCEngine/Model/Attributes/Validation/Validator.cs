@@ -9,6 +9,8 @@ namespace MVCEngine.Model.Attributes.Validation
     {
         #region Properties
         public string ErrrorMessage { get; set; }
+        public virtual bool RealTimeValidation { get; set; }
+        public virtual bool IfFaildThrowException { get; set; }
         #endregion Properties
     }
 }
