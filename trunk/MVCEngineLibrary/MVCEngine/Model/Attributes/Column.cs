@@ -7,6 +7,7 @@ using MVCEngine.Internal.Validation;
 
 namespace MVCEngine.Model.Attributes
 {
+    public enum OnDelete { Cascade, SetNull, Nothing };
     [System.AttributeUsage(System.AttributeTargets.Property)]
     public class Column : System.Attribute
     {
@@ -35,6 +36,7 @@ namespace MVCEngine.Model.Attributes
         public virtual bool IsForeignKey { get; set; }
         public virtual string ForeignTable { get; set; }
         public virtual string ForeignColumn { get; set; }
+        public virtual OnDelete OnDelete { get; set; }
         #endregion Properties
     }
 }

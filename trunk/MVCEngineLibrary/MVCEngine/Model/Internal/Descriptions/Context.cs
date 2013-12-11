@@ -69,9 +69,12 @@ namespace MVCEngine.Model.Internal.Descriptions
                     ParentTable = r.ParentTable,
                     ChildTable = r.ChildTable,
                     ParentKey = r.ParentKey,
+                    ParentType = r.ParentType, 
                     ParentValue = r.ParentValue,
                     ChildKey = r.ChildKey, 
-                    ChildValue = r.ChildValue
+                    ChildType = r.ChildType, 
+                    ChildValue = r.ChildValue,
+                    OnDelete = r.OnDelete
                 });
             });
             return ctx;

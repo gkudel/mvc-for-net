@@ -99,7 +99,8 @@ namespace MVCEngine.Model
                     case EntityState.Modified:
                     case EntityState.Unchanged: obj.State = EntityState.Deleted;
                         break;
-                    case EntityState.Added: base.RemoveItem(index);
+                    case EntityState.Added: obj.State = EntityState.Deleted;
+                        base.RemoveItem(index);
                         break;
                     case EntityState.Deleted: throw new InvalidOperationException();
                 }
