@@ -10,13 +10,13 @@ namespace MVCEngine.Interceptors
     internal class ControllerInterceptor : IInterceptor
     {
         #region Members
-        private string controlerName;
+        private string _controlerName;
         #endregion Members
 
         #region Constructor
         internal ControllerInterceptor(string controlerName)
         {
-            this.controlerName = controlerName;
+            this._controlerName = controlerName;
         }
         #endregion Constructor
 
@@ -24,7 +24,7 @@ namespace MVCEngine.Interceptors
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            //ControllerDispatcher.GetInstance().
+            ControllerDispatcher.GetInstance().Proceed(invocation.Arguments,  _controlerName, invocation.Method.Name, invocation.ReturnValue);
         }
         #endregion Inetercept
     }

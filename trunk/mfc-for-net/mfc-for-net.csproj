@@ -119,7 +119,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="TODO.txt" />
@@ -148,7 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MVCEngineLibrary\Library.csproj">
-      <Project>{A1F52670-6CAB-49AF-9981-F96989CD134F}</Project>
+      <Project>{8f43bbae-ae6d-416a-b7fc-e46ba10d8af4}</Project>
       <Name>Library</Name>
     </ProjectReference>
   </ItemGroup>

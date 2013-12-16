@@ -28,6 +28,7 @@ namespace MVCEngine.Attributes
                 return controllerName;
             }
         }
+        public override bool OnlySender { get { return false; } set { throw new ArgumentException(); } } 
         #endregion Properties
     }
 }

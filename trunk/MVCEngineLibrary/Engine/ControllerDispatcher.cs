@@ -51,6 +51,11 @@ namespace MVCEngine
             _instance = _instance.IfNullDefault<ControllerDispatcher>(() => { return new ControllerDispatcher(); });
             return _instance;
         }
+
+        public static object GetInstance(string controllerName)
+        {
+            return GetInstance().GetController(controllerName);
+        }
         #endregion Instance Factory
 
         #region Controller
@@ -138,7 +143,7 @@ namespace MVCEngine
                             return c;
                         });
 
-                        AddActionMethod(controller, action.ActionName, ma.Method.Name);
+                        AddActionMethod(controller, action.ActionName, ma.Method.Name, action.OnlySender);
                     });
                     
                     if (controller.IsNotNull())
@@ -162,33 +167,7 @@ namespace MVCEngine
             }
         }
 
-        /*public void RegisterActionMethod(Type controllerType, string controllerMethod, string controllerName, string actionMethod, bool isAsynchronousInvoke)
-        {
-            lock (_threadlock)
-            {
-                MethodInfo mInfo = controllerType.GetMethod(controllerMethod);
-                if (mInfo.IsNotNull() && mInfo.IsPublic && !mInfo.IsStatic)
-                {
-                    descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == controllerName);
-                    controller = controller.IfNullDefault<descriptor.Controller>(() =>
-                    {
-                        return new descriptor.Controller()
-                        {
-                            Name = controllerName
-                        };
-                    });
-                    descriptor.ActionMethod method = AddActionMethod(controller, actionMethod, isAsynchronousInvoke, LambdaTools.MethodTriger(controllerType, mInfo), mInfo);
-                    method.ControllerActivator = LambdaTools.ObjectActivator(controllerType);
-                    _controllers.Value.AddIfNotContains(controller);
-                }
-                else
-                {
-                    throw new ControllerRegistrationException("Type[" + controllerType.FullName + "] doesn't have public non static implementation of Method[" + controllerMethod + "]");
-                }
-            }
-        }*/
-
-        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, string methodName)
+        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, string methodName, bool onlySender)
         {
             descriptor.ActionMethod method = controller.ActionMethods.FirstOrDefault(am => am.ActionName == ActionName);
             if (method.IsNull())
@@ -198,7 +177,8 @@ namespace MVCEngine
                     return new descriptor.ActionMethod()
                     {
                         ActionName = ActionName,
-                        MethodName = methodName
+                        MethodName = methodName,
+                        OnlySender = onlySender
                     };
                 });
                 controller.ActionMethods.Add(method);
@@ -217,13 +197,13 @@ namespace MVCEngine
             lock (_threadlock)
             {
                 RegisterView(view.GetType());
-                //RegisterListener(view);
+                RegisterListener(view);
             }
         }
 
         private void RegisterView(Type type)
         {
-            /*if (!_views.Value.Contains(type.FullName))
+            if (!_views.Value.Contains(type.FullName))
             {               
                 type.GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
                         SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
@@ -281,12 +261,12 @@ namespace MVCEngine
                     }
                 });
                 _views.Value.Add(type.FullName);
-            }*/
+            }
         }
         #endregion Register View
 
         #region Register Listener
-        /*public void RegisterListener(object listener)
+        public void RegisterListener(object listener)
         {
             lock (_threadlock)
             {
@@ -307,11 +287,11 @@ namespace MVCEngine
                     });
                 });
             }
-        }*/
+        }
         #endregion Register Listener
 
         #region UnRegister View
-        /*public void UnRegisterListener(object listener)
+        public void UnRegisterListener(object listener)
         {
             var listnerquery = _controllers.Value.SelectMany(c => c.ActionMethods.
                         SelectMany(a => a.Listernes.Where(l => listener.Equals(l.ThisObject)),
@@ -326,8 +306,94 @@ namespace MVCEngine
                 l.ThisObject = null;
                 a.Listernes.Remove(l);
             });
-        }*/
+        }
         #endregion UnRegister View
+
+        #region Proceed
+        internal void Proceed(object arguments, string controllerName, string method, object value)
+        {
+            descriptor.Controller controller = _controllers.Value.FirstOrDefault(c => c.Name == controllerName);
+            if (controller.IsNotNull())
+            {
+                descriptor.ActionMethod action = controller.ActionMethods.FirstOrDefault(m => m.MethodName == method);
+                if (action.IsNotNull())
+                {
+                    if (action.Listernes.IsNotNull())
+                    {
+                        foreach (descriptor.Listener l in action.Listernes.Where(l => l.ThisObject.IsNotNull()))
+                        {
+                            if (arguments.IsNotNull() && action.OnlySender)
+                            {
+                                object[] argTabs = arguments as object[];
+                                if (argTabs.IsNotNull() && !argTabs[0].Equals(l.ThisObject)) continue;
+                            }
+
+                            if (value.IsNotNull())
+                            {
+                                ErrorView errorView = value.CastToType<ErrorView>();
+                                if (errorView.IsNotNull())
+                                {
+                                    if (l.ActionErrorBack.IsNotNull())
+                                    {
+                                        InvokeMethod(l.ActionErrorBack, l.ThisObject, errorView.Params);
+                                    }
+                                }
+                                else if (l.ActionCallBack.IsNotNull())
+                                {
+                                    InvokeMethod(l.ActionCallBack, l.ThisObject, value);
+                                }
+                            }
+                            else if (l.ActionCallBack.IsNotNull())
+                            {
+                                InvokeMethod(l.ActionCallBack, l.ThisObject, value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private object InvokeMethod(descriptor.Method method, object objecttoinvoke, object param)
+        {
+            object ret = null;
+            List<object> parameters = new List<object>();
+            if (param.IsNotNull() && param.IsAnonymousType())
+            {
+                PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); },
+                                                                                                    new PropertyInfo[0]);
+                var joinquery = from p in method.Parameters
+                                join v in propertyinfo on p.ParameterName equals v.Name.ToUpper() into vp
+                                from v in vp.DefaultIfEmpty()
+                                select new { Parameter = p, Value = v };
+
+                joinquery.ToList().ForEach((v) =>
+                {
+                    if (v.Value.IsNotNull())
+                    {
+                        parameters.Add(v.Value.GetValue(param, null));
+                    }
+                    else
+                    {
+                        parameters.Add(null);
+                    }
+                });
+            }
+            else if (param.IsNotNull() && param.IsTypeOf<object[]>())
+            {
+                parameters.AddAndAppendByDefault(param.CastToType<object[]>(), method.Parameters.Count, null);
+            }
+            else if (param.IsNotNull())
+            {
+                parameters.AddAndAppendByDefault(new object[] { param }, method.Parameters.Count, null);
+            }
+            else
+            {
+                parameters.AddAndAppendByDefault(new object[0], method.Parameters.Count, null);
+            }
+            ret = method.MethodTriger(objecttoinvoke, (parameters.Count > 0 ? parameters.ToArray() : null));
+            return ret;
+        }
+        #endregion Proceed
 
         #region Dispose & Desctructor
         public void Dispose()
@@ -339,14 +405,10 @@ namespace MVCEngine
                     c.Object = null;
                     c.ActionMethods.ForEach((a) =>
                     {
-                        if (a.ActionCallBack.IsNotNull())
+                        a.Listernes.ForEach((l) =>
                         {
-                            Delegate[] del = a.ActionCallBack.GetInvocationList();
-                            for (int i = del.Count() - 1; i >= 0; i--)
-                            {
-                                a.ActionCallBack -= (Action)del[i];
-                            }
-                        }
+                            l.ThisObject = null;
+                        });
                     });
                 });
             }
@@ -381,7 +443,7 @@ namespace MVCEngine
                         }
                     }
 
-                    /*appconfig.ViewSection viewsection = config.GetSection("RegisterViews") as appconfig.ViewSection;
+                    appconfig.ViewSection viewsection = config.GetSection("RegisterViews") as appconfig.ViewSection;
                     if (viewsection.IsNotNull())
                     {
                         foreach (appconfig.View view in viewsection.Views)
@@ -406,7 +468,7 @@ namespace MVCEngine
                                 }
                             }
                         }
-                    }*/
+                    }
                 }                
             });
         }
