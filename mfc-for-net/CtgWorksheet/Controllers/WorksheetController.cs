@@ -24,11 +24,11 @@ namespace CtgWorksheet.Controllers
         [ActionMethod("Load")]
         public virtual View Load(string SessionId)
         {
-            WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
+            /*WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx.Worksheets.AddNew();
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
-            ctx.AcceptChanges();
-            return new View() { Params = new { Worksheet = w } };
+            ctx.AcceptChanges(); */
+            return null;//new View(){ Params = new { Worksheet = w } };
         }
 
         /*[ActionMethod("AddScreening")]

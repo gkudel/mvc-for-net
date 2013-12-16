@@ -14,6 +14,7 @@ using CtgWorksheet.Controllers;
 using CtgWorksheet.Model;
 using MVCEngine.Session;
 using MVCEngine.Internal;
+using System.Diagnostics;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -46,7 +47,12 @@ namespace MvcForNet.CtgWorksheet.GUI
                 }
             });            
             //ControllerDispatcher.GetInstance().RegisterListener(this);
-            ControllerDispatcher.GetInstance().GetController<WorksheetController>().Load(SessionId);
+            var watch = Stopwatch.StartNew();
+            //for (int i = 0; i < 1; i++)
+            {
+                ControllerDispatcher.GetInstance().GetController("Worksheet").CastToType< WorksheetController>().Load(SessionId);
+            }
+            MessageBox.Show(watch.ElapsedMilliseconds.ToString());
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
