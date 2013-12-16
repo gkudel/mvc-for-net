@@ -56,7 +56,7 @@ namespace MVCEngine
         #region Controller
         public T GetController<T>() where T : class
         {
-            T controller = typeof(T).GetDefaultValue() as T;
+            T controller = null;
             lock (_threadlock)
             {                
                 descriptor.Controller c = _controllers.Value.FirstOrDefault(ctr => ctr.Type == typeof(T)
@@ -67,6 +67,20 @@ namespace MVCEngine
                     {
                         controller = c.Object.CastToType<T>();
                     }
+                }
+            }
+            return controller;
+        }
+
+        public object GetController(string controllerName) 
+        {
+            object controller = null;
+            lock (_threadlock)
+            {
+                descriptor.Controller c = _controllers.Value.FirstOrDefault(ctr => ctr.Name == controllerName);
+                if (c.IsNotNull())
+                {
+                    controller = c.Object;
                 }
             }
             return controller;
