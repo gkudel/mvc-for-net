@@ -14,7 +14,6 @@ using CtgWorksheet.Controllers;
 using CtgWorksheet.Model;
 using MVCEngine.Session;
 using MVCEngine.Internal;
-using CtgWorksheet.ViewModel;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -94,9 +93,9 @@ namespace MvcForNet.CtgWorksheet.GUI
 
         #region Calls Back
         [ActionMethodCallBack("Worksheet", "Load")]
-        public void Loaded(WorksheetModel model)
+        public void Loaded(Worksheet model)
         {
-            _model = model.Worksheet;
+            _model = model;
             txtDescription.DataBindings.Add(new Binding("Text", _model, "Description"));
         }
 

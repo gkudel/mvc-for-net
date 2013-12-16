@@ -209,7 +209,7 @@ namespace MVCEngine
 
         private void RegisterView(Type type)
         {
-            if (!_views.Value.Contains(type.FullName))
+            /*if (!_views.Value.Contains(type.FullName))
             {               
                 type.GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
                         SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
@@ -267,7 +267,7 @@ namespace MVCEngine
                     }
                 });
                 _views.Value.Add(type.FullName);
-            }
+            }*/
         }
         #endregion Register View
 
@@ -325,10 +325,13 @@ namespace MVCEngine
                     c.Object = null;
                     c.ActionMethods.ForEach((a) =>
                     {
-                        Delegate[] del = a.ActionCallBack.GetInvocationList();
-                        for(int i=del.Count() - 1; i>=0; i--)
+                        if (a.ActionCallBack.IsNotNull())
                         {
-                            a.ActionCallBack -= (Action<ViewModel>)del[i];
+                            Delegate[] del = a.ActionCallBack.GetInvocationList();
+                            for (int i = del.Count() - 1; i >= 0; i--)
+                            {
+                                a.ActionCallBack -= (Action)del[i];
+                            }
                         }
                     });
                 });
