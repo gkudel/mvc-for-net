@@ -21,18 +21,18 @@ namespace CtgWorksheet.Controllers
         #endregion Constructor
 
         #region Action Method
-        [ActionMethod("Load")]
-        public virtual View Load(string SessionId)
+        [ActionMethod("Load", OnlySender=true)]
+        public virtual object Load(object sender, string SessionId)
         {
-            /*WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
+            WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx.Worksheets.AddNew();
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
-            ctx.AcceptChanges(); */
-            return null;//new View(){ Params = new { Worksheet = w } };
+            ctx.AcceptChanges();
+            return new { Model = w };
         }
 
-        /*[ActionMethod("AddScreening")]
-        public View AddScreening(int id)
+        [ActionMethod("AddScreening", OnlySender=true)]
+        public virtual object AddScreening(object sender, long id, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet worksheet = ctx.Worksheets.FirstOrDefault(w => w.Id == id);
@@ -41,7 +41,7 @@ namespace CtgWorksheet.Controllers
                 Screening screening = ctx.Screenings.AddNew();
                 screening.WorksheetId = worksheet.Id;
                 worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
-                return new View { Model = screening };
+                return new { Model = screening };
             }
             else
             {
@@ -49,8 +49,8 @@ namespace CtgWorksheet.Controllers
             }
         }
 
-        [ActionMethod("DeleteScreening")]
-        public object DeleteScreening(int id)
+        [ActionMethod("DeleteScreening", OnlySender=true)]
+        public virtual object DeleteScreening(object sender, long id, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);
@@ -59,13 +59,13 @@ namespace CtgWorksheet.Controllers
                 Worksheet w = screening.Worksheet;                
                 ctx.Screenings.Remove(screening);
                 w.Description = "Workshet(" + w.Screenings.Count() + ")";
-                return new { Id = id };
+                return new { SreeeningNumber = w.Screenings.Count() };
             }
             else
             {
                 return new ErrorView();
             }            
-        }*/
+        }
         #endregion Action Method
     }
 }

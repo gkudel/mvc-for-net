@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MVCEngine.View
+namespace MVCEngine.Internal.Descriptors
 {
-    public sealed class ErrorView
+    internal class Parameter
     {
         #region Properties
-        public object Params { get; set; }
+        internal string ParameterName { get; set; }
+        internal Type ParameterType { get; set; }
         #endregion Properties
     }
 }

@@ -9,10 +9,18 @@ namespace MVCEngine.Internal.Descriptors
 {
     public class ActionMethod
     {
+        #region Constructor
+        public ActionMethod()
+        {
+            Listernes = new List<Listener>();
+        }
+        #endregion Constructor
+
         #region Properties
         public string ActionName { get; internal set; }
         public string MethodName { get; internal set; }
-        internal Action ActionCallBack { get; set; }
+        internal List<Listener> Listernes { get; set; }
+        internal bool OnlySender { get; set; }
         #endregion Properties
     }
 }

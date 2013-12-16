@@ -21,13 +21,14 @@ namespace MvcForNet.CtgWorksheet.GUI
     public partial class WorksheetForm : Form
     {
         #region Members
-        private Worksheet _model;
+        private long _worksheetid;
         #endregion Members
 
         #region Constructor
         public WorksheetForm()
         {
             InitializeComponent();
+            _worksheetid = -1;
         }
         #endregion Constructor
 
@@ -46,44 +47,25 @@ namespace MvcForNet.CtgWorksheet.GUI
                     this.Text = "Worksheet Dialog"; 
                 }
             });            
-            //ControllerDispatcher.GetInstance().RegisterListener(this);
-            var watch = Stopwatch.StartNew();
-            //for (int i = 0; i < 1; i++)
-            {
-                ControllerDispatcher.GetInstance().GetController("Worksheet").CastToType< WorksheetController>().Load(SessionId);
-            }
-            MessageBox.Show(watch.ElapsedMilliseconds.ToString());
+            ControllerDispatcher.GetInstance().RegisterListener(this);            
+            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().Load(this, SessionId);            
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
         {
-            /*try
-            {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", new { Id = _model.Id }, new { SessionId });
-            }
-            catch(ActionMethodInvocationException exc)
-            {
-                MessageBox.Show(exc.Message);
-            }*/
+            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().AddScreening(this, _worksheetid, SessionId);
         }
 
         private void DeleteScreening(object sender, EventArgs e)
         {
-            /*if(tabScreening.SelectedTab.IsNotNull())
+            if(tabScreening.SelectedTab.IsNotNull())
             {
                 ScreeningControl control = tabScreening.SelectedTab.Controls[0].CastToType<ScreeningControl>();
                 if (control.IsNotNull())
                 {
-                    try
-                    {
-                        ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { Id = control.Id }, new { SessionId });
-                    }
-                    catch(ActionMethodInvocationException exc) 
-                    {
-                        MessageBox.Show(exc.Message);
-                    }
+                    ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().DeleteScreening(this, control.Id, SessionId);
                 }
-            }*/
+            }
         }
 
         private void CloseClick(object sender, EventArgs e)
@@ -101,11 +83,11 @@ namespace MvcForNet.CtgWorksheet.GUI
         [ActionMethodCallBack("Worksheet", "Load")]
         public void Loaded(Worksheet model)
         {
-            _model = model;
-            txtDescription.DataBindings.Add(new Binding("Text", _model, "Description"));
+            _worksheetid = model.Id;
+            txtDescription.DataBindings.Add(new Binding("Text", model, "Description"));
         }
 
-        /*[ActionMethodCallBack("Worksheet", "AddScreening")]
+        [ActionMethodCallBack("Worksheet", "AddScreening")]
         public void ScreeningAdded(Screening model)
         {
             ScreeningControl screening = new ScreeningControl(model, SessionId);
@@ -115,20 +97,25 @@ namespace MvcForNet.CtgWorksheet.GUI
             tabScreening.TabPages.Add(tabpage);
             tabScreening.SelectedTab = tabpage;
 
-            btnDeleteScreening.Enabled = _model.Screenings.Count() > 0;
+            btnDeleteScreening.Enabled = model.Worksheet.Screenings.Count() > 0;
         }
 
         [ActionMethodCallBack("Worksheet", "DeleteScreening")]
-        public void ScreeningDeleted(int id)
+        public void ScreeningDeleted(int SreeeningNumber)
         {
             if (tabScreening.SelectedTab.IsNotNull())
             {
                 TabPage tp = tabScreening.SelectedTab;
-                tabScreening.TabPages.Remove(tp);
-                tp.Dispose();
+                ScreeningControl control = tp.Controls[0].CastToType<ScreeningControl>();
+                if (control.IsNotNull())
+                {
+                    control.Remove();
+                    tabScreening.TabPages.Remove(tp);
+                    tp.Dispose();
+                }
             }
-            btnDeleteScreening.Enabled = _model.Screenings.Count() > 0;
-        }*/
+            btnDeleteScreening.Enabled = SreeeningNumber > 0;
+        }
         #endregion Calls Back
     }
 }

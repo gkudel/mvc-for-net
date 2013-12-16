@@ -10,15 +10,12 @@ using MVCEngine.Attributes;
 using MVCEngine;
 using CtgWorksheet.Model;
 using MVCEngine.Exceptions;
+using CtgWorksheet.Controllers;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
     public partial class ScreeningControl : UserControl
     {
-        #region Memebers
-        private Screening _model;
-        #endregion Members
-
         #region Constructor
         public ScreeningControl()
         {
@@ -28,13 +25,13 @@ namespace MvcForNet.CtgWorksheet.GUI
         public ScreeningControl(Screening screening, string sessionId)
             : this()
         {
-            //ControllerDispatcher.GetInstance().RegisterListener(this);
+            ControllerDispatcher.GetInstance().RegisterListener(this);
             SessionId = sessionId;
-            _model = screening;
+            Id = screening.Id;
 
-            txtA.DataBindings.Add(new Binding("Text", _model, "ValueA"));
-            txtB.DataBindings.Add(new Binding("Text", _model, "ValueB"));
-            lblResult.DataBindings.Add(new Binding("Text", _model, "ValueResult"));
+            txtA.DataBindings.Add(new Binding("Text", screening, "ValueA"));
+            txtB.DataBindings.Add(new Binding("Text", screening, "ValueB"));
+            lblResult.DataBindings.Add(new Binding("Text", screening, "ValueResult"));
         }
         #endregion Constructor
 
@@ -43,44 +40,36 @@ namespace MvcForNet.CtgWorksheet.GUI
         private string SessionId { get; set; }
 
         [Browsable(false)]
-        public long Id 
-        {
-            get { return _model.Id; }
-        }
+        public long Id  { get; private set; }
         #endregion Properties
 
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            /*try
-            {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { _model.Id } , new { SessionId });
-            }
-            catch(ActionMethodInvocationException exc)
-            {
-                MessageBox.Show(exc.Message);
-            }*/
+            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Recalculate(this, Id, SessionId);
         }
 
         private void LockClick(object sender, EventArgs e)
         {
-            /*try
-            {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { _model.Id }, new { SessionId }, sender:this);
-            }
-            catch (ActionMethodInvocationException exc)
-            {
-                MessageBox.Show(exc.Message);
-            } */           
+            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Lock(this, Id, SessionId);
         }
         #endregion GUI Events
 
         #region Calls Back
         [ActionMethodCallBack("Screening", "Lock")]
-        public void Locked()
+        public void Locked(bool Frozen)
         {
-            btnLock.Text = _model.IsFrozen ? "UnLock" : "Lock";
+            btnLock.Text = Frozen ? "UnLock" : "Lock";
         }
         #endregion Calls Back
+
+        #region Methods
+        public void Remove()
+        {
+            txtA.DataBindings.Clear();
+            txtB.DataBindings.Clear();
+            lblResult.DataBindings.Clear();
+        }
+        #endregion Methods
     }
 }
