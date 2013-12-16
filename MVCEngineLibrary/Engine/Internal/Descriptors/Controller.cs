@@ -13,16 +13,13 @@ namespace MVCEngine.Internal.Descriptors
         internal Controller()
         {
             ActionMethods = new List<ActionMethod>();
-            PropertiesSetters = new Dictionary<string, Action<object, object>>();
-            DefaultValues = new Dictionary<string, object>();
         }
         #endregion Constructor
 
         #region Properties
-        internal Func<object> ControllerActivator { get; set; }
-        internal Dictionary<string, Action<object, object>> PropertiesSetters { get; set; }
-        internal Dictionary<string, object> DefaultValues { get; set; }
+        internal object Object { get; set; }
         internal string Name { get; set; }
+        internal Type Type { get; set; }
         internal List<ActionMethod> ActionMethods;
         #endregion Properties
     }

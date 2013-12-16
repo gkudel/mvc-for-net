@@ -89,6 +89,7 @@
     <Compile Include="CtgWorksheet\Model\Screening.cs" />
     <Compile Include="CtgWorksheet\Model\Worksheet.cs" />
     <Compile Include="CtgWorksheet\Model\WorksheetContext.cs" />
+    <Compile Include="CtgWorksheet\ViewModel\WorksheetModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="CtgWorksheet\GUI\ScreeningControl.resx">
@@ -147,9 +148,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MVCEngineLibrary\MVCEngineLibrary.csproj">
+    <ProjectReference Include="..\MVCEngineLibrary\Library.csproj">
       <Project>{A1F52670-6CAB-49AF-9981-F96989CD134F}</Project>
-      <Name>MVCEngineLibrary</Name>
+      <Name>Library</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -11,7 +11,7 @@ using MVCEngine;
 namespace CtgWorksheet.Controllers
 {
     [Controller("Screening")]    
-    public class ScreeningController : IDisposable
+    public class ScreeningController 
     {
         #region Constructor
         public ScreeningController()
@@ -21,7 +21,7 @@ namespace CtgWorksheet.Controllers
 
         #region Action Method
         [ActionMethod("Recalculate")]
-        public void Recalculate(int id)
+        public virtual void Recalculate(string SessionId, int id)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);
@@ -31,7 +31,7 @@ namespace CtgWorksheet.Controllers
             }
         }
 
-        [ActionMethod("Lock")]
+        /*[ActionMethod("Lock")]
         public object Lock(int id)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
@@ -42,17 +42,7 @@ namespace CtgWorksheet.Controllers
                 else WorksheetContext.Freeze(screening);  
             }
             return new { Id = id };
-        }
+        }*/
         #endregion Action Method
-
-        #region Property
-        public string SessionId { get; set; }
-        #endregion Property
-
-        #region Dispose
-        public void Dispose()
-        {
-        }
-        #endregion Dispose
     }
 }

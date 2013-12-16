@@ -28,18 +28,6 @@ namespace MVCEngine.Attributes
                 return controllerName;
             }
         }
-
-        public override bool IsAsynchronousInvoke 
-        {
-            get 
-            { 
-                return false; 
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
         #endregion Properties
     }
 }

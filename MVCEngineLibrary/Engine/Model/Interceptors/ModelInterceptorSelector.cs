@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace MVCEngine.Model.Interceptors
 {
-    internal class InterceptorSelector : IInterceptorSelector
+    internal class ModelInterceptorSelector : IInterceptorSelector
     {
         #region SelectInterceptors
         public IInterceptor[] SelectInterceptors(Type type, System.Reflection.MethodInfo method, IInterceptor[] interceptors)
@@ -32,7 +32,7 @@ namespace MVCEngine.Model.Interceptors
         #region Equals & GetHashCode
         public override bool Equals(object obj)
         {
-            return obj is InterceptorSelector;
+            return obj is ModelInterceptorSelector;
         }
 
         public override int GetHashCode()

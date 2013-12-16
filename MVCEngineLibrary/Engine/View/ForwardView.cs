@@ -6,10 +6,10 @@ using MVCEngine.Internal.Validation;
 
 namespace MVCEngine.View
 {
-    public class RedirectView
+    public sealed class ForwardView : View
     {
         #region Constructor
-        public RedirectView(string actionMethod)
+        public ForwardView(string actionMethod)
         {
             ArgumentValidator.GetInstnace().
             IsNotEmpty(actionMethod, "actionMethod");
@@ -19,11 +19,7 @@ namespace MVCEngine.View
         #endregion Constructor
 
         #region Error Parameters
-        public string ControllerName { get; set; }
         public string ActionMethod { get; set; }
-        public object Params { get; set; }
-        public object RedirectParams { get; set; }
-        public object ControllerProperties { get; set; }
         #endregion Error Parameters
     }
 }
