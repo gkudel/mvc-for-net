@@ -8,7 +8,7 @@ namespace MVCEngine.View
     public class View
     {
         #region Error Parameters
-        public ViewModel Model { get; set; }
+        public object Params { get; set; }
         #endregion Error Parameters
     }
 }

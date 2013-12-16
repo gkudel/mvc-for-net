@@ -12,7 +12,7 @@ namespace MVCEngine.Internal.Descriptors
         #region Properties
         public string ActionName { get; internal set; }
         public string MethodName { get; internal set; }
-        internal Action<ViewModel> ActionCallBack { get; set; }
+        internal Action ActionCallBack { get; set; }
         #endregion Properties
     }
 }

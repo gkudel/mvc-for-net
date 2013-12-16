@@ -9,7 +9,6 @@ using CtgWorksheet.Model;
 using MVCEngine.View;
 using MVCEngine.Session;
 using MVCEngine;
-using CtgWorksheet.ViewModel;
 
 namespace CtgWorksheet.Controllers
 {
@@ -29,7 +28,7 @@ namespace CtgWorksheet.Controllers
             Worksheet w = ctx.Worksheets.AddNew();
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
             ctx.AcceptChanges();
-            return new View() { Model = new WorksheetModel() { Worksheet = w } };
+            return new View() { Params = new { Worksheet = w } };
         }
 
         /*[ActionMethod("AddScreening")]

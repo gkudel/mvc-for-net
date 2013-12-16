@@ -24,6 +24,7 @@ namespace MVCEngine.Interceptors
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
+            //ControllerDispatcher.GetInstance().
         }
         #endregion Inetercept
     }
