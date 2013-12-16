@@ -9,6 +9,7 @@ using CtgWorksheet.Model;
 using MVCEngine.View;
 using MVCEngine.Session;
 using MVCEngine;
+using CtgWorksheet.ViewModel;
 
 namespace CtgWorksheet.Controllers
 {
@@ -22,17 +23,17 @@ namespace CtgWorksheet.Controllers
 
         #region Action Method
         [ActionMethod("Load")]
-        public object Load()
+        public virtual View Load(string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx.Worksheets.AddNew();
             w.Description = "Workshet(" + w.Screenings.Count() + ")";
             ctx.AcceptChanges();
-            return new { Model = w };
+            return new View() { Model = new WorksheetModel() { Worksheet = w } };
         }
 
-        [ActionMethod("AddScreening")]
-        public object AddScreening(int id)
+        /*[ActionMethod("AddScreening")]
+        public View AddScreening(int id)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet worksheet = ctx.Worksheets.FirstOrDefault(w => w.Id == id);
@@ -41,7 +42,7 @@ namespace CtgWorksheet.Controllers
                 Screening screening = ctx.Screenings.AddNew();
                 screening.WorksheetId = worksheet.Id;
                 worksheet.Description = "Workshet(" + worksheet.Screenings.Count() + ")";
-                return new { Model = screening};
+                return new View { Model = screening };
             }
             else
             {
@@ -65,11 +66,7 @@ namespace CtgWorksheet.Controllers
             {
                 return new ErrorView();
             }            
-        }
+        }*/
         #endregion Action Method
-
-        #region Property
-        public string SessionId { get; set; }
-        #endregion Property
     }
 }

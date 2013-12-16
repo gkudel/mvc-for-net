@@ -14,6 +14,7 @@ using CtgWorksheet.Controllers;
 using CtgWorksheet.Model;
 using MVCEngine.Session;
 using MVCEngine.Internal;
+using CtgWorksheet.ViewModel;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -45,32 +46,25 @@ namespace MvcForNet.CtgWorksheet.GUI
                     this.Text = "Worksheet Dialog"; 
                 }
             });            
-            ControllerDispatcher.GetInstance().RegisterListener(this);
-            try
-            {
-                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", null , new { SessionId });
-            }
-            catch(ActionMethodInvocationException exc)
-            {
-                MessageBox.Show(exc.Message);
-            }
+            //ControllerDispatcher.GetInstance().RegisterListener(this);
+            ControllerDispatcher.GetInstance().GetController<WorksheetController>().Load(SessionId);
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
         {
-            try
+            /*try
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", new { Id = _model.Id }, new { SessionId });
             }
             catch(ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
-            }
+            }*/
         }
 
         private void DeleteScreening(object sender, EventArgs e)
         {
-            if(tabScreening.SelectedTab.IsNotNull())
+            /*if(tabScreening.SelectedTab.IsNotNull())
             {
                 ScreeningControl control = tabScreening.SelectedTab.Controls[0].CastToType<ScreeningControl>();
                 if (control.IsNotNull())
@@ -84,7 +78,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                         MessageBox.Show(exc.Message);
                     }
                 }
-            }
+            }*/
         }
 
         private void CloseClick(object sender, EventArgs e)
@@ -100,13 +94,13 @@ namespace MvcForNet.CtgWorksheet.GUI
 
         #region Calls Back
         [ActionMethodCallBack("Worksheet", "Load")]
-        public void Loaded(Worksheet model)
+        public void Loaded(WorksheetModel model)
         {
-            _model = model;
+            _model = model.Worksheet;
             txtDescription.DataBindings.Add(new Binding("Text", _model, "Description"));
         }
 
-        [ActionMethodCallBack("Worksheet", "AddScreening")]
+        /*[ActionMethodCallBack("Worksheet", "AddScreening")]
         public void ScreeningAdded(Screening model)
         {
             ScreeningControl screening = new ScreeningControl(model, SessionId);
@@ -129,7 +123,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 tp.Dispose();
             }
             btnDeleteScreening.Enabled = _model.Screenings.Count() > 0;
-        }
+        }*/
         #endregion Calls Back
     }
 }

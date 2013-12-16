@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MVCEngine.View;
 
 namespace MVCEngine.Internal.Descriptors
 {
-    internal class Parameter
+    public class ActionMethod
     {
         #region Properties
-        internal string ParameterName { get; set; }
-        internal Type ParameterType { get; set; }
+        public string ActionName { get; internal set; }
+        public string MethodName { get; internal set; }
+        internal Action<ViewModel> ActionCallBack { get; set; }
         #endregion Properties
     }
 }

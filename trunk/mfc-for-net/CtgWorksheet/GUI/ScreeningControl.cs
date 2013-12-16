@@ -28,7 +28,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         public ScreeningControl(Screening screening, string sessionId)
             : this()
         {
-            ControllerDispatcher.GetInstance().RegisterListener(this);
+            //ControllerDispatcher.GetInstance().RegisterListener(this);
             SessionId = sessionId;
             _model = screening;
 
@@ -52,26 +52,26 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            try
+            /*try
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { _model.Id } , new { SessionId });
             }
             catch(ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
-            }
+            }*/
         }
 
         private void LockClick(object sender, EventArgs e)
         {
-            try
+            /*try
             {
                 ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { _model.Id }, new { SessionId }, sender:this);
             }
             catch (ActionMethodInvocationException exc)
             {
                 MessageBox.Show(exc.Message);
-            }            
+            } */           
         }
         #endregion GUI Events
 

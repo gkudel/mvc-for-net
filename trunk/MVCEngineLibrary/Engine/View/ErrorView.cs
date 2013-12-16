@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 
 namespace MVCEngine.View
 {
-    public sealed class ErrorView
+    public sealed class ErrorView : View
     {
-        #region Error Parameters
-        public object Params { get; set; }
-        #endregion Error Parameters
     }
 }

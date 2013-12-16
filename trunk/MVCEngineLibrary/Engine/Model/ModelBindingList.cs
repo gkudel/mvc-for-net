@@ -131,7 +131,7 @@ namespace MVCEngine.Model
 
         internal static object CreateInstance(Type type, Context ctx, bool defaultValue)
         {            
-            var options = new ProxyGenerationOptions(new InterceptorGenerationHook()) { Selector = new InterceptorSelector() };
+            var options = new ProxyGenerationOptions(new ModelInterceptorGenerationHook()) { Selector = new ModelInterceptorSelector() };
             var proxy = _generator.Value.CreateClassProxy(type, options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(type).ToArray());
             if (proxy.IsTypeOf<Entity>())
             {

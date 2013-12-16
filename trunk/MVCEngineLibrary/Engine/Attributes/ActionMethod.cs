@@ -8,7 +8,7 @@ using MVCEngine.Internal.Validation;
 namespace MVCEngine.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Method) ]
-    public class ActionMethod : System.Attribute
+    public class ActionMethod : System.Attribute 
     {
         #region Members
         private string actionName;
@@ -29,8 +29,6 @@ namespace MVCEngine.Attributes
         {
             get { return actionName; }
         }
-
-        public virtual bool IsAsynchronousInvoke { get; set; }
         #endregion Properties
     }
 }
