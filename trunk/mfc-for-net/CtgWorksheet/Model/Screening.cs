@@ -13,8 +13,8 @@ using MVCEngine.Model.Attributes.Default;
 namespace CtgWorksheet.Model
 {
     [Table("GP_FISHSCREENING")]
-    [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*")]
-    [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "^(?=(?:(?!set_Worksheet).)*$).*?set_*|get_*")]
+    [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "(?=(?!^set_Worksheet$).*)(?=^(set_))")]
+    [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "(?=(?!^set_Worksheet$).*)(?=^(set_|get_))")]
     [attributes.EntityInterceptor("Worksheet", "CtgWorksheet.Model.Worksheet, mfc-for-net")]
     [attributes.Validation.PrimaryKeyValidator(RealTimeValidation= true, ErrrorMessage="Integrity Constraint")]
     public class Screening : Entity

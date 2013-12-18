@@ -29,8 +29,6 @@ namespace MVCEngine.Attributes
         {
             get { return actionName; }
         }
-
-        public virtual bool OnlySender { get; set; }
         #endregion Properties
     }
 }

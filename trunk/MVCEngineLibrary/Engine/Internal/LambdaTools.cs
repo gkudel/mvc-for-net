@@ -100,7 +100,6 @@ namespace MVCEngine.Internal
         }
         #endregion PropertyGetter
 
-
         #region MethodTriger
         public static Func<object, object[], object> MethodTriger(Type objectType, MethodInfo info)
         {            

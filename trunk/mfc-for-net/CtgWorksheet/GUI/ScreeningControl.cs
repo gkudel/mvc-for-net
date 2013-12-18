@@ -40,18 +40,19 @@ namespace MvcForNet.CtgWorksheet.GUI
         private string SessionId { get; set; }
 
         [Browsable(false)]
+        [Id()]
         public long Id  { get; private set; }
         #endregion Properties
 
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Recalculate(this, Id, SessionId);
+            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Recalculate(Id, SessionId);
         }
 
         private void LockClick(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Lock(this, Id, SessionId);
+            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Lock(Id, SessionId);
         }
         #endregion GUI Events
 

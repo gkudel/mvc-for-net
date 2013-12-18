@@ -1,4 +1,4 @@
-﻿using Castle.Core.Interceptor;
+﻿using Castle.DynamicProxy;
 using MVCEngine.Model.Exceptions;
 using MVCEngine.Model.Internal;
 using desription = MVCEngine.Model.Internal.Descriptions;

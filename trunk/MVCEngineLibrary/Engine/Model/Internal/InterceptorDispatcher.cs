@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using MVCEngine;
 using attribute = MVCEngine.Model.Attributes;
-using Castle.Core.Interceptor;
+using Castle.DynamicProxy;
 using MVCEngine.Internal;
 using System.Text.RegularExpressions;
 using MVCEngine.Model.Exceptions;
@@ -15,11 +15,12 @@ using desription = MVCEngine.Model.Internal.Descriptions;
 
 namespace MVCEngine.Model.Internal
 {
-    internal class InterceptorDispatcher
+    internal class InterceptorDispatcher : IDisposable
     {
         #region Mebers
         private static Lazy<InterceptorDispatcher> _instance;
         private List<EntityClass> _modelClass;
+        private Dictionary<string, Dictionary<string, List<desription.Interceptor>>> _interceptorMatched;
         #endregion Members
 
         #region Constructors
@@ -34,6 +35,7 @@ namespace MVCEngine.Model.Internal
         private InterceptorDispatcher()
         {
             _modelClass = new List<EntityClass>();
+            _interceptorMatched = new Dictionary<string, Dictionary<string, List<desription.Interceptor>>>();
         }
         #endregion Constructors
 
@@ -47,15 +49,12 @@ namespace MVCEngine.Model.Internal
         #region Methods
         public bool ShouldBeIntercept(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            return _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => m).Count() > 0 ||
-                   _modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i =>  !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).Count() > 0;
+            return GetInterceptors(type.FullName, methodInfo.Name).Count() > 0;
         }
 
-        public List<desription.Interceptor> GetInterceptors(Type type, System.Reflection.MethodInfo methodInfo)
+        public List<desription.Interceptor> GetInterceptors(System.Reflection.MethodInfo methodInfo)
         {
-            List<desription.Interceptor> interceptors = _modelClass.FirstOrDefault(m => m.FullName == type.FullName).Interceptors.SelectMany(i => i.Methods.Where(m => m == methodInfo.Name), (i, m) => i).ToList();
-            interceptors.AddRange(_modelClass.Where(m => m.FullName == type.FullName).SelectMany(m => m.Interceptors.Where(i => !i.RegEx.IsNullOrEmpty() && Regex.IsMatch(methodInfo.Name, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).ToList());
-            return interceptors;
+            return GetInterceptors(methodInfo.ReflectedType.FullName, methodInfo.Name);
         }
 
         public List<IInterceptor> GetInterceptorsObject(Type type)
@@ -122,6 +121,44 @@ namespace MVCEngine.Model.Internal
                 }
             }
         }
+
+        private List<desription.Interceptor> GetInterceptors(string typeName, string methodName)
+        {
+            if (!_interceptorMatched.ContainsKey(typeName))
+            {
+                _interceptorMatched.Add(typeName, new Dictionary<string, List<desription.Interceptor>>());
+            }
+            if(!_interceptorMatched[typeName].ContainsKey(methodName))
+            {
+                List<desription.Interceptor> interceptors = new List<desription.Interceptor>();
+                EntityClass entity = _modelClass.FirstOrDefault(m => m.FullName == typeName);
+                if (entity.IsNotNull())
+                {
+                    interceptors = entity.Interceptors.SelectMany(i => i.Methods.Where(m => m == methodName), (i, m) => i).ToList();
+                    interceptors.AddRange(_modelClass.Where(m => m.FullName == typeName).SelectMany(m => m.Interceptors.Where(i => !i.RegEx.IsNullOrEmpty() 
+                                  && Regex.IsMatch(methodName, i.RegEx, RegexOptions.IgnoreCase)), (m, i) => i).ToList());
+                }
+                _interceptorMatched[typeName].Add(methodName, interceptors.ToList());
+            }
+            return _interceptorMatched[typeName][methodName];
+        }
         #endregion Methods
+
+        #region Dispose & Destructor
+        public void Dispose()
+        {
+            _interceptorMatched.Clear();
+            _modelClass.ForEach((e) => 
+            {
+                e.InterceptorObjects.Clear();
+            });
+            _modelClass.Clear();            
+        }
+
+        ~InterceptorDispatcher()
+        {
+            Dispose();
+        }
+        #endregion Dispose & Destructor
     }
 }

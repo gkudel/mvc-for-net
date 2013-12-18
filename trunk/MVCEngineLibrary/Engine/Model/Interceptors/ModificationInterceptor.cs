@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Castle.Core.Interceptor;
+using Castle.DynamicProxy;
 using MVCEngine;
 using MVCEngine.Model.Internal;
 using attribute = MVCEngine.Model.Attributes;

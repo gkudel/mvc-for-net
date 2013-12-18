@@ -1,4 +1,4 @@
-﻿using Castle.Core.Interceptor;
+﻿using Castle.DynamicProxy;
 using MVCEngine.Model.Attributes;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace MVCEngine.Model.Interceptors
         #region SelectInterceptors
         public IInterceptor[] SelectInterceptors(Type type, System.Reflection.MethodInfo method, IInterceptor[] interceptors)
         {               
-            var query = from a in InterceptorDispatcher.GetInstnace().GetInterceptors(type, method)
+            var query = from a in InterceptorDispatcher.GetInstnace().GetInterceptors(method)
                         join i in interceptors on new
                         {
                             Name = a.InterceptorFullName

@@ -22,6 +22,10 @@ namespace MVCEngine.Interceptors
             return ControllerDispatcher.GetInstance().GetActionMethods(type).Exists(
                 new Predicate<Internal.Descriptors.ActionMethod>((m) => { return m.MethodName == methodInfo.Name; }));
         }
+
+        public void NonProxyableMemberNotification(Type type, System.Reflection.MemberInfo memberInfo)
+        {
+        }
         #endregion IProxyGenerationHook
 
         #region Equals & GetHashCode
