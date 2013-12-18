@@ -11,6 +11,7 @@ using MVCEngine;
 using CtgWorksheet.Model;
 using MVCEngine.Exceptions;
 using CtgWorksheet.Controllers;
+using System.Diagnostics;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -51,7 +52,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         }
 
         private void LockClick(object sender, EventArgs e)
-        {
+        {            
             ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Lock(Id, SessionId);
         }
         #endregion GUI Events

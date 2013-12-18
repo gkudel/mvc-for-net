@@ -68,6 +68,7 @@
     <Compile Include="Engine\Interceptors\ControllerInterceptorGenerationHook.cs" />
     <Compile Include="Engine\Interceptors\ControllerInterceptorSelector.cs" />
     <Compile Include="Engine\Internal\Descriptors\ActionMethod.cs" />
+    <Compile Include="Engine\Internal\Descriptors\AnonymousType.cs" />
     <Compile Include="Engine\Internal\Descriptors\Controller.cs" />
     <Compile Include="Engine\Internal\Descriptors\Listener.cs" />
     <Compile Include="Engine\Internal\Descriptors\Method.cs" />
