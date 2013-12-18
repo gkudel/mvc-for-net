@@ -13,12 +13,14 @@ namespace MVCEngine.Internal.Descriptors
         internal Method()
         {
             Parameters = new List<Parameter>();
+            Anonymous = new List<AnonymousType>();
         }
         #endregion Constructor
 
         #region Properties
         internal Func<object, object[], object> MethodTriger { get; set; }
         internal List<Parameter> Parameters { get; set; }
+        internal List<AnonymousType> Anonymous { get; set; }
         #endregion Properties
     }
 }

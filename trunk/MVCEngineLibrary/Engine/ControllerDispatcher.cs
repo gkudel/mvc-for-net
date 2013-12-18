@@ -25,8 +25,8 @@ namespace MVCEngine
         #region Members
         private Lazy<List<descriptor.Controller>> _controllers;
         private Lazy<List<string>> _views;
-        private static ControllerDispatcher _instance = null;
         private readonly object _threadlock = new object();
+        private static ControllerDispatcher _instance = null;        
         private static readonly Lazy<ProxyGenerator> _generator;
         #endregion Members
 
@@ -38,6 +38,7 @@ namespace MVCEngine
                 return new ProxyGenerator(new PersistentProxyBuilder());
             });
         }
+
         private ControllerDispatcher() 
         {
             _controllers = new Lazy<List<descriptor.Controller>>(() => { return new List<descriptor.Controller>(); }, true);
@@ -365,63 +366,32 @@ namespace MVCEngine
             object id = null;
             if (param.IsNotNull() && param.IsAnonymousType())
             {
-                PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); },
-                                                                                                    new PropertyInfo[0]);
-                var joinquery = from p in method.Parameters
-                                join v in propertyinfo on p.ParameterName equals v.Name.ToUpper() into vp
-                                from v in vp.DefaultIfEmpty()
-                                select new { Parameter = p, Value = v };
-                object value = null;
-                joinquery.ToList().ForEach((v) =>
+                descriptor.AnonymousType anonymous = method.Anonymous.FirstOrDefault(a => a.Name == param.GetType().FullName);
+
+                if (anonymous.IsNull())
                 {
-                    if (v.Value.IsNotNull())
+                    PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); },
+                                        new PropertyInfo[0]);
+                    PropertyInfo pinfo = propertyinfo.FirstOrDefault(p => p.Name.ToUpper() == "ID");
+
+                    anonymous = new descriptor.AnonymousType()
                     {
-                        value = v.Value.GetValue(param, null);
-                    }
-                    else
-                    {
-                        value = null;
-                    }
-                    parameters.Add(value);
-                });
-                PropertyInfo pinfo = propertyinfo.FirstOrDefault(p => p.Name.ToUpper() == "ID");
-                if (pinfo.IsNotNull())
-                {
-                    id = pinfo.GetValue(param, null);
+                        Name = param.GetType().FullName,
+                        MethodArguments = LambdaTools.GetMethodAttributes(param, method),
+                    };
+                    if (pinfo.IsNotNull()) anonymous.Id = LambdaTools.PropertyGetter(param.GetType(), pinfo);
+                    method.Anonymous.Add(anonymous);
                 }
-            }
-            else if (param.IsNotNull() && param.IsTypeOf<object[]>())
-            {
-                parameters.AddAndAppendByDefault(param.CastToType<object[]>(), method.Parameters.Count, null);
-            }
-            else if (param.IsNotNull())
-            {
-                parameters.AddAndAppendByDefault(new object[] { param }, method.Parameters.Count, null);
-            }
-            else
-            {
-                parameters.AddAndAppendByDefault(new object[0], method.Parameters.Count, null);
-            }
-            if (listener.Id.IsNull())
-            {
-                method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
-            }
-            else
-            {
-                object viewid = listener.Id(listener.ThisObject);
-                if (viewid.IsNotNull())
+                parameters.AddRange(anonymous.MethodArguments(param));
+                if (anonymous.Id.IsNotNull()) id = anonymous.Id(param);
+             
+                if (id.IsNull())
                 {
-                    if (!viewid.GetType().IsInstanceOfType(id))
-                    {
-                        try
-                        {
-                            id = Convert.ChangeType(id, viewid.GetType());
-                        }
-                        catch (Exception)
-                        {
-                            id = null;
-                        }
-                    }
+                    method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
+                }
+                else if (listener.Id.IsNotNull())
+                {
+                    object viewid = listener.Id(listener.ThisObject);
                     if (viewid.Equals(id))
                     {
                         method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Linq.Expressions;
 using MVCEngine;
 using MVCEngine.Exceptions;
+using MVCEngine.Internal.Descriptors;
 
 namespace MVCEngine.Internal
 {
@@ -23,7 +24,7 @@ namespace MVCEngine.Internal
         #endregion Constructor
         
         #region ObjectActivator
-        public static Func<object> ObjectActivator(string objectType, string genericType)
+        internal static Func<object> ObjectActivator(string objectType, string genericType)
         {
             string typeString = objectType;
             if (!genericType.IsNullOrEmpty())
@@ -41,7 +42,7 @@ namespace MVCEngine.Internal
             }
         }
 
-        public static Func<object> ObjectActivator(Type objectType)
+        internal static Func<object> ObjectActivator(Type objectType)
         {
             Func<object> ret = null;
             ConstructorInfo ctor = objectType.GetConstructors().FirstOrDefault(c => c.GetParameters().Count() == 0);
@@ -58,7 +59,7 @@ namespace MVCEngine.Internal
         #endregion ObjectActivator
 
         #region PropertySetter
-        public static Action<object, object> PropertySetter(Type objectType, string name)
+        internal static Action<object, object> PropertySetter(Type objectType, string name)
         {
             PropertyInfo pinfo = objectType.GetProperty(name);
             if (pinfo.IsNotNull())
@@ -68,7 +69,7 @@ namespace MVCEngine.Internal
             return null;
         }
 
-        public static Action<object, object> PropertySetter(Type objectType, PropertyInfo propertyInfo)
+        internal static Action<object, object> PropertySetter(Type objectType, PropertyInfo propertyInfo)
         {
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);
@@ -82,7 +83,7 @@ namespace MVCEngine.Internal
         #endregion PropertySetter
 
         #region PropertyGetter
-        public static Func<object, object> PropertyGetter(Type objectType, string name)
+        internal static Func<object, object> PropertyGetter(Type objectType, string name)
         {
             PropertyInfo pinfo = objectType.GetProperty(name);
             if (pinfo.IsNotNull())
@@ -92,7 +93,7 @@ namespace MVCEngine.Internal
             return null;
         }
 
-        public static Func<object, object> PropertyGetter(Type objectType, PropertyInfo propertyInfo)
+        internal static Func<object, object> PropertyGetter(Type objectType, PropertyInfo propertyInfo)
         {
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);
@@ -101,7 +102,7 @@ namespace MVCEngine.Internal
         #endregion PropertyGetter
 
         #region MethodTriger
-        public static Func<object, object[], object> MethodTriger(Type objectType, MethodInfo info)
+        internal static Func<object, object[], object> MethodTriger(Type objectType, MethodInfo info)
         {            
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);
@@ -136,8 +137,57 @@ namespace MVCEngine.Internal
         }
         #endregion MethodTriger
 
+        #region Method Attributes
+        public static Func<object, object[]> GetMethodAttributes(object param, Method method)
+        {
+            ParameterExpression obj = Expression.Parameter(typeof(object));
+            ParameterExpression converted = Expression.Variable(param.GetType());
+            ParameterExpression ret = Expression.Variable(typeof(object[]));
+
+            PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); },
+                                                                    new PropertyInfo[0]);
+            var joinquery = from p in method.Parameters
+                            join v in propertyinfo on p.ParameterName equals v.Name.ToUpper() into vp
+                            from v in vp.DefaultIfEmpty()
+                            select new { Parameter = p, Value = v };
+            List<Expression> assignExpression = new List<Expression>();
+            int i = 0;
+            joinquery.ToList().ForEach((v) =>
+            {
+                if (v.Value.IsNotNull())
+                {
+                    assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)),
+                        Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(obj, param.GetType()), v.Value), typeof(object))));
+                }
+                else
+                {
+                    assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)), 
+                        Expression.Convert(Expression.Constant(null), typeof(object))));
+                }
+                i++;
+            });
+
+
+            BlockExpression block =   Expression.Block(
+                new[] { ret, converted },
+                Expression.TryCatch(
+                    Expression.Block(
+                     Expression.Assign(converted, Expression.Convert(obj, param.GetType())),
+                     Expression.Assign(ret, Expression.NewArrayBounds(typeof(object), Expression.Constant(method.Parameters.Count))),
+                            Expression.Block(
+                                assignExpression
+                            ),
+                     ret
+                ), Expression.Catch(typeof(Exception),
+                     ret
+                )
+            ));
+            return Expression.Lambda<Func<object, object[]>>(block, obj).Compile();
+        }
+        #endregion Method Attributes
+
         #region FieldGetter
-        public static Func<object, object> FieldGetter(Type objectType, FieldInfo finfo)
+        internal static Func<object, object> FieldGetter(Type objectType, FieldInfo finfo)
         {
             ParameterExpression obj = Expression.Parameter(typeof(object));
             Expression convertObj = Expression.Convert(obj, objectType);

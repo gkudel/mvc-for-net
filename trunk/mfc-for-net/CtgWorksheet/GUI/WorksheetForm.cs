@@ -48,7 +48,12 @@ namespace MvcForNet.CtgWorksheet.GUI
                 }
             });            
             ControllerDispatcher.GetInstance().RegisterListener(this);
-            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().Load(SessionId);
+            try
+            {
+                ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().Load(SessionId);
+            }
+            catch (Exception exc)
+            { }
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
