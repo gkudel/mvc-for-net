@@ -19,7 +19,7 @@ namespace MVCEngine.Internal
         #region Constructor
         static LambdaTools()
         {
-            _miChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
+            _miChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });            
         }
         #endregion Constructor
         
@@ -77,7 +77,8 @@ namespace MVCEngine.Internal
             DefaultExpression defaultvalue = Expression.Default(propertyInfo.PropertyType);
             return Expression.Lambda<Action<object, object>>(Expression.TryCatch(
                     Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), Expression.Convert(value, propertyInfo.PropertyType)),
-                    Expression.Catch(typeof(Exception), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
+                    Expression.Catch(typeof(InvalidOperationException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue)),
+                    Expression.Catch(typeof(ArgumentNullException), Expression.Assign(Expression.MakeMemberAccess(convertObj, propertyInfo), defaultvalue))),
                 obj, value).Compile();
         }
         #endregion PropertySetter
@@ -117,12 +118,16 @@ namespace MVCEngine.Internal
                     && (paramType.IsPrimitive || paramType == typeof(string)))
                 {
                     argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.Call(_miChangeType, Expression.ArrayIndex(param, index), Expression.Constant(paramType)),paramType),
-                                 Expression.Catch(typeof(Exception), Expression.Default(paramType)));
+                                 Expression.Catch(typeof(InvalidCastException), Expression.Default(paramType)),
+                                 Expression.Catch(typeof(FormatException), Expression.Default(paramType)),
+                                 Expression.Catch(typeof(OverflowException), Expression.Default(paramType)),
+                                 Expression.Catch(typeof(ArgumentNullException), Expression.Default(paramType)));
                 }
                 else
                 {
                     argsExp[i] = Expression.TryCatch(Expression.Convert(Expression.ArrayIndex(param, index), paramType),
-                                                     Expression.Catch(typeof(Exception), Expression.Default(paramType)));
+                                                     Expression.Catch(typeof(ArgumentNullException), Expression.Default(paramType)),
+                                                     Expression.Catch(typeof(InvalidOperationException), Expression.Default(paramType)));
                 }
             }          
             if (!info.ReturnType.Equals(typeof(void)))
@@ -178,7 +183,10 @@ namespace MVCEngine.Internal
                                 assignExpression
                             ),
                      ret
-                ), Expression.Catch(typeof(Exception),
+                ), Expression.Catch(typeof(ArgumentNullException),
+                     ret
+                ),
+                Expression.Catch(typeof(InvalidOperationException),
                      ret
                 )
             ));
