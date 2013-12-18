@@ -15,7 +15,7 @@ namespace MVCEngine.Model.Attributes.Default
             if (e.Table.IsNotNull())
             {
                 ret = e.Table.Entities.Select(entity => entity[c.Name]).Max();
-                if(ret.IsNotNull())
+                if (ret.IsNotNull())
                 {
                     decimal d;
                     if (decimal.TryParse(ret.ToString(), out d))
@@ -26,6 +26,10 @@ namespace MVCEngine.Model.Attributes.Default
                     {
                         ret = null;
                     }
+                }
+                else
+                {
+                    ret = c.ColumnType.GetDefaultValue();
                 }
             }
             return ret;
