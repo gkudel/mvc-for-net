@@ -31,11 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Castle.Core">
-      <HintPath>..\packages\Castle.Core.1.2.0\lib\Castle.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Castle.DynamicProxy2">
-      <HintPath>..\packages\Castle.DynamicProxy.2.2.0\lib\Castle.DynamicProxy2.dll</HintPath>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -58,6 +56,7 @@
     <Compile Include="Engine\Attributes\ActionMethodCallBack.cs" />
     <Compile Include="Engine\Attributes\ActionMethodErrorBack.cs" />
     <Compile Include="Engine\Attributes\Controller.cs" />
+    <Compile Include="Engine\Attributes\Id.cs" />
     <Compile Include="Engine\Attributes\ValueFromAttribute.cs" />
     <Compile Include="Engine\ControllerDispatcher.cs" />
     <Compile Include="Engine\Exceptions\ActionMethodInvocationException.cs" />

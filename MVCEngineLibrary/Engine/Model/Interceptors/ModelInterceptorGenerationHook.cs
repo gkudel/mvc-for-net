@@ -25,6 +25,10 @@ namespace MVCEngine.Model.Interceptors
         {
             return InterceptorDispatcher.GetInstnace().ShouldBeIntercept(type, methodInfo);
         }
+
+        public void NonProxyableMemberNotification(Type type, System.Reflection.MemberInfo memberInfo)
+        {
+        }
         #endregion IProxyGenerationHook
 
         #region Equals & GetHashCode

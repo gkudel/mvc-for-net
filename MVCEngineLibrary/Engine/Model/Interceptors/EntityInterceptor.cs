@@ -1,4 +1,4 @@
-﻿using Castle.Core.Interceptor;
+﻿using Castle.DynamicProxy;
 using MVCEngine.Attributes;
 using MVCEngine.Model.Attributes.Discriminators;
 using MVCEngine.Model.Exceptions;
@@ -33,7 +33,8 @@ namespace MVCEngine.Model.Interceptors
 
         #region Inetercept
         public override void Intercept(IInvocation invocation)
-        {                                  
+        {
+            if (invocation.Method.Name.StartsWith("set_")) throw new InvalidOperationException();
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {

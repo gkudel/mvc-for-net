@@ -21,8 +21,8 @@ namespace CtgWorksheet.Controllers
         #endregion Constructor
 
         #region Action Method
-        [ActionMethod("Load", OnlySender=true)]
-        public virtual object Load(object sender, string SessionId)
+        [ActionMethod("Load")]
+        public virtual object Load(string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet w = ctx.Worksheets.AddNew();
@@ -31,8 +31,8 @@ namespace CtgWorksheet.Controllers
             return new { Model = w };
         }
 
-        [ActionMethod("AddScreening", OnlySender=true)]
-        public virtual object AddScreening(object sender, long id, string SessionId)
+        [ActionMethod("AddScreening")]
+        public virtual object AddScreening(long id, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet worksheet = ctx.Worksheets.FirstOrDefault(w => w.Id == id);
@@ -49,8 +49,8 @@ namespace CtgWorksheet.Controllers
             }
         }
 
-        [ActionMethod("DeleteScreening", OnlySender=true)]
-        public virtual object DeleteScreening(object sender, long id, string SessionId)
+        [ActionMethod("DeleteScreening")]
+        public virtual object DeleteScreening(long id, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);

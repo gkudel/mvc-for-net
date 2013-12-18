@@ -20,7 +20,6 @@ namespace MVCEngine.Internal.Descriptors
         public string ActionName { get; internal set; }
         public string MethodName { get; internal set; }
         internal List<Listener> Listernes { get; set; }
-        internal bool OnlySender { get; set; }
         #endregion Properties
     }
 }

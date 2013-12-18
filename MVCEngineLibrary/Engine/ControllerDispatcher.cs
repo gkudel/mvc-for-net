@@ -143,7 +143,7 @@ namespace MVCEngine
                             return c;
                         });
 
-                        AddActionMethod(controller, action.ActionName, ma.Method.Name, action.OnlySender);
+                        AddActionMethod(controller, action.ActionName, ma.Method.Name);
                     });
                     
                     if (controller.IsNotNull())
@@ -167,7 +167,7 @@ namespace MVCEngine
             }
         }
 
-        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, string methodName, bool onlySender)
+        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, string methodName)
         {
             descriptor.ActionMethod method = controller.ActionMethods.FirstOrDefault(am => am.ActionName == ActionName);
             if (method.IsNull())
@@ -177,8 +177,7 @@ namespace MVCEngine
                     return new descriptor.ActionMethod()
                     {
                         ActionName = ActionName,
-                        MethodName = methodName,
-                        OnlySender = onlySender
+                        MethodName = methodName
                     };
                 });
                 controller.ActionMethods.Add(method);
@@ -204,7 +203,18 @@ namespace MVCEngine
         private void RegisterView(Type type)
         {
             if (!_views.Value.Contains(type.FullName))
-            {               
+            {
+                Func<object, object> viewid = null;
+                var idQuery = type.GetProperties().Where(p => p.CanRead).SelectMany(p => System.Attribute.GetCustomAttributes(p).
+                    Where(a => a.IsTypeOf<Id>()), (p, a) => new { Property = p, Attribute = a.CastToType<Id>() });
+                if (idQuery.ToList().Count() > 1)
+                {
+                    throw new ViewRegistrationException("Type[" + type.FullName + "] Id property defined at least twice");
+                }
+                else if (idQuery.ToList().Count() == 1)
+                {
+                    viewid = LambdaTools.PropertyGetter(type, idQuery.ElementAt(0).Property);
+                }
                 type.GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
                         SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
                         (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((m) =>
@@ -234,7 +244,8 @@ namespace MVCEngine
                     {
                         return new descriptor.Listener()
                         {
-                            FullTypeName = type.FullName
+                            FullTypeName = type.FullName,
+                            Id = viewid
                         };
                     });
                     actionmethod.Listernes.Add(listener);
@@ -282,6 +293,7 @@ namespace MVCEngine
                     a.Listernes.Add(new descriptor.Listener()
                     {
                         ThisObject = listener,
+                        Id = l.Id,
                         ActionCallBack = l.ActionCallBack,
                         ActionErrorBack = l.ActionErrorBack
                     });
@@ -322,12 +334,6 @@ namespace MVCEngine
                     {
                         foreach (descriptor.Listener l in action.Listernes.Where(l => l.ThisObject.IsNotNull()))
                         {
-                            if (arguments.IsNotNull() && action.OnlySender)
-                            {
-                                object[] argTabs = arguments as object[];
-                                if (argTabs.IsNotNull() && !argTabs[0].Equals(l.ThisObject)) continue;
-                            }
-
                             if (value.IsNotNull())
                             {
                                 ErrorView errorView = value.CastToType<ErrorView>();
@@ -335,17 +341,17 @@ namespace MVCEngine
                                 {
                                     if (l.ActionErrorBack.IsNotNull())
                                     {
-                                        InvokeMethod(l.ActionErrorBack, l.ThisObject, errorView.Params);
+                                        InvokeMethod(l, l.ActionErrorBack, errorView.Params);
                                     }
                                 }
                                 else if (l.ActionCallBack.IsNotNull())
                                 {
-                                    InvokeMethod(l.ActionCallBack, l.ThisObject, value);
+                                    InvokeMethod(l, l.ActionCallBack, value);
                                 }
                             }
                             else if (l.ActionCallBack.IsNotNull())
                             {
-                                InvokeMethod(l.ActionCallBack, l.ThisObject, value);
+                                InvokeMethod(l, l.ActionCallBack, value);
                             }
                         }
                     }
@@ -353,10 +359,10 @@ namespace MVCEngine
             }
         }
 
-        private object InvokeMethod(descriptor.Method method, object objecttoinvoke, object param)
+        private void InvokeMethod(descriptor.Listener listener, descriptor.Method method, object param)
         {
-            object ret = null;
             List<object> parameters = new List<object>();
+            object id = null;
             if (param.IsNotNull() && param.IsAnonymousType())
             {
                 PropertyInfo[] propertyinfo = param.IfNullDefault<object, PropertyInfo[]>(() => { return param.GetType().GetProperties(); },
@@ -365,18 +371,24 @@ namespace MVCEngine
                                 join v in propertyinfo on p.ParameterName equals v.Name.ToUpper() into vp
                                 from v in vp.DefaultIfEmpty()
                                 select new { Parameter = p, Value = v };
-
+                object value = null;
                 joinquery.ToList().ForEach((v) =>
                 {
                     if (v.Value.IsNotNull())
                     {
-                        parameters.Add(v.Value.GetValue(param, null));
+                        value = v.Value.GetValue(param, null);
                     }
                     else
                     {
-                        parameters.Add(null);
+                        value = null;
                     }
+                    parameters.Add(value);
                 });
+                PropertyInfo pinfo = propertyinfo.FirstOrDefault(p => p.Name.ToUpper() == "ID");
+                if (pinfo.IsNotNull())
+                {
+                    id = pinfo.GetValue(param, null);
+                }
             }
             else if (param.IsNotNull() && param.IsTypeOf<object[]>())
             {
@@ -390,8 +402,32 @@ namespace MVCEngine
             {
                 parameters.AddAndAppendByDefault(new object[0], method.Parameters.Count, null);
             }
-            ret = method.MethodTriger(objecttoinvoke, (parameters.Count > 0 ? parameters.ToArray() : null));
-            return ret;
+            if (listener.Id.IsNull())
+            {
+                method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
+            }
+            else
+            {
+                object viewid = listener.Id(listener.ThisObject);
+                if (viewid.IsNotNull())
+                {
+                    if (!viewid.GetType().IsInstanceOfType(id))
+                    {
+                        try
+                        {
+                            id = Convert.ChangeType(id, viewid.GetType());
+                        }
+                        catch (Exception)
+                        {
+                            id = null;
+                        }
+                    }
+                    if (viewid.Equals(id))
+                    {
+                        method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
+                    }
+                }
+            }
         }
         #endregion Proceed
 

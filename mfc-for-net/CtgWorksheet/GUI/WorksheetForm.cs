@@ -47,13 +47,13 @@ namespace MvcForNet.CtgWorksheet.GUI
                     this.Text = "Worksheet Dialog"; 
                 }
             });            
-            ControllerDispatcher.GetInstance().RegisterListener(this);            
-            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().Load(this, SessionId);            
+            ControllerDispatcher.GetInstance().RegisterListener(this);
+            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().Load(SessionId);
         }
 
         private void AddScreeningClick(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().AddScreening(this, _worksheetid, SessionId);
+            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().AddScreening(_worksheetid, SessionId);
         }
 
         private void DeleteScreening(object sender, EventArgs e)
@@ -63,7 +63,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 ScreeningControl control = tabScreening.SelectedTab.Controls[0].CastToType<ScreeningControl>();
                 if (control.IsNotNull())
                 {
-                    ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().DeleteScreening(this, control.Id, SessionId);
+                    ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().DeleteScreening(control.Id, SessionId);
                 }
             }
         }

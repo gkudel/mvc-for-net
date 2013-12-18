@@ -20,8 +20,8 @@ namespace CtgWorksheet.Controllers
         #endregion Constructor
 
         #region Action Method
-        [ActionMethod("Recalculate", OnlySender=true)]
-        public virtual void Recalculate(object sender, long id, string SessionId)
+        [ActionMethod("Recalculate")]
+        public virtual void Recalculate(long id, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);
@@ -31,8 +31,8 @@ namespace CtgWorksheet.Controllers
             }
         }
 
-        [ActionMethod("Lock", OnlySender=true)]
-        public virtual object Lock(object sender, long id, string SessionId)
+        [ActionMethod("Lock")]
+        public virtual object Lock(long id, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Screening screening = ctx.Screenings.FirstOrDefault(s => s.Id == id);
@@ -41,7 +41,7 @@ namespace CtgWorksheet.Controllers
                 if (screening.IsFrozen) WorksheetContext.UnFreeze(screening);
                 else WorksheetContext.Freeze(screening);  
             }
-            return new { Frozen = screening.IsFrozen };
+            return new { Id = id, Frozen = screening.IsFrozen };
         }
         #endregion Action Method
     }
