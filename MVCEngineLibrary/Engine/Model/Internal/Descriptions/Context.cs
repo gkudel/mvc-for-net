@@ -85,11 +85,11 @@ namespace MVCEngine.Model.Internal.Descriptions
             });
             Relations.ForEach((r) => 
             {
-                ctx.Relations.Add(new Relation() 
+                Relation relation = new Relation() 
                 {
-                    Name = r.Name, 
-                    ParentTable = r.ParentTable,
-                    ChildTable = r.ChildTable,
+                    Name = r.Name,
+                    ParentTableName = r.ParentTableName,                    
+                    ChildTableName = r.ChildTableName,
                     ParentKey = r.ParentKey,
                     ParentType = r.ParentType, 
                     ParentValue = r.ParentValue,
@@ -97,7 +97,10 @@ namespace MVCEngine.Model.Internal.Descriptions
                     ChildType = r.ChildType, 
                     ChildValue = r.ChildValue,
                     OnDelete = r.OnDelete
-                });
+                };
+                ctx.Relations.Add(relation);
+                relation.ParentTable = ctx.Tables.FirstOrDefault(t => t.TableName == r.ParentTableName);
+                relation.ChildTable = ctx.Tables.FirstOrDefault(t => t.TableName == r.ChildTableName);
             });
             return ctx;
         }

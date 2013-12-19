@@ -17,17 +17,16 @@ namespace MVCEngine.Model.Interceptors
     public class EntityInterceptor<T> : MVCEngine.Model.Internal.Interceptor where T : Entity
     {
         #region Members
-        private T _entity;
-        private string _uid;
         private List<Discriminator> _discriminators;
+        private Lazy<Relation> _relation;
         #endregion Members
 
         #region Constructor
         public EntityInterceptor()
         {
-            _uid = string.Empty;
-            _entity = default(T);
             _discriminators = new List<Discriminator>();
+            _relation = new Lazy<Relation>();
+
         }
         #endregion Constructor
 
@@ -38,45 +37,49 @@ namespace MVCEngine.Model.Interceptors
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                Table parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (parentTable.IsNotNull() && entity.Table.IsNotNull())
+                if (!_relation.IsValueCreated)
                 {
-                    if (parentTable.Uid != _uid)
+                    Table parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                    if (parentTable.IsNotNull() && entity.Table.IsNotNull())
                     {
-                        List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable == parentTable.TableName
-                                                                                  && r.ChildTable == entity.Table.TableName
-                                                                                  && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
+                        List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable.TableName == parentTable.TableName
+                                                              && r.ChildTable.TableName == entity.Table.TableName
+                                                              && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
                         if (relations.Count() == 1)
                         {
-                            Relation relation = relations.First();
-                            if (relation.IsNotNull())
-                            {
-                                List<T> list = parentTable.Entities.Cast<T>().Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
-                                        Equals(relation.ChildValue(invocation.InvocationTarget)) &&
-                                        _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(p); }))).ToList();
-                                if (list.Count() == 1)
-                                {
-                                    _entity = list.First();
-                                }
-                                else if (list.Count() > 1)
-                                {
-                                    throw new ModelException("Integrity constraint exception");
-                                }
-                                else
-                                {
-                                    _entity = default(T);
-                                }
-                            }
+                            _relation = new Lazy<Relation>(() => { return relations[0]; });
                         }
-                        else if (relations.Count() > 1)
+                        else
                         {
-                            throw new ModelException();
+                            _relation = new Lazy<Relation>(() => { return null; });
                         }
-                        _uid = parentTable.Uid;
                     }
                 }
+                if (_relation.Value.IsNotNull())
+                {
+                    List<Entity> list = _relation.Value.ParentTable.Entities.Where(p => p.State != EntityState.Deleted && _relation.Value.ParentValue(p).
+                            Equals(_relation.Value.ChildValue(invocation.InvocationTarget)) &&
+                            _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(p); }))).ToList();
+
+                    if (list.Count() == 1)
+                    {
+                        invocation.ReturnValue = list[0].CastToType<T>();
+                    }
+                    else
+                    {
+                        invocation.ReturnValue = default(T);
+                    }
+                }
+                else
+                {
+                    throw new ModelException();
+                }
             }
-            invocation.ReturnValue = _entity;
+            else
+            {
+                invocation.ReturnValue = default(T);
+            }
+
         }
         #endregion Inetercept
 

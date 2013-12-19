@@ -17,17 +17,15 @@ namespace MVCEngine.Model.Interceptors
     internal class CollectionInterceptor<T> : MVCEngine.Model.Internal.Interceptor where T : Entity
     {
         #region Members
-        private List<T> _list;
-        private string _uid;
         private List<Discriminator> _discriminators;
+        private Lazy<Relation> _relation;
         #endregion Members
 
         #region Constructor
         public CollectionInterceptor()
         {
-            _uid = string.Empty;
-            _list = new List<T>();
             _discriminators = new List<Discriminator>();
+            _relation = new Lazy<Relation>();
         }
         #endregion Constructor
 
@@ -38,34 +36,39 @@ namespace MVCEngine.Model.Interceptors
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (entity.Table.IsNotNull() && childTable.IsNotNull())
+                if (!_relation.IsValueCreated)
                 {
-                    if (childTable.Uid != _uid)
+                    Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                    if (entity.Table.IsNotNull() && childTable.IsNotNull())
                     {
-                        List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable == entity.Table.TableName
-                                                                                  && r.ChildTable == childTable.TableName
-                                                                                  && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
-
+                        List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable.TableName == entity.Table.TableName
+                                                              && r.ChildTable.TableName == childTable.TableName
+                                                              && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
                         if (relations.Count() == 1)
                         {
-                            Relation relation = relations.First();
-                            if (relation.IsNotNull())
-                            {
-                                _list = childTable.Entities.Cast<T>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
-                                            Equals(relation.ChildValue(c)) &&
-                                            _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).ToList();
-                            }
+                            _relation = new Lazy<Relation>(() => { return relations[0]; });
                         }
-                        else if(relations.Count() > 1)
+                        else
                         {
-                            throw new ModelException();
+                            _relation = new Lazy<Relation>(() => { return null; });
                         }
-                        _uid = childTable.Uid;
                     }
                 }
+                if (_relation.Value.IsNotNull())
+                {
+                    invocation.ReturnValue = _relation.Value.ChildTable.Entities.Where(c => c.State != EntityState.Deleted && _relation.Value.ParentValue(invocation.InvocationTarget).
+                                Equals(_relation.Value.ChildValue(c)) &&
+                                _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).Cast<T>().ToList();
+                }
+                else
+                {
+                    throw new ModelException();
+                }
             }
-            invocation.ReturnValue = _list;
+            else
+            {
+                invocation.ReturnValue = null;
+            }
         }
         #endregion Inetercept
 

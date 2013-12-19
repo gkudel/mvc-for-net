@@ -115,9 +115,9 @@ namespace MVCEngine.Model
         {
             if (Table.IsNotNull())
             {
-                Context.Relations.Where(r => r.ParentTable == Table.TableName).ToList().ForEach((r) =>
+                Context.Relations.Where(r => r.ParentTableName == Table.TableName).ToList().ForEach((r) =>
                 {
-                    Table childTable = Context.Tables.FirstOrDefault(t => t.TableName == r.ChildTable);
+                    Table childTable = Context.Tables.FirstOrDefault(t => t.TableName == r.ChildTableName);
                     if (childTable.IsNotNull())
                     {
                         childTable.Entities.Where(row => row.State != EntityState.Deleted &&
@@ -165,7 +165,7 @@ namespace MVCEngine.Model
         }
         #endregion Table
 
-        #region GetValue
+        #region Get & Set Coulumn Value
         public object this[string column]
         {
             get 
@@ -181,7 +181,7 @@ namespace MVCEngine.Model
                 }
                 return null;
             }
-            set
+            set 
             {
                 if (Table.IsNotNull())
                 {
@@ -197,7 +197,7 @@ namespace MVCEngine.Model
                 }
             }
         }
-        #endregion GetValue
+        #endregion Get & Set Coulumn Value
 
         #region Validate
         public bool Validate()

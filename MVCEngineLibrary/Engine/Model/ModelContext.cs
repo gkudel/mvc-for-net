@@ -75,7 +75,7 @@ namespace MVCEngine.Model
                     Table childTable = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(C).Name);
                     if (childTable.IsNotNull())
                     {
-                        if (relation.ParentTable == parentTable.TableName && relation.ChildTable == childTable.TableName)
+                        if (relation.ParentTableName == parentTable.TableName && relation.ChildTableName == childTable.TableName)
                         {
                             ret = childTable.Entities.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
                                         Equals(relation.ChildValue(c))).ToList();                                
@@ -118,7 +118,7 @@ namespace MVCEngine.Model
                     Table childTable = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(C).Name);
                     if (childTable.IsNotNull())
                     {
-                        if (relation.ParentTable == parentTable.TableName && relation.ChildTable == childTable.TableName)
+                        if (relation.ParentTableName == parentTable.TableName && relation.ChildTableName == childTable.TableName)
                         {
                             List<C> list = childTable.Entities.Cast<C>().Where(c => c.State != EntityState.Deleted && relation.ParentValue(parent).
                                         Equals(relation.ChildValue(c))).ToList();
@@ -250,9 +250,9 @@ namespace MVCEngine.Model
                                                 Name = pa.Attrubute.RelationName, 
                                                 ChildKey = pa.Property.Name,
                                                 ChildType = pa.Property.PropertyType, 
-                                                ChildTable = table.TableName,
+                                                ChildTableName = table.TableName,
+                                                ParentTableName = pa.Attrubute.ForeignTable,
                                                 ParentKey = pa.Attrubute.ForeignColumn,
-                                                ParentTable = pa.Attrubute.ForeignTable,
                                                 OnDelete = pa.Attrubute.OnDelete
                                             });
                                         }
@@ -319,8 +319,8 @@ namespace MVCEngine.Model
                     });
                     
 
-                    var relationquery = ctx.Relations.SelectMany(r => ctx.Tables.Where(t => t.TableName == r.ParentTable), (r, t) => new { Relation = r, Parent = t }).
-                        SelectMany(pr => ctx.Tables.Where(t => t.TableName == pr.Relation.ChildTable), (pr, c) => new { Parent = pr.Parent, Relation = pr.Relation, Child = c });
+                    var relationquery = ctx.Relations.SelectMany(r => ctx.Tables.Where(t => t.TableName == r.ParentTableName), (r, t) => new { Relation = r, Parent = t }).
+                        SelectMany(pr => ctx.Tables.Where(t => t.TableName == pr.Relation.ChildTableName), (pr, c) => new { Parent = pr.Parent, Relation = pr.Relation, Child = c });
                     relationquery.ToList().ForEach((prc) =>
                     {
                         if(prc.Relation.ParentKey.IsNullOrEmpty())
