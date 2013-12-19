@@ -117,7 +117,6 @@
     <Compile Include="Engine\Model\Internal\InterceptorDispatcher.cs" />
     <Compile Include="Engine\Model\ModelBindingList.cs" />
     <Compile Include="Engine\Model\ModelContext.cs" />
-    <Compile Include="Engine\Model\ModelUtils.cs" />
     <Compile Include="Engine\Session\Exceptions\InvalidSessionIdException.cs" />
     <Compile Include="Engine\Session\Session.cs" />
     <Compile Include="Engine\View\ErrorView.cs" />
