@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MVCEngine.Attributes
 {
+    [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = true)]
     public class ActionCallBack : ActionMethod
     {
         #region Members

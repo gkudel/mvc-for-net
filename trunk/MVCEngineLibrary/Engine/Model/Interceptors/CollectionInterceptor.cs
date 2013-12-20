@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using attribute = MVCEngine.Model.Attributes;
+using MVCEngine.Internal;
 
 namespace MVCEngine.Model.Interceptors
 {
@@ -17,48 +18,62 @@ namespace MVCEngine.Model.Interceptors
     internal class CollectionInterceptor<T> : MVCEngine.Model.Internal.Interceptor where T : Entity
     {
         #region Members
-        private List<Discriminator> _discriminators;
-        private Lazy<Relation> _relation;
+        private List<Discriminator> _discriminators;        
+        private Action<object, object> _setter;
+        private Func<object, object> _getter;
         #endregion Members
 
         #region Constructor
         public CollectionInterceptor()
         {
-            _discriminators = new List<Discriminator>();
-            _relation = new Lazy<Relation>();
+            _discriminators = new List<Discriminator>();            
         }
         #endregion Constructor
 
         #region Inetercept
         public override void Intercept(IInvocation invocation)
         {
-            if (invocation.Method.Name.StartsWith("set_")) throw new InvalidOperationException();
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                if (!_relation.IsValueCreated)
+                string name = invocation.Method.Name;
+                if (name.StartsWith("get_"))
                 {
-                    Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                    if (entity.Table.IsNotNull() && childTable.IsNotNull())
+                    name = name.Substring(4, name.Length - 4);
+                }
+                Relation relation = null;
+                Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                if (entity.Table.IsNotNull() && childTable.IsNotNull())
+                {
+                    List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable.TableName == entity.Table.TableName
+                                                            && r.ChildTable.TableName == childTable.TableName
+                                                            && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
+                    if (relations.Count() == 1)
                     {
-                        List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable.TableName == entity.Table.TableName
-                                                              && r.ChildTable.TableName == childTable.TableName
-                                                              && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
-                        if (relations.Count() == 1)
-                        {
-                            _relation = new Lazy<Relation>(() => { return relations[0]; });
-                        }
-                        else
-                        {
-                            _relation = new Lazy<Relation>(() => { return null; });
-                        }
+                        relation = relations[0];
+                    }
+                    else
+                    {
+                        relation = null;
                     }
                 }
-                if (_relation.Value.IsNotNull())
+                if (relation.IsNotNull())
                 {
-                    invocation.ReturnValue = _relation.Value.ChildTable.Entities.Where(c => c.State != EntityState.Deleted && _relation.Value.ParentValue(invocation.InvocationTarget).
-                                Equals(_relation.Value.ChildValue(c)) &&
-                                _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).Cast<T>().ToList();
+                    if (!entity.GetTableUidForProperty(name).Equals(relation.ChildTable.Uid))
+                    {
+                        invocation.ReturnValue = relation.ChildTable.Entities.Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
+                                    Equals(relation.ChildValue(c)) &&
+                                    _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).Cast<T>().ToList();
+                        if (_setter.IsNotNull())
+                        {
+                            _setter(entity, invocation.ReturnValue);
+                        }
+                        entity.SetTableUidForProperty(name, relation.ChildTable.Uid);
+                    }
+                    else
+                    {
+                        invocation.Proceed();
+                    }
                 }
                 else
                 {
@@ -67,7 +82,7 @@ namespace MVCEngine.Model.Interceptors
             }
             else
             {
-                invocation.ReturnValue = null;
+                throw new ModelException();
             }
         }
         #endregion Inetercept
@@ -75,19 +90,18 @@ namespace MVCEngine.Model.Interceptors
         #region Initialize
         public override void Initialize(Type entityType, attribute.Interceptor interceptor)
         {
-            if(interceptor.MethodsName.Length == 1)
+            string name = interceptor.MethodsName[0];
+            if (name.StartsWith("get_"))
             {
-                string name = interceptor.MethodsName[0];
-                if (name.StartsWith("get_"))
-                {
-                    name = name.Substring(4, name.Length - 4);
-                }
-                PropertyInfo info = entityType.GetProperty(name);
-                if (info.IsNotNull())
-                {
-                    _discriminators.AddRange(Attribute.GetCustomAttributes(info).
-                        Where(p => p.IsTypeOf<Discriminator>()).Select(p =>p.CastToType<Discriminator>()));
-                }
+                name = name.Substring(4, name.Length - 4);
+            }
+            PropertyInfo info = entityType.GetProperty(name);
+            if (info.IsNotNull())
+            {
+                _discriminators.AddRange(Attribute.GetCustomAttributes(info).
+                    Where(p => p.IsTypeOf<Discriminator>()).Select(p =>p.CastToType<Discriminator>()));
+                _setter = LambdaTools.PropertySetter(entityType, info);
+                _getter = LambdaTools.PropertyGetter(entityType, info);
             }
         }
         #endregion Initialize

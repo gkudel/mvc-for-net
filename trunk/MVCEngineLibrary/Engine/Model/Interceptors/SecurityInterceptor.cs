@@ -22,9 +22,10 @@ namespace MVCEngine.Model.Interceptors
         #region Inetercept
         public override void Intercept(IInvocation invocation)
         {
-            if (invocation.InvocationTarget.IsTypeOf<Entity>())
+            Entity entity = invocation.InvocationTarget.CastToType<Entity>();
+            if (entity.IsNotNull())
             {
-                if (!invocation.InvocationTarget.CastToType<Entity>().IsFrozen)
+                if (!entity.IsFrozen)
                 {
                     invocation.Proceed();
                 }

@@ -38,6 +38,6 @@ namespace CtgWorksheet.Model
         [Column("GP_FISH_VALUERESULT")]
         public virtual string ValueResult { get; set; }
 
-        public virtual Worksheet Worksheet { get; set; }
+        public virtual Worksheet Worksheet { get; private set; }
     }
 }

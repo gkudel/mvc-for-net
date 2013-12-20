@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8F43BBAE-AE6D-416A-B7FC-E46BA10D8AF4}</ProjectGuid>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A1F52670-6CAB-49AF-9981-F96989CD134F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MVCEngineLibrary</RootNamespace>
     <AssemblyName>MVCEngineLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,9 +35,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Castle.Core.dll</HintPath>
     </Reference>
+    <Reference Include="DevExpress.Data.v12.2, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Printing.v12.2.Core, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Utils.v12.2, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraEditors.v12.2, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -63,17 +72,16 @@
     <Compile Include="Engine\Exceptions\ControllerRegistrationException.cs" />
     <Compile Include="Engine\Exceptions\ObjectActivatorException.cs" />
     <Compile Include="Engine\Exceptions\ViewRegistrationException.cs" />
-    <Compile Include="Engine\Extensions.cs" />
     <Compile Include="Engine\Interceptors\ControllerInterceptor.cs" />
     <Compile Include="Engine\Interceptors\ControllerInterceptorGenerationHook.cs" />
     <Compile Include="Engine\Interceptors\ControllerInterceptorSelector.cs" />
-    <Compile Include="Engine\Internal\Descriptors\ActionMethod.cs" />
     <Compile Include="Engine\Internal\Descriptors\AnonymousType.cs" />
-    <Compile Include="Engine\Internal\Descriptors\Controller.cs" />
     <Compile Include="Engine\Internal\Descriptors\Listener.cs" />
     <Compile Include="Engine\Internal\Descriptors\Method.cs" />
     <Compile Include="Engine\Internal\Descriptors\Parameter.cs" />
     <Compile Include="Engine\Internal\LambdaTools.cs" />
+    <Compile Include="Engine\Internal\Descriptors\ActionMethod.cs" />
+    <Compile Include="Engine\Internal\Descriptors\Controller.cs" />
     <Compile Include="Engine\Internal\Validation\ArgumentValidator.cs" />
     <Compile Include="Engine\Internal\Validation\ArgumentValidatorExtensions.cs" />
     <Compile Include="Engine\Model\Attributes\CollectionInterceptor.cs" />
@@ -87,44 +95,43 @@
     <Compile Include="Engine\Model\Attributes\Discriminators\StringDiscriminator.cs" />
     <Compile Include="Engine\Model\Attributes\EntityInterceptor.cs" />
     <Compile Include="Engine\Model\Attributes\Interceptor.cs" />
-    <Compile Include="Engine\Model\Attributes\Table.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\ColumnValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\EntityValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\PrimaryKeyValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\RangeValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\StringLengthValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\Validator.cs" />
-    <Compile Include="Engine\Model\Entity.cs" />
+    <Compile Include="Engine\Model\Interceptors\EntityInterceptor.cs" />
+    <Compile Include="Engine\Model\Exceptions\ValidationException.cs" />
+    <Compile Include="Engine\Model\Interceptors\ValidationInterceptor.cs" />
+    <Compile Include="Engine\Model\Internal\Descriptions\Relation.cs" />
+    <Compile Include="Engine\Model\Attributes\Table.cs" />
     <Compile Include="Engine\Model\Exceptions\InterceptorDispatcherException.cs" />
     <Compile Include="Engine\Model\Exceptions\ModelException.cs" />
-    <Compile Include="Engine\Model\Exceptions\ValidationException.cs" />
     <Compile Include="Engine\Model\Interceptors\CollectionInterceptor.cs" />
     <Compile Include="Engine\Model\Interceptors\DefaultInterceptors.cs" />
-    <Compile Include="Engine\Model\Interceptors\EntityInterceptor.cs" />
     <Compile Include="Engine\Model\Interceptors\Exceptions\SecurityException.cs" />
     <Compile Include="Engine\Model\Interceptors\ModelInterceptorGenerationHook.cs" />
     <Compile Include="Engine\Model\Interceptors\ModelInterceptorSelector.cs" />
-    <Compile Include="Engine\Model\Interceptors\ModificationInterceptor.cs" />
-    <Compile Include="Engine\Model\Interceptors\SecurityInterceptor.cs" />
-    <Compile Include="Engine\Model\Interceptors\ValidationInterceptor.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Column.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Context.cs" />
-    <Compile Include="Engine\Model\Internal\Descriptions\EntityClass.cs" />
-    <Compile Include="Engine\Model\Internal\Descriptions\Interceptor.cs" />
-    <Compile Include="Engine\Model\Internal\Descriptions\Relation.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Table.cs" />
+    <Compile Include="Engine\Model\Entity.cs" />
+    <Compile Include="Engine\Model\Interceptors\ModificationInterceptor.cs" />
+    <Compile Include="Engine\Model\Interceptors\SecurityInterceptor.cs" />
+    <Compile Include="Engine\Model\Internal\Descriptions\Interceptor.cs" />
     <Compile Include="Engine\Model\Internal\Interceptor.cs" />
     <Compile Include="Engine\Model\Internal\InterceptorDispatcher.cs" />
+    <Compile Include="Engine\Model\Internal\Descriptions\EntityClass.cs" />
     <Compile Include="Engine\Model\ModelBindingList.cs" />
     <Compile Include="Engine\Model\ModelContext.cs" />
+    <Compile Include="Engine\Extensions.cs" />
     <Compile Include="Engine\Session\Exceptions\InvalidSessionIdException.cs" />
     <Compile Include="Engine\Session\Session.cs" />
     <Compile Include="Engine\View\ErrorView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
