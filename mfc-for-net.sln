@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mfc-for-net", "mfc-for-net\mfc-for-net.csproj", "{8B7A4EE9-041F-4E8E-99C8-A03EC991BC58}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library", "MVCEngineLibrary\Library.csproj", "{8F43BBAE-AE6D-416A-B7FC-E46BA10D8AF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library", "MVCEngineLibrary\Library.csproj", "{A1F52670-6CAB-49AF-9981-F96989CD134F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +15,10 @@ Global
 		{8B7A4EE9-041F-4E8E-99C8-A03EC991BC58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B7A4EE9-041F-4E8E-99C8-A03EC991BC58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B7A4EE9-041F-4E8E-99C8-A03EC991BC58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F43BBAE-AE6D-416A-B7FC-E46BA10D8AF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F43BBAE-AE6D-416A-B7FC-E46BA10D8AF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F43BBAE-AE6D-416A-B7FC-E46BA10D8AF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F43BBAE-AE6D-416A-B7FC-E46BA10D8AF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1F52670-6CAB-49AF-9981-F96989CD134F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1F52670-6CAB-49AF-9981-F96989CD134F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1F52670-6CAB-49AF-9981-F96989CD134F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1F52670-6CAB-49AF-9981-F96989CD134F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

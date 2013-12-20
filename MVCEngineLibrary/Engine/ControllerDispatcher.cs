@@ -205,17 +205,9 @@ namespace MVCEngine
         {
             if (!_views.Value.Contains(type.FullName))
             {
-                Func<object, object> viewid = null;
-                var idQuery = type.GetProperties().Where(p => p.CanRead).SelectMany(p => System.Attribute.GetCustomAttributes(p).
-                    Where(a => a.IsTypeOf<Id>()), (p, a) => new { Property = p, Attribute = a.CastToType<Id>() });
-                if (idQuery.ToList().Count() > 1)
-                {
-                    throw new ViewRegistrationException("Type[" + type.FullName + "] Id property defined at least twice");
-                }
-                else if (idQuery.ToList().Count() == 1)
-                {
-                    viewid = LambdaTools.PropertyGetter(type, idQuery.ElementAt(0).Property);
-                }
+                var idPropertiesList = type.GetProperties().Where(p => p.CanRead).SelectMany(p => System.Attribute.GetCustomAttributes(p).
+                    Where(a => a.IsTypeOf<Id>()), (p, a) => new { Property = p, Attribute = a.CastToType<Id>(), Getter = LambdaTools.PropertyGetter(type, p) }).ToList();
+
                 type.GetMethods().Where(m => !m.IsConstructor && !m.IsGenericMethod && m.IsPublic).
                         SelectMany(m => System.Attribute.GetCustomAttributes(m).Where(a => a.IsTypeOf<ActionCallBack>()),
                         (m, a) => new { Method = m, Attribute = a.CastToType<ActionCallBack>() }).ToList().ForEach((m) =>
@@ -243,10 +235,16 @@ namespace MVCEngine
                     descriptor.Listener listener = actionmethod.Listernes.FirstOrDefault(l => l.ThisObject == null).
                     IfNullDefault(() =>
                     {
+                        var viewid = idPropertiesList.FirstOrDefault(id => id.Attribute.ControllersName.IsNotNull() && id.Attribute.ControllersName.Contains(actioncallback.ControllerName));
+                        if (viewid.IsNull())
+                        {
+                            viewid = idPropertiesList.FirstOrDefault(id => id.Attribute.ControllersName.Length == 0 || id.Attribute.ControllersName.IsNull());
+                        }
+
                         return new descriptor.Listener()
                         {
                             FullTypeName = type.FullName,
-                            Id = viewid
+                            Id = viewid.IsNotNull() ? viewid.Getter : null
                         };
                     });
                     actionmethod.Listernes.Add(listener);
@@ -454,25 +452,8 @@ namespace MVCEngine
                     {
                         foreach (appconfig.View view in viewsection.Views)
                         {
-                            object obj = null;
-                            try
-                            {
-                                Type type = Type.GetType(view.Class);
-                                Func<object> objectActivator = LambdaTools.ObjectActivator(type);
-                                obj = objectActivator();
-                                if (obj.IsNotNull())
-                                {
-                                    RegisterView(obj.GetType());
-                                }
-
-                            }
-                            finally
-                            {
-                                if (obj.IsNotNull() && obj.IsTypeOf<IDisposable>())
-                                {
-                                    obj.CastToType<IDisposable>().Dispose();
-                                }
-                            }
+                            Type type = Type.GetType(view.Class);
+                            RegisterView(type);
                         }
                     }
                 }                

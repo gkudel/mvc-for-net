@@ -11,7 +11,7 @@ namespace MVCEngine.Model.Attributes
     {
         #region Constructor
         public EntityInterceptor(string propertyName, string genericType)
-            : base(DefaultInterceptors.EntityInterceptor, new string[] { "get_" + propertyName, "set_" + propertyName })
+            : base(DefaultInterceptors.EntityInterceptor, new string[] { "get_" + propertyName })
         {
             ArgumentValidator.GetInstnace().
                 IsNotNull(genericType, "genericType");

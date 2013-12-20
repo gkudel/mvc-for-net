@@ -20,7 +20,8 @@ namespace MVCEngine.Model
         private bool _isFrozen = false;
         private EntityState _entityState = EntityState.Added;
         private Lazy<bool> _isvalid;
-        private Table _table;       
+        private Table _table;
+        private Dictionary<string, string> _uids;
         #endregion Members
 
         #region Constructor
@@ -30,6 +31,7 @@ namespace MVCEngine.Model
             {
                 return Validate();
             }, true);
+            _uids = new Dictionary<string, string>();
         }
         #endregion Constructor
 
@@ -89,6 +91,10 @@ namespace MVCEngine.Model
                 });
                 _entityState = value;
                 if (_entityState != EntityState.Unchanged) Context.IsModified = true;
+                if (value == EntityState.Deleted)
+                {
+                    Table.MarkedAsModified();
+                }
             }
         }
 
@@ -106,7 +112,7 @@ namespace MVCEngine.Model
                     }
                     break;
             }
-
+            Table.MarkedAsModified();
         }
         #endregion Object State
 
@@ -198,6 +204,29 @@ namespace MVCEngine.Model
             }
         }
         #endregion Get & Set Coulumn Value
+
+        #region Get & Set Table Uid for Property
+        internal string GetTableUidForProperty(string propertyName)
+        {
+            if (_uids.ContainsKey(propertyName))
+            {
+                return _uids[propertyName];
+            }
+            return string.Empty;
+        }
+
+        internal void SetTableUidForProperty(string propertyName, string uid)
+        {
+            if (_uids.ContainsKey(propertyName))
+            {
+                _uids[propertyName] = uid;
+            }
+            else
+            {
+                _uids.Add(propertyName, uid);
+            }
+        }
+        #endregion Get & Set Table Uid for Property
 
         #region Validate
         public bool Validate()

@@ -27,6 +27,6 @@ namespace CtgWorksheet.Model
         [attributes.Column("GP_RES_NAME")]
         public virtual string Name { get; set; }
 
-        public virtual List<Screening> Screenings { get; set; }
+        public virtual List<Screening> Screenings { get; private set; }
     }
 }
