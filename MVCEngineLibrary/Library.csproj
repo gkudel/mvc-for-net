@@ -86,6 +86,7 @@
     <Compile Include="Engine\Internal\Validation\ArgumentValidatorExtensions.cs" />
     <Compile Include="Engine\Model\Attributes\CollectionInterceptor.cs" />
     <Compile Include="Engine\Model\Attributes\Column.cs" />
+    <Compile Include="Engine\Model\Attributes\Default\CurentDateTimeDefaultValue.cs" />
     <Compile Include="Engine\Model\Attributes\Default\DefaultValue.cs" />
     <Compile Include="Engine\Model\Attributes\Default\NumberDefaultValue.cs" />
     <Compile Include="Engine\Model\Attributes\Default\PrimaryKeyDefaultValue.cs" />
@@ -97,9 +98,11 @@
     <Compile Include="Engine\Model\Attributes\Interceptor.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\ColumnValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\EntityValidator.cs" />
+    <Compile Include="Engine\Model\Attributes\Validation\NotNullValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\PrimaryKeyValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\RangeValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\StringLengthValidator.cs" />
+    <Compile Include="Engine\Model\Attributes\Validation\UniqStringValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\Validator.cs" />
     <Compile Include="Engine\Model\Interceptors\EntityInterceptor.cs" />
     <Compile Include="Engine\Model\Exceptions\ValidationException.cs" />
