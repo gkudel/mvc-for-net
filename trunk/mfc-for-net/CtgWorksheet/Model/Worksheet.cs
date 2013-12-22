@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Model;
 using MVCEngine.Model.Interceptors;
+using System.ComponentModel;
 
 namespace CtgWorksheet.Model
 {
@@ -26,7 +27,13 @@ namespace CtgWorksheet.Model
 
         [attributes.Column("GP_RES_NAME")]
         public virtual string Name { get; set; }
+        
+        public virtual EntitiesCollection<Screening> Screenings { get; private set; }
 
-        public virtual List<Screening> Screenings { get; private set; }
+        public override void Dispose()
+        {
+            base.Dispose();
+            Screenings.Clear();            
+        }
     }
 }

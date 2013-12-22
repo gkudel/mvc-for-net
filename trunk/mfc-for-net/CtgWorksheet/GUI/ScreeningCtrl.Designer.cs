@@ -1,7 +1,7 @@
 ﻿using MVCEngine;
 namespace MvcForNet.CtgWorksheet.GUI
 {
-    partial class ScreeningControl
+    partial class ScreeningCtrl
     {
         /// <summary> 
         /// Required designer variable.
@@ -22,7 +22,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             base.Dispose(disposing);
         }
 
-        ~ScreeningControl()
+        ~ScreeningCtrl()
         {
             Dispose();
         }

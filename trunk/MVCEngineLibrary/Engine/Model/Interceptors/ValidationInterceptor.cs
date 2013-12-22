@@ -24,7 +24,7 @@ namespace MVCEngine.Model.Interceptors
         public override void Intercept(IInvocation invocation)
         {           
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
-            if (entity.IsNotNull()  && entity.Session.IsNullOrEmpty() && invocation.Arguments.Count() == 1)
+            if (!entity.Disposing && entity.IsNotNull() && entity.Session.IsNullOrEmpty() && invocation.Arguments.Count() == 1)
             {
                 string propertyName = invocation.Method.Name.StartsWith("set_") ? invocation.Method.Name.Substring(4, invocation.Method.Name.Length - 4 ) :
                                       invocation.Method.Name;

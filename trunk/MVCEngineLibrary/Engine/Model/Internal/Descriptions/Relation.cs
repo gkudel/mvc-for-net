@@ -8,7 +8,19 @@ namespace MVCEngine.Model.Internal.Descriptions
 {
     public class Relation
     {
+        #region Members
+        private static int _ordninal = 0;
+        #endregion Members
+
+        #region Constructor
+        internal Relation()
+        {
+            Ordinal = _ordninal++;
+        }
+        #endregion Constructor
+
         #region Properties
+        internal int Ordinal { get; set; }
         public string Name { get; internal set; }
         public string ParentTableName { get; internal set; }
         public Table ParentTable { get; internal set; }

@@ -9,6 +9,8 @@ using attributes = MVCEngine.Model.Attributes;
 using MVCEngine.Model.Interceptors;
 using MVCEngine.Model.Attributes.Validation;
 using MVCEngine.Model.Attributes.Default;
+using System.ComponentModel;
+using MVCEngine.Model.Attributes.Discriminators;
 
 namespace CtgWorksheet.Model
 {
@@ -16,6 +18,8 @@ namespace CtgWorksheet.Model
     [attributes.Interceptor(DefaultInterceptors.SecurityInterceptor, "", RegEx = "(?=(?!^set_Worksheet$).*)(?=^(set_))")]
     [attributes.Interceptor(DefaultInterceptors.ModificationInterceptor, "", RegEx = "(?=(?!^set_Worksheet$).*)(?=^(set_|get_))")]
     [attributes.EntityInterceptor("Worksheet", "CtgWorksheet.Model.Worksheet, mfc-for-net")]
+    [attributes.EntityInterceptor("Probe", "CtgWorksheet.Model.Probe, mfc-for-net")]
+    [attributes.CollectionInterceptor("WorksheetRows", "CtgWorksheet.Model.WorksheetRow, mfc-for-net", RelationName = "WorksheetRow_Screening")]
     [attributes.Validation.PrimaryKeyValidator(RealTimeValidation= true, ErrrorMessage="Integrity Constraint")]
     public class Screening : Entity
     {
@@ -23,9 +27,12 @@ namespace CtgWorksheet.Model
         [PrimaryKeyDefaultValue()]
         public virtual long Id { get; set; }
 
-        [Column("GP_FISH_WORKSHEETID", IsForeignKey = true, ForeignTable = "GP_RESWORKSHEET", RelationName="Worksheet_Screening", OnDelete = OnDelete.Cascade)]
-        public virtual long? WorksheetId { get; set; }
-        
+        [Column("GP_FISH_WORKSHEETID", IsForeignKey = true, ForeignTable = "GP_RESWORKSHEET", RelationName="Worksheet_Screening", OnDelete = OnDelete.Cascade)]        
+        public virtual long WorksheetId { get; set; }
+
+        [Column("GP_FISH_PROBEID", IsForeignKey = true, ForeignTable = "GP_PROBE", RelationName = "Probe_Screening", OnDelete = OnDelete.Cascade)]
+        public virtual long ProbetId { get; set; }
+
         [Column("GP_FISH_VALUEA")]        
         [StringDefaultValue(StringValue="10")]
         public virtual string ValueA { get; set; }
@@ -38,6 +45,30 @@ namespace CtgWorksheet.Model
         [Column("GP_FISH_VALUERESULT")]
         public virtual string ValueResult { get; set; }
 
+        [Column("GP_FISH_COMMENT")]
+        public virtual string Comment { get; set; }
+
+        [Column("GP_FISH_COMPLETED")]
+        [StringDefaultValue(StringValue="N")]
+        [UniqStringValidator(UniqValues = new string[] { "N", "Y" }, RealTimeValidation=true)]
+        public virtual string Completed { get; set; }
+
+        [Column("GP_FISH_DATE")]
+        [CurentDateTimeDefaultValue()]
+        public virtual DateTime? Date { get; set; }
+        
         public virtual Worksheet Worksheet { get; private set; }
+
+        public virtual Probe Probe { get; private set; }
+
+        public virtual EntitiesCollection<WorksheetRow> WorksheetRows { get; private set; }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            Worksheet = null;
+            Probe = null;
+            WorksheetRows.Clear();
+        }
     }
 }

@@ -23,8 +23,9 @@ namespace MVCEngine.Model.Internal.Descriptions
         #endregion Constructor
 
         #region Properties
-        public string Name { get; internal set; }
+        public string Name { get; internal set; }        
         public List<Table> Tables { get; internal set; }
+        internal Type EntitiesContextType { get; set; }
         internal List<Relation> Relations { get; set; }
         internal Action ContextModifed { get; set; }
 
@@ -63,7 +64,8 @@ namespace MVCEngine.Model.Internal.Descriptions
                     EntityFieldGetter = t.EntityFieldGetter,
                     ContextSetter = t.ContextSetter,
                     PrimaryKey = t.PrimaryKey,
-                    PrimaryKeyColumn = t.PrimaryKeyColumn
+                    PrimaryKeyColumn = t.PrimaryKeyColumn,
+                    DynamicProperties = t.DynamicProperties,                   
                 };
                 table.Validators.AddRange(t.Validators);
                 t.Columns.ForEach((c) => 
@@ -87,6 +89,7 @@ namespace MVCEngine.Model.Internal.Descriptions
             {
                 Relation relation = new Relation() 
                 {
+                    Ordinal = r.Ordinal,
                     Name = r.Name,
                     ParentTableName = r.ParentTableName,                    
                     ChildTableName = r.ChildTableName,
@@ -107,7 +110,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         #endregion Copy
 
         #region Initialize 
-        internal Context InitailizeRows(ModelContext mctx)
+        internal Context InitailizeRows(EntitiesContext mctx)
         {
             Tables.ForEach((t) =>
             {
