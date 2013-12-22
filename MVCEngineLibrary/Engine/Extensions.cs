@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -126,6 +127,16 @@ namespace MVCEngine
 
         #region AddIfNotContains
         internal static bool AddIfNotContains<T>(this List<T> list, T obj)
+        {
+            if (!list.Contains(obj))
+            {
+                list.Add(obj);
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool AddIfNotContains<T>(this BindingList<T> list, T obj)
         {
             if (!list.Contains(obj))
             {

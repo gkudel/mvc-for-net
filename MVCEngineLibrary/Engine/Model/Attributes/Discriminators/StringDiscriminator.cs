@@ -28,6 +28,11 @@ namespace MVCEngine.Model.Attributes.Discriminators
             }
             return ret;
         }
+
+        public override void Default(Entity e)
+        {
+            e[propertyName] = Value;
+        }
         #endregion Discriminate
     }
 }

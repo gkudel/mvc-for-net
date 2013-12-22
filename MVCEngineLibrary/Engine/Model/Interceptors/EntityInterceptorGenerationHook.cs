@@ -10,7 +10,7 @@ using MVCEngine.Model.Internal;
 
 namespace MVCEngine.Model.Interceptors
 {
-    internal class ModelInterceptorGenerationHook : IProxyGenerationHook
+    internal class EntityInterceptorGenerationHook : IProxyGenerationHook
     {
         #region IProxyGenerationHook
         public void MethodsInspected()
@@ -34,7 +34,7 @@ namespace MVCEngine.Model.Interceptors
         #region Equals & GetHashCode
         public override bool Equals(object obj)
         {
-            return obj is ModelInterceptorGenerationHook;
+            return obj is EntityInterceptorGenerationHook;
         }
 
         public override int GetHashCode()

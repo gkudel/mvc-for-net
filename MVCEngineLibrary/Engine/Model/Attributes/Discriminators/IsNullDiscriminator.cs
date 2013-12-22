@@ -19,6 +19,11 @@ namespace MVCEngine.Model.Attributes.Discriminators
         {
             return e[propertyName].IsNull();
         }
+
+        public override void Default(Entity e)
+        {
+            e[propertyName] = null;
+        }
         #endregion Discriminate
     }
 }

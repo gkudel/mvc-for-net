@@ -25,6 +25,7 @@ namespace MVCEngine.Model.Attributes.Discriminators
 
         #region Discriminate
         public abstract bool Discriminate(Entity e);
+        public abstract void Default(Entity e);
         #endregion Discriminate
     }
 }

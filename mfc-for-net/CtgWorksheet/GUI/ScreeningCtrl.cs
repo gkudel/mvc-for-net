@@ -15,15 +15,15 @@ using System.Diagnostics;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
-    public partial class ScreeningControl : UserControl
+    public partial class ScreeningCtrl : UserControl
     {
         #region Constructor
-        public ScreeningControl()
+        public ScreeningCtrl()
         {
             InitializeComponent();
         }
 
-        public ScreeningControl(Screening screening, string sessionId)
+        public ScreeningCtrl(Screening screening, string sessionId)
             : this()
         {
             ControllerDispatcher.GetInstance().RegisterListener(this);

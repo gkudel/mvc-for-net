@@ -13,6 +13,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         {
             Columns = new List<Column>();
             Validators = new List<EntityValidator>();
+            Triggers = new Dictionary<Entity, List<Func<object, object>>>();
             MarkedAsModified();
         }
         #endregion Constructor
@@ -30,6 +31,8 @@ namespace MVCEngine.Model.Internal.Descriptions
         internal List<EntityValidator> Validators { get; set; }
         public List<Column> Columns { get; internal set; }
         public string TableName { get; internal set; }
+        internal Dictionary<Entity, List<Func<object, object>>> Triggers { get; set; }
+        internal DynamicProperties DynamicProperties { get; set; }
         #endregion Properties
 
         #region Marked as Modified

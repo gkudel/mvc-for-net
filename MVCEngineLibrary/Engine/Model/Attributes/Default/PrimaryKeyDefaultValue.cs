@@ -27,6 +27,10 @@ namespace MVCEngine.Model.Attributes.Default
                         ret = null;
                     }
                 }
+                else
+                {
+                    ret = c.ColumnType.GetDefaultValue();
+                }
             }
             return ret;
         }

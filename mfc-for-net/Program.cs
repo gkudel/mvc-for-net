@@ -21,9 +21,9 @@ namespace mfc_for_net
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);           
             ControllerDispatcher.GetInstance().AppeConfigInitialization();
-            ModelContext.ModelContextInitialization<WorksheetContext>();
+            EntitiesContext.EntitiesContextInitialization<WorksheetContext>();
 
-            Application.Run(new MainForm());
+            Application.Run(new WorksheetForm());
         }
     }
 }

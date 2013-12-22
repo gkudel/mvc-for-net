@@ -23,7 +23,7 @@ namespace MVCEngine.Model.Interceptors
         public override void Intercept(IInvocation invocation)
         {
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
-            if (entity.IsNotNull())
+            if (!entity.Disposing && entity.IsNotNull())
             {
                 if (!entity.IsFrozen)
                 {

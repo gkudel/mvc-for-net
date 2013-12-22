@@ -15,12 +15,13 @@ using MVCEngine.Internal;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    public class EntityInterceptor<T> : MVCEngine.Model.Internal.Interceptor where T : Entity
+    public class EntityInterceptor<T> : MVCEngine.Model.Internal.Interceptor, IDisposable where T : Entity
     {
         #region Members
         private List<Discriminator> _discriminators;
         private Action<object, object> _setter;
         private Func<object, object> _getter;
+        private Relation _relation;
         #endregion Members
 
         #region Constructor
@@ -36,66 +37,83 @@ namespace MVCEngine.Model.Interceptors
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                string name = invocation.Method.Name;
-                if (name.StartsWith("get_"))
+                if (!entity.Disposing)
                 {
-                    name = name.Substring(4, name.Length - 4);
-                }
-                Relation relation = null;
-                Table parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (parentTable.IsNotNull() && entity.Table.IsNotNull())
-                {
-                    List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable.TableName == parentTable.TableName
-                                                            && r.ChildTable.TableName == entity.Table.TableName
-                                                            && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
-                    if (relations.Count() == 1)
+                    string name = invocation.Method.Name;
+                    if (name.StartsWith("get_"))
                     {
-                        relation = relations[0];
+                        name = name.Substring(4, name.Length - 4);
                     }
-                    else
+                    if (_relation.IsNull())
                     {
-                        relation = null;
-                    }
-                }
-                if (relation.IsNotNull())
-                {
-                    if (!entity.GetTableUidForProperty(name).Equals(relation.ParentTable.Uid))
-                    {
-                        List<Entity> list = relation.ParentTable.Entities.Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
-                                Equals(relation.ChildValue(invocation.InvocationTarget)) &&
-                                _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(p); }))).ToList();
-
-                        if (list.Count() == 1)
+                        Table parentTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                        if (parentTable.IsNotNull() && entity.Table.IsNotNull())
                         {
-                            invocation.ReturnValue = list[0].CastToType<T>();
-                            if (_setter.IsNotNull())
+                            List<Relation> relations = EntitiesContext.GetContext(entity.Context.EntitiesContextType).Relations.Where(r => r.ParentTableName == parentTable.TableName
+                                                                    && r.ChildTableName == entity.Table.TableName
+                                                                    && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
+                            if (relations.Count() == 1)
                             {
-                                _setter(entity, invocation.ReturnValue);
+                                _relation = relations[0];
                             }
-                            entity.SetTableUidForProperty(name, relation.ParentTable.Uid);
+                            else
+                            {
+                                _relation = null;
+                            }
                         }
-                        else if (list.Count() > 1)
+                    }
+                    if (_relation.IsNotNull())
+                    {
+                        Relation relation = entity.Context.Relations.FirstOrDefault(r => r.Ordinal == _relation.Ordinal);
+                        if (relation.IsNotNull())
                         {
-                            throw new ModelException();
+                            if (!entity.GetTableUidForProperty(name).Equals(relation.ParentTable.Uid))
+                            {
+                                List<Entity> list = relation.ParentTable.Entities.Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
+                                        Equals(relation.ChildValue(invocation.InvocationTarget)) &&
+                                        _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(p); }))).ToList();
+
+                                if (list.Count() == 1)
+                                {
+                                    invocation.ReturnValue = list[0].CastToType<T>();
+                                    if (_setter.IsNotNull())
+                                    {
+                                        _setter(entity, invocation.ReturnValue);
+                                    }
+                                    entity.SetTableUidForProperty(name, relation.ParentTable.Uid);
+                                }
+                                else if (list.Count() > 1)
+                                {
+                                    throw new ModelException();
+                                }
+                                else
+                                {
+                                    invocation.ReturnValue = default(T);
+                                    if (_setter.IsNotNull())
+                                    {
+                                        _setter(entity, invocation.ReturnValue);
+                                    }
+                                    entity.SetTableUidForProperty(name, relation.ParentTable.Uid);
+                                }
+                            }
+                            else
+                            {
+                                invocation.Proceed();
+                            }
                         }
                         else
                         {
-                            invocation.ReturnValue = default(T);
-                            if (_setter.IsNotNull())
-                            {
-                                _setter(entity, invocation.ReturnValue);
-                            }
-                            entity.SetTableUidForProperty(name, relation.ParentTable.Uid);
+                            throw new ModelException();
                         }
                     }
                     else
                     {
-                        invocation.Proceed();
+                        throw new ModelException();
                     }
                 }
                 else
                 {
-                    throw new ModelException();
+                    invocation.Proceed();
                 }
             }
             else
@@ -128,5 +146,20 @@ namespace MVCEngine.Model.Interceptors
         [ValueFromAttribute("")]
         public string RelationName { get; set; }
         #endregion Properies
+
+        #region Dispose & Destructor
+        public void Dispose()
+        {
+            _relation = null;
+            _getter = null;
+            _setter = null;
+            _discriminators.Clear();
+        }
+
+        ~EntityInterceptor()
+        {
+            Dispose();
+        }
+        #endregion Dispose & Destructor
     }
 }

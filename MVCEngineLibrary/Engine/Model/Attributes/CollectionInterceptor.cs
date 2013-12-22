@@ -29,6 +29,7 @@ namespace MVCEngine.Model.Attributes
         }
 
         public virtual string RelationName { get; set; }
+        public virtual bool AutoRefresh { get; set; }
         #endregion Properties
     }
 }

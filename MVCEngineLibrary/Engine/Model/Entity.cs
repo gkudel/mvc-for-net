@@ -2,6 +2,7 @@
 using MVCEngine.Internal.Validation;
 using MVCEngine.Model.Attributes.Validation;
 using MVCEngine.Model.Exceptions;
+using MVCEngine.Model.Interface;
 using MVCEngine.Model.Internal.Descriptions;
 using System;
 using System.Collections;
@@ -192,7 +193,7 @@ namespace MVCEngine.Model
                 if (Table.IsNotNull())
                 {
                     Column c = Table.Columns.FirstOrDefault(col => col.Property == column || col.Name == column);
-                    if (c.IsNotNull())
+                    if (c.IsNotNull() && c.Setter.IsNotNull())
                     {
                         c.Setter(this, value);
                     }
@@ -303,9 +304,72 @@ namespace MVCEngine.Model
         }
         #endregion Default
 
-        #region Dispose
-        public void Dispose()
+        #region Get & Set Child Value
+        internal object GetValue(string name, Type propertyType)
         {
+            if (Table.DynamicProperties.IsNotNull())
+            {
+                IEnumerable<Entity> entities = Table.DynamicProperties.Entities(this) as IEnumerable<Entity>;
+                if (entities.IsNotNull())
+                {
+                    Entity entity = entities.FirstOrDefault(e => e[Table.DynamicProperties.PropertyCode].IsNotNull() && e[Table.DynamicProperties.PropertyCode].Equals(name));
+                    if (entity.IsNotNull())
+                    {
+                        KeyValuePair<Type, string> kv = Table.DynamicProperties.PropertiesValue.FirstOrDefault(k => k.Key == propertyType);
+                        if (kv.Value.IsNotNull())
+                        {
+                            return entity[kv.Value]; 
+                        }
+                    }
+                }
+            }
+            return propertyType.GetDefaultValue();
+        }
+
+        internal void SetValue(string name, object value, Type propertyType)
+        {
+            if (Table.DynamicProperties.IsNotNull())
+            {
+                IEnumerable<Entity> entities = Table.DynamicProperties.Entities(this) as IEnumerable<Entity>;
+                if (entities.IsNotNull())
+                {
+                    Entity entity = entities.FirstOrDefault(e => e[Table.DynamicProperties.PropertyCode].IsNotNull() && e[Table.DynamicProperties.PropertyCode].Equals(name));
+                    if (entity.IsNotNull())
+                    {
+                        KeyValuePair<Type, string> kv = Table.DynamicProperties.PropertiesValue.FirstOrDefault(k => k.Key == propertyType);
+                        if (kv.Value.IsNotNull())
+                        {
+                            entity[kv.Value] = value;
+                        }
+                    }
+                    else
+                    {
+                        IEntityCollection collection = entities as IEntityCollection;
+                        if (collection.IsNotNull())
+                        {
+                            entity = collection.CreateInstance(Table.DynamicProperties.EntityType, true) as Entity;
+                            if (entity.IsNotNull())
+                            {
+                                KeyValuePair<Type, string> kv = Table.DynamicProperties.PropertiesValue.FirstOrDefault(k => k.Key == propertyType);
+                                if (kv.Value.IsNotNull())
+                                {
+                                    entity[kv.Value] = value;
+                                }
+                                entity[Table.DynamicProperties.PropertyCode] = name;
+                                collection.Add(entity);
+                            }
+                        }
+                    }
+                }
+            } 
+        }
+        #endregion Get & Set Child Value
+
+        #region Dispose
+        public bool Disposing { get; private set; }
+        public virtual void Dispose()
+        {
+            Disposing = true;
             _table = null;
             Context = null;
         }

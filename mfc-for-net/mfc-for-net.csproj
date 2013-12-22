@@ -63,6 +63,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Castle.Core.dll</HintPath>
     </Reference>
+    <Reference Include="DevExpress.Data.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.Printing.v13.2.Core, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.Utils.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.Xpo.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraEditors.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraGrid.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraLayout.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraPrinting.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraWizard.v13.2, Version=13.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Extensions" />
@@ -78,11 +87,23 @@
   <ItemGroup>
     <Compile Include="CtgWorksheet\Controllers\ScreeningController.cs" />
     <Compile Include="CtgWorksheet\Controllers\WorksheetController.cs" />
-    <Compile Include="CtgWorksheet\GUI\ScreeningControl.cs">
+    <Compile Include="CtgWorksheet\GUI\ScreeningCtrl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="CtgWorksheet\GUI\ScreeningControl.Designer.cs">
-      <DependentUpon>ScreeningControl.cs</DependentUpon>
+    <Compile Include="CtgWorksheet\GUI\ScreeningCtrl.Designer.cs">
+      <DependentUpon>ScreeningCtrl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CtgWorksheet\GUI\StatusCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CtgWorksheet\GUI\StatusCtrl.Designer.cs">
+      <DependentUpon>StatusCtrl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CtgWorksheet\GUI\WorksheetCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CtgWorksheet\GUI\WorksheetCtrl.Designer.cs">
+      <DependentUpon>WorksheetCtrl.cs</DependentUpon>
     </Compile>
     <Compile Include="CtgWorksheet\GUI\WorksheetForm.cs">
       <SubType>Form</SubType>
@@ -90,26 +111,27 @@
     <Compile Include="CtgWorksheet\GUI\WorksheetForm.Designer.cs">
       <DependentUpon>WorksheetForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="CtgWorksheet\Model\Probe.cs" />
     <Compile Include="CtgWorksheet\Model\Screening.cs" />
+    <Compile Include="CtgWorksheet\Model\UserDefined.cs" />
     <Compile Include="CtgWorksheet\Model\Worksheet.cs" />
     <Compile Include="CtgWorksheet\Model\WorksheetContext.cs" />
-    <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
+    <Compile Include="CtgWorksheet\Model\WorksheetRow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="CtgWorksheet\GUI\ScreeningControl.resx">
-      <DependentUpon>ScreeningControl.cs</DependentUpon>
+    <EmbeddedResource Include="CtgWorksheet\GUI\ScreeningCtrl.resx">
+      <DependentUpon>ScreeningCtrl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CtgWorksheet\GUI\StatusCtrl.resx">
+      <DependentUpon>StatusCtrl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CtgWorksheet\GUI\WorksheetCtrl.resx">
+      <DependentUpon>WorksheetCtrl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="CtgWorksheet\GUI\WorksheetForm.resx">
       <DependentUpon>WorksheetForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

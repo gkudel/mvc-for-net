@@ -11,16 +11,18 @@ using System.Reflection;
 using System.Text;
 using attribute = MVCEngine.Model.Attributes;
 using MVCEngine.Internal;
+using System.ComponentModel;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class CollectionInterceptor<T> : MVCEngine.Model.Internal.Interceptor where T : Entity
+    internal class CollectionInterceptor<T> : MVCEngine.Model.Internal.Interceptor, IDisposable where T : Entity
     {
         #region Members
         private List<Discriminator> _discriminators;        
         private Action<object, object> _setter;
         private Func<object, object> _getter;
+        private Relation _relation;
         #endregion Members
 
         #region Constructor
@@ -36,48 +38,102 @@ namespace MVCEngine.Model.Interceptors
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (entity.IsNotNull())
             {
-                string name = invocation.Method.Name;
-                if (name.StartsWith("get_"))
+                if (!entity.Disposing)
                 {
-                    name = name.Substring(4, name.Length - 4);
-                }
-                Relation relation = null;
-                Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                if (entity.Table.IsNotNull() && childTable.IsNotNull())
-                {
-                    List<Relation> relations = entity.Context.Relations.Where(r => r.ParentTable.TableName == entity.Table.TableName
-                                                            && r.ChildTable.TableName == childTable.TableName
-                                                            && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
-                    if (relations.Count() == 1)
+                    string name = invocation.Method.Name;
+                    if (name.StartsWith("get_"))
                     {
-                        relation = relations[0];
+                        name = name.Substring(4, name.Length - 4);
                     }
-                    else
+                    if (_relation.IsNull())
                     {
-                        relation = null;
-                    }
-                }
-                if (relation.IsNotNull())
-                {
-                    if (!entity.GetTableUidForProperty(name).Equals(relation.ChildTable.Uid))
-                    {
-                        invocation.ReturnValue = relation.ChildTable.Entities.Where(c => c.State != EntityState.Deleted && relation.ParentValue(invocation.InvocationTarget).
-                                    Equals(relation.ChildValue(c)) &&
-                                    _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).Cast<T>().ToList();
-                        if (_setter.IsNotNull())
+                        Table childTable = entity.Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                        if (entity.Table.IsNotNull() && childTable.IsNotNull())
                         {
-                            _setter(entity, invocation.ReturnValue);
+                            List<Relation> relations = EntitiesContext.GetContext(entity.Context.EntitiesContextType).Relations.Where(r => r.ParentTableName == entity.Table.TableName
+                                                                    && r.ChildTableName == childTable.TableName
+                                                                    && (RelationName.IsNullOrEmpty() || RelationName.Equals(r.Name))).ToList();
+                            if (relations.Count() == 1)
+                            {
+                                _relation = relations[0];
+                            }
+                            else
+                            {
+                                _relation = null;
+                            }
                         }
-                        entity.SetTableUidForProperty(name, relation.ChildTable.Uid);
+                    }
+                    if (_relation.IsNotNull())
+                    {
+                        Relation relation = entity.Context.Relations.FirstOrDefault(r => r.Ordinal == _relation.Ordinal);
+                        if (relation.IsNotNull())
+                        {
+                            if (!entity.GetTableUidForProperty(name).Equals(relation.ChildTable.Uid))
+                            {
+                                if (AutoRefresh)
+                                {
+                                    if (!relation.ChildTable.Triggers.ContainsKey(entity))
+                                    {
+                                        relation.ChildTable.Triggers.Add(entity, new List<Func<object, object>>());
+                                    }
+                                    if (!relation.ChildTable.Triggers[entity].Contains(_getter))
+                                    {
+                                        relation.ChildTable.Triggers[entity].Add(_getter);
+                                    }
+                                }
+
+                                invocation.Proceed();
+
+                                List<T> list = relation.ChildTable.Entities.Where(c => c.State != EntityState.Deleted && relation.ParentValue(entity).
+                                            Equals(relation.ChildValue(c)) &&
+                                            _discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).Cast<T>().ToList();
+
+                                if (invocation.ReturnValue.IsNull())
+                                {
+                                    EntitiesCollection<T> collection = new EntitiesCollection<T>(list);
+                                    collection.Context = entity.Context;
+                                    collection.ChildCollection = true;
+                                    collection.ChildColumn = relation.ChildKey;
+                                    collection.ParentValue = relation.ParentValue(entity);
+                                    collection.Discriminators = _discriminators;
+                                    invocation.ReturnValue = collection;
+                                    if (_setter.IsNotNull())
+                                    {
+                                        _setter(entity, invocation.ReturnValue);
+                                    }
+                                }
+                                else
+                                {
+                                    EntitiesCollection<T> current = invocation.ReturnValue as EntitiesCollection<T>;
+                                    current.CopiedFromMain = true;
+                                    list.ForEach((e) => current.AddIfNotContains<T>(e));
+                                    for (int i = current.Count - 1; i >= 0; i--)
+                                    {
+                                        T e = current[i];
+                                        if (!list.Contains(e)) current.Remove(e);
+                                    }
+                                    current.CopiedFromMain = false;
+                                }
+                                entity.SetTableUidForProperty(name, relation.ChildTable.Uid);
+                            }
+                            else
+                            {
+                                invocation.Proceed();
+                            }
+                        }
+                        else
+                        {
+                            throw new ModelException();
+                        }
                     }
                     else
                     {
-                        invocation.Proceed();
+                        throw new ModelException();
                     }
                 }
                 else
                 {
-                    throw new ModelException();
+                    invocation.Proceed();
                 }
             }
             else
@@ -109,6 +165,24 @@ namespace MVCEngine.Model.Interceptors
         #region Properties
         [ValueFromAttribute("")]
         public string RelationName { get; set; }
+
+        [ValueFromAttribute("")]
+        public bool AutoRefresh { get; set; }
         #endregion Properies
+
+        #region Dispose & Destructor
+        public void Dispose()
+        {
+            _relation = null;
+            _getter = null;
+            _setter = null;
+            _discriminators.Clear();
+        }
+
+        ~CollectionInterceptor()
+        {
+            Dispose();
+        }
+        #endregion Dispose & Destructor
     }
 }

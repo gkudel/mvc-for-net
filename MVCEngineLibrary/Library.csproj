@@ -35,10 +35,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Castle.Core.dll</HintPath>
     </Reference>
-    <Reference Include="DevExpress.Data.v12.2, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
-    <Reference Include="DevExpress.Printing.v12.2.Core, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
-    <Reference Include="DevExpress.Utils.v12.2, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
-    <Reference Include="DevExpress.XtraEditors.v12.2, Version=12.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
     </Reference>
@@ -94,6 +90,7 @@
     <Compile Include="Engine\Model\Attributes\Discriminators\Discriminator.cs" />
     <Compile Include="Engine\Model\Attributes\Discriminators\IsNullDiscriminator.cs" />
     <Compile Include="Engine\Model\Attributes\Discriminators\StringDiscriminator.cs" />
+    <Compile Include="Engine\Model\Attributes\DynamicProperties.cs" />
     <Compile Include="Engine\Model\Attributes\EntityInterceptor.cs" />
     <Compile Include="Engine\Model\Attributes\Interceptor.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\ColumnValidator.cs" />
@@ -107,6 +104,8 @@
     <Compile Include="Engine\Model\Interceptors\EntityInterceptor.cs" />
     <Compile Include="Engine\Model\Exceptions\ValidationException.cs" />
     <Compile Include="Engine\Model\Interceptors\ValidationInterceptor.cs" />
+    <Compile Include="Engine\Model\Interface\IEntityCollection.cs" />
+    <Compile Include="Engine\Model\Internal\Descriptions\DynamicProperties.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Relation.cs" />
     <Compile Include="Engine\Model\Attributes\Table.cs" />
     <Compile Include="Engine\Model\Exceptions\InterceptorDispatcherException.cs" />
@@ -114,8 +113,8 @@
     <Compile Include="Engine\Model\Interceptors\CollectionInterceptor.cs" />
     <Compile Include="Engine\Model\Interceptors\DefaultInterceptors.cs" />
     <Compile Include="Engine\Model\Interceptors\Exceptions\SecurityException.cs" />
-    <Compile Include="Engine\Model\Interceptors\ModelInterceptorGenerationHook.cs" />
-    <Compile Include="Engine\Model\Interceptors\ModelInterceptorSelector.cs" />
+    <Compile Include="Engine\Model\Interceptors\EntityInterceptorGenerationHook.cs" />
+    <Compile Include="Engine\Model\Interceptors\EntityInterceptorSelector.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Column.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Context.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Table.cs" />
@@ -123,11 +122,12 @@
     <Compile Include="Engine\Model\Interceptors\ModificationInterceptor.cs" />
     <Compile Include="Engine\Model\Interceptors\SecurityInterceptor.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\Interceptor.cs" />
+    <Compile Include="Engine\Model\Internal\EntityPropertyDescriptor.cs" />
     <Compile Include="Engine\Model\Internal\Interceptor.cs" />
     <Compile Include="Engine\Model\Internal\InterceptorDispatcher.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\EntityClass.cs" />
-    <Compile Include="Engine\Model\ModelBindingList.cs" />
-    <Compile Include="Engine\Model\ModelContext.cs" />
+    <Compile Include="Engine\Model\EntitiesCollection.cs" />
+    <Compile Include="Engine\Model\EntitiesContext.cs" />
     <Compile Include="Engine\Extensions.cs" />
     <Compile Include="Engine\Session\Exceptions\InvalidSessionIdException.cs" />
     <Compile Include="Engine\Session\Session.cs" />

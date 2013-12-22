@@ -232,7 +232,7 @@ namespace MVCEngine
                     controller.ActionMethods.AddIfNotContains(actionmethod);
                     _controllers.Value.AddIfNotContains(controller);
 
-                    descriptor.Listener listener = actionmethod.Listernes.FirstOrDefault(l => l.ThisObject == null).
+                    descriptor.Listener listener = actionmethod.Listernes.FirstOrDefault(l => l.ThisObject == null && l.FullTypeName == type.FullName).
                     IfNullDefault(() =>
                     {
                         var viewid = idPropertiesList.FirstOrDefault(id => id.Attribute.ControllersName.IsNotNull() && id.Attribute.ControllersName.Contains(actioncallback.ControllerName));
