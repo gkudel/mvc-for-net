@@ -12,14 +12,39 @@ namespace MVCEngine.Model.Interceptors
     [Serializable]
     internal class ModificationInterceptor : Interceptor
     {
+        #region Members
+        private static ModificationInterceptor _instance;
+        #endregion Members
+
         #region Constructor
-        public ModificationInterceptor()
+        private ModificationInterceptor()
         {
         }
         #endregion Constructor
 
+        #region GetInstance
+        internal static ModificationInterceptor GetInstance()
+        {
+            if(_instance.IsNull()) _instance = new ModificationInterceptor();
+            return _instance;
+        }
+        #endregion GetInstance
+
         #region Inetercept
-        public override  void Intercept(IInvocation invocation)
+        public static string Id
+        {
+            get
+            {
+                return "ModificationInterceptor";
+            }
+        }
+
+        public override string GetId()
+        {
+            return ModificationInterceptor.Id;
+        }
+
+        public override void Intercept(IInvocation invocation)
         {
             Entity obj = invocation.InvocationTarget.CastToType<Entity>();
             if(!obj.Disposing && obj.IsNotNull())
@@ -43,10 +68,5 @@ namespace MVCEngine.Model.Interceptors
             }
         }
         #endregion Inetercept
-
-        #region Initialize
-        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
-        { }
-        #endregion Initialize
     }
 }

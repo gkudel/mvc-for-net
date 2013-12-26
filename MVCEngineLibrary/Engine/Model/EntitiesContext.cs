@@ -1,25 +1,32 @@
-﻿using MVCEngine.Model.Interceptors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCEngine.Internal;
 using Castle.DynamicProxy;
 using System.Reflection;
 using MVCEngine.Model.Internal;
-using MVCEngine.Session;
 using MVCEngine.Model.Internal.Descriptions;
 using attribute = MVCEngine.Model.Attributes;
 using MVCEngine.Model.Exceptions;
+using MVCEngine;
 using MVCEngine.Internal.Validation;
+using System.Diagnostics;
+using MVCEngine.Model.Attributes;
+using MVCEngine.Model.Attributes.Discriminators;
+using MVCEngine.Model.Attributes.Validation;
+using MVCEngine.Model.Attributes.Default;
+using MVCEngine.Model.Interceptors;
+using MVCEngine.Internal;
 
 namespace MVCEngine.Model
 {
     public abstract class EntitiesContext : IDisposable
     {
         #region Members
-        private static Lazy<List<Context>> _contexts;        
+        private static Lazy<List<Context>> _contexts;
+        private static Lazy<Dictionary<string, EntityClass>> _entites;
+        private static Lazy<Dictionary<string, Dictionary<string, Func<object, object>>>> _entitiesCollection;
         #endregion Members
 
         #region Constructor
@@ -28,6 +35,14 @@ namespace MVCEngine.Model
             _contexts = new Lazy<List<Context>>(() =>
             {
                 return new List<Context>();
+            });
+            _entites = new Lazy<Dictionary<string ,EntityClass>>(() =>
+            {
+                return new Dictionary<string, EntityClass>();
+            });
+            _entitiesCollection = new Lazy<Dictionary<string, Dictionary<string, Func<object, object>>>>(() =>
+            {
+                return new Dictionary<string, Dictionary<string, Func<object, object>>>();
             });
         }
 
@@ -51,14 +66,10 @@ namespace MVCEngine.Model
                 { }
             }
             Context ctx = _contexts.Value.FirstOrDefault(c => c.Name == name);
+            Debug.Assert(ctx.IsNotNull(), "Context[" + name + "] has to be initialized before create.");
             if (ctx.IsNotNull())
             {
-                Context = ctx.Copy().InitailizeRows(this);
-                Context.EntitiesContextType = GetType();
-            }
-            else
-            {
-                throw new ModelException("Context[" + name + "] has to be initialized before create.");
+                Context = ctx.Copy().InitailizeRows(this, _entitiesCollection.Value[ctx.Name]);
             }
         }
         #endregion Constructor
@@ -87,186 +98,196 @@ namespace MVCEngine.Model
                     Context ctx = new Context()
                     {
                         Name = typeof(T).Name,
-                        Tables = new List<Table>()
+                        Entites = new List<EntityClass>()
                     };
                     _contexts.Value.Add(ctx);
+                    _entitiesCollection.Value.Add(ctx.Name, new Dictionary<string, Func<object, object>>());
 
                     typeof(T).GetFields().Where(f => f.FieldType.Name == "EntitiesCollection`1" && f.IsPublic).
                     ToList().ForEach((f) =>
                     {
                         List<string> realTimeValidator = new List<string>();
-                        if (f.FieldType.IsGenericType)
-                        {
-                            PropertyInfo ctxInfo = f.FieldType.GetProperty("Context");                   
-                            Type entityType = f.FieldType.GetGenericArguments().First<Type>();
-                            if (typeof(Entity).IsAssignableFrom(entityType))
+                        PropertyInfo ctxInfo = f.FieldType.GetProperty("Context");                   
+                        Type entityType = f.FieldType.GetGenericArguments().First<Type>();
+                        Debug.Assert(typeof(Entity).IsAssignableFrom(entityType), "Entity[" + entityType.FullName + "] it cann't be recognise as valid entity.");
+                        if (typeof(Entity).IsAssignableFrom(entityType))
+                        {                            
+                            if (!_entites.Value.ContainsKey(entityType.FullName))
                             {
-                                Table table = new Table();
-                                var query = from a in System.Attribute.GetCustomAttributes(entityType)
-                                            where a.IsTypeOf<attribute.Table>()
-                                            select a.CastToType<attribute.Table>();
-                                attribute.Table tableAttribute = query.FirstOrDefault();
-                                if (tableAttribute.IsNotNull())
+                                EntityClass entityClass = new EntityClass();
+                                Debug.Assert(!ctx.Entites.Exists((t) => { return t.Name == entityType.Name; }), "Entity[" + entityType.Name + "] is defined twice.");
+                                if (!ctx.Entites.Exists((t) => { return t.Name == entityType.Name; }))
                                 {
-                                    if (!ctx.Tables.Exists((t) => { return t.TableName == tableAttribute.TableName; }))
+                                    entityClass.Name = entityType.Name;
+                                    entityClass.EntityType = entityType;
+
+                                    _entitiesCollection.Value[ctx.Name].Add(entityType.Name, LambdaTools.FieldGetter(typeof(T), f));
+
+                                    var propertyquery = entityType.GetProperties().Where(p => p.CanRead && p.GetGetMethod().IsVirtual);
+                                    propertyquery.ToList().ForEach((p) =>
                                     {
-                                        table.TableName = tableAttribute.TableName;
-                                        table.EntityFieldName = f.Name;
-                                        table.ClassName = entityType.Name;
-                                        table.EntityType = entityType;
-                                        table.EntityFieldGetter = LambdaTools.FieldGetter(typeof(T), f);
-                                        table.ContextSetter = LambdaTools.PropertySetter(f.FieldType, ctxInfo);
-
-                                        var columnquery = entityType.GetProperties().Where(p => p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
-                                            SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Column>()).Select(a => a.CastToType<attribute.Column>()),
-                                            (p, a) => new { Property = p, Attrubute = a });
-                                        columnquery.ToList().ForEach((pa) =>
+                                        EntityProperty property = new EntityProperty()
                                         {
-                                            if (table.Columns.Exists(new Predicate<Column>((c) => { return c.Name == pa.Attrubute.ColumnName; })))
-                                            {
-                                                throw new ModelException("Column[" + pa.Attrubute.ColumnName + "] is declared twice");
-                                            }
+                                            Name = p.Name,
+                                            PropertyType = p.PropertyType,
+                                            PropertyInfo = p,
+                                            Setter = p.CanWrite ? LambdaTools.PropertySetter(entityType, p) : null,
+                                            Getter = LambdaTools.PropertyGetter(entityType, p)
+                                        };
+                                        entityClass.Properties.Add(property);
 
-                                            Column column = new Column()
+                                        if (typeof(Entity).IsAssignableFrom(p.PropertyType))
+                                        {
+                                            property.ReletedEntity = new ReletedEntity()
                                             {
-                                                Name = pa.Attrubute.ColumnName,
-                                                Property = pa.Property.Name,
-                                                ColumnType = pa.Property.PropertyType,
-                                                PrimaryKey = pa.Attrubute.IsPrimaryKey,
-                                                Setter = pa.Property.CanWrite ? LambdaTools.PropertySetter(entityType, pa.Property) : null,
-                                                Getter = LambdaTools.PropertyGetter(entityType, pa.Property)
+                                                Related = Releted.Entity,
+                                                RelatedEntityName = p.PropertyType.Name
                                             };
-                                            if (pa.Attrubute.IsPrimaryKey && table.Columns.Exists(new Predicate<Column>((c) => { return c.PrimaryKey; })))
+                                        }
+                                        else if (p.PropertyType.Name == "EntitiesCollection`1")
+                                        {
+                                            property.ReletedEntity = new ReletedEntity()
                                             {
-                                                throw new ModelException("Column[" + pa.Attrubute.ColumnName + "] is defined as PrimaryKey but there is other column marked as Primary Key");
+                                                Related = Releted.List,
+                                                RelatedEntityName = p.PropertyType.GetGenericArguments().First<Type>().Name                                                
+                                            };                                            
+                                        }
+                                        Attribute.GetCustomAttributes(p).ToList().ForEach((a) =>
+                                        {
+                                            Relation relation = null;
+                                            RelationName relationName = null;
+                                            Discriminator discriminator = null;
+                                            ColumnValidator validator = null;
+                                            DefaultValue defaultValue = null;
+                                            Synchronized synchronized = null;
+                                            if (a.IsTypeOf<PrimaryKey>())
+                                            {
+                                                Debug.Assert(entityClass.Properties.FirstOrDefault(primary => primary.PrimaryKey).IsNull(), "Entity[" + entityType.Name + "] at least two primary key property defined");
+                                                property.PrimaryKey = true;
+                                                entityClass.PrimaryKeyProperty = property;
+                                                entityClass.PrimaryKey = property.Getter;
                                             }
-                                            if (pa.Attrubute.IsPrimaryKey)
+                                            else if ((relation = a.CastToType<Relation>()).IsNotNull())
                                             {
-                                                table.PrimaryKey = LambdaTools.PropertyGetter(entityType, pa.Property);
-                                                table.PrimaryKeyColumn = column;
-                                            }
-                                            if (pa.Attrubute.IsForeignKey && pa.Attrubute.ForeignTable.IsNullOrEmpty())
-                                            {
-                                                throw new ModelException("Type[" + entityType.FullName + "] coulmn[" + pa.Attrubute.ColumnName + "] is defined as IsForeignKey but ForeignTable is empty");
-                                            }
-                                            else if (pa.Attrubute.IsForeignKey)
-                                            {
-                                                ctx.Relations.Add(new Relation()
+                                                EntitiesRelation r = ctx.Relations.FirstOrDefault(re => re.Name == relation.RelationName);
+                                                Debug.Assert(r.IsNull(), "Relation[" + relation.RelationName + "] is declared at least twice");
+                                                ctx.Relations.Add(new EntitiesRelation()
                                                 {
-                                                    Name = pa.Attrubute.RelationName,
-                                                    ChildKey = pa.Property.Name,
-                                                    ChildType = pa.Property.PropertyType,
-                                                    ChildTableName = table.TableName,
-                                                    ParentTableName = pa.Attrubute.ForeignTable,
-                                                    ParentKey = pa.Attrubute.ForeignColumn,
-                                                    OnDelete = pa.Attrubute.OnDelete
+                                                    Name = relation.RelationName,
+                                                    ParentEntityName = relation.ForeignEntity,
+                                                    ChildEntityName = entityClass.Name,
+                                                    ChildEntity = entityClass,
+                                                    ChildValue = LambdaTools.PropertyGetter(entityType, p),
+                                                    ChildKey = p.Name,
+                                                    ChildType = p.PropertyType,
+                                                    ParentKey = relation.ForeignProperty,
+                                                    OnDelete = relation.OnDelete
                                                 });
                                             }
-                                            table.Columns.Add(column);
-                                        });
-
-                                        var defaultvalidationquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
-                                                 SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.Default.DefaultValue>() || a.IsTypeOf<attribute.Validation.ColumnValidator>()).
-                                                 Select(a => a), (p, a) => new { Property = p, Attrubute = a }).
-                                                 SelectMany(pa => table.Columns.Where(c => c.Property == pa.Property.Name), (pa, c) => new { Property = pa.Property, Attribute = pa.Attrubute, Column = c });
-                                        defaultvalidationquery.ToList().ForEach((pac) =>
-                                        {
-                                            if (pac.Attribute.IsTypeOf<attribute.Default.DefaultValue>())
+                                            else if ((relationName = a.CastToType<RelationName>()).IsNotNull())
                                             {
-                                                pac.Column.DefaultValue = pac.Attribute.CastToType<attribute.Default.DefaultValue>();
-                                            }
-                                            else
-                                            {
-                                                attribute.Validation.ColumnValidator validator = pac.Attribute.CastToType<attribute.Validation.ColumnValidator>();
-                                                pac.Column.Validators.Add(validator);
-                                                if (validator.RealTimeValidation) realTimeValidator.Add("set_" + pac.Property.Name);
-                                            }
-                                        });
-                                        var dynamicpropertyquery = entityType.GetProperties().Where(p => p.CanWrite && p.CanRead && System.Attribute.GetCustomAttributes(p).Count() > 0).
-                                                 SelectMany(p => System.Attribute.GetCustomAttributes(p).Where(a => a.IsTypeOf<attribute.DynamicProperties>()).
-                                                 Select(a => a), (p, a) => new { Property = p, Attrubute = a.CastToType<attribute.DynamicProperties>() });
-                                        var dynamicpa = dynamicpropertyquery.FirstOrDefault();
-                                        if (dynamicpa.IsNotNull())
-                                        {
-                                            if (dynamicpa.Property.PropertyType.Name == "EntitiesCollection`1")
-                                            {
-                                                table.DynamicProperties = new DynamicProperties()
+                                                if (property.ReletedEntity.IsNotNull())
                                                 {
-                                                    Entities = LambdaTools.PropertyGetter(entityType, dynamicpa.Property),
-                                                    PropertyCode = dynamicpa.Attrubute.PropertyCode,
-                                                    EntityType = dynamicpa.Property.PropertyType.GetGenericArguments().First<Type>()
-                                                };
-                                                table.DynamicProperties.PropertiesValue = table.DynamicProperties.EntityType.GetProperties().Where(p => dynamicpa.Attrubute.PropertiesValue.Contains(p.Name)
-                                                    && System.Attribute.GetCustomAttributes(p).FirstOrDefault(a => a.IsTypeOf<attribute.Column>()).IsNotNull() && p.CanRead).
-                                                    Select(p => new KeyValuePair<Type, string>(p.PropertyType, p.Name)).ToArray();
+                                                    property.ReletedEntity.RelationName = relationName.Name;
+                                                }
                                             }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        throw new ModelException("Table[" + tableAttribute.TableName + "] is defined twice.");
-                                    }
-                                }
-                                else
-                                {
-                                    throw new ModelException("Type[" + entityType.FullName + "] it cann't be recognise as valid entity.");
-                                }
-                                var validatorentityquery = from a in System.Attribute.GetCustomAttributes(entityType)
-                                                           where a.IsTypeOf<attribute.Validation.EntityValidator>()
-                                                           select a.CastToType<attribute.Validation.EntityValidator>();
-                                validatorentityquery.ToList().ForEach((v) =>
-                                {
-                                    table.Validators.Add(v);
-                                    if (v.RealTimeValidation)
-                                    {
-                                        if (v.ColumnsName.IsNotNull())
-                                        {
-                                            realTimeValidator.AddRange(v.ColumnsName.ToList().Select(c => "set_" + c));
-                                        }
-                                        else if (v.IsTypeOf<attribute.Validation.PrimaryKeyValidator>())
-                                        {
-                                            Column primary = table.Columns.FirstOrDefault(c => c.PrimaryKey);
-                                            if (primary.IsNotNull())
+                                            else if ((synchronized = a.CastToType<Synchronized>()).IsNotNull())
                                             {
-                                                realTimeValidator.Add("set_" + primary.Property);
+                                                if (property.ReletedEntity.IsNotNull())
+                                                {
+                                                    property.ReletedEntity.Synchronized = true;
+                                                }
                                             }
+                                            else if ((discriminator = a.CastToType<Discriminator>()).IsNotNull())
+                                            {
+                                                if (property.ReletedEntity.IsNotNull())
+                                                {
+                                                    property.ReletedEntity.Discriminators.Add(discriminator);
+                                                }
+                                            }
+                                            else if ((validator = a.CastToType<ColumnValidator>()).IsNotNull())
+                                            {
+                                                property.Validators.Add(validator);
+                                            }
+                                            else if ((defaultValue = a.CastToType<DefaultValue>()).IsNotNull())
+                                            {
+                                                property.DefaultValue = defaultValue;
+                                            }
+                                        });
+                                    });
+                                    Attribute.GetCustomAttributes(entityType).ToList().ForEach((a) =>
+                                    {
+                                        EntityValidator validator = null;
+                                        if ((validator = a.CastToType<EntityValidator>()).IsNotNull())
+                                        {
+                                            entityClass.Validators.Add(validator);
                                         }
-                                    }
-                                });
-
-                                ctx.Tables.Add(table);
-                                InterceptorDispatcher.GetInstnace().Initialize(entityType);
-                                if (realTimeValidator.Count() > 0)
-                                {
-                                    InterceptorDispatcher.GetInstnace().Initialize(entityType, new attribute.Interceptor(DefaultInterceptors.ValidationInterceptor, realTimeValidator.ToArray()));
+                                    });
+                                    ctx.Entites.Add(entityClass);
                                 }
+                                _entites.Value.Add(entityType.FullName, entityClass);
                             }
                             else
                             {
-                                throw new ModelException("Type[" + entityType.FullName + "] it cann't be recognise as valid entity.");
+                                ctx.Entites.Add(_entites.Value[entityType.FullName]);
+                            }
+                        }                                                           
+                    });
+
+                    ctx.Relations.ForEach((r) =>
+                    {
+                        EntityClass entity = ctx.Entites.FirstOrDefault(e => e.Name == r.ParentEntityName);
+                        Debug.Assert(entity.IsNotNull(), "Relation[" + r.Name + "] parent entity not found");
+                        r.ParentEntity = entity;
+                        EntityProperty property = entity.Properties.FirstOrDefault(p => p.Name == r.ParentKey);
+                        Debug.Assert(property.IsNotNull(), "Entity[" + entity.Name + "] property["+r.ParentKey+"] not defined");
+                        r.ParentType = property.PropertyType;
+                        r.ParentValue = property.Getter;
+                    });
+
+                    var reletedquery = ctx.Entites.Where(e => e.Properties.Count(p => p.ReletedEntity.IsNotNull()) > 0).
+                        SelectMany(e => e.Properties.Where(p => p.ReletedEntity.IsNotNull()), (e, p) => new { Entity = e, Property = p });
+
+                    reletedquery.ToList().ForEach((ep) =>
+                    {
+                        EntityClass entityClass = ctx.Entites.FirstOrDefault(e => e.Name == ep.Property.ReletedEntity.RelatedEntityName);
+                        Debug.Assert(entityClass.IsNotNull(), "Entity[" + ep.Property.ReletedEntity.RelatedEntityName + "] dosen't have collection");
+                        ep.Property.ReletedEntity.RelatedEntity = entityClass;
+                        if (!ep.Property.ReletedEntity.RelationName.IsNullOrEmpty())
+                        {
+                            EntitiesRelation relation = ctx.Relations.FirstOrDefault(r => r.Name == ep.Property.ReletedEntity.RelationName);
+                            Debug.Assert(relation.IsNotNull(), "Relation[" + ep.Property.ReletedEntity.RelationName + "] not defined");
+                            ep.Property.ReletedEntity.Relation = relation;
+                        }
+                        else
+                        {
+                            List<EntitiesRelation> relations = null;
+                            if (ep.Property.ReletedEntity.Related == Releted.Entity)
+                            {
+                                relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Property.ReletedEntity.RelatedEntityName && r.ChildEntityName == ep.Entity.Name).ToList();
+                            }
+                            else
+                            {
+                                relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Entity.Name && r.ChildEntityName == ep.Property.ReletedEntity.RelatedEntityName).ToList();
+                            }
+
+                            Debug.Assert(relations.Count() < 2, "Relation[" + ep.Property.ReletedEntity.RelatedEntityName + "-" + ep.Entity.Name + "] more then one");
+                            if (relations.Count() == 1)
+                            {
+                                ep.Property.ReletedEntity.Relation = relations[0];
                             }
                         }
-                    });
-                    
-
-                    var relationquery = ctx.Relations.SelectMany(r => ctx.Tables.Where(t => t.TableName == r.ParentTableName), (r, t) => new { Relation = r, Parent = t }).
-                        SelectMany(pr => ctx.Tables.Where(t => t.TableName == pr.Relation.ChildTableName), (pr, c) => new { Parent = pr.Parent, Relation = pr.Relation, Child = c });
-                    relationquery.ToList().ForEach((prc) =>
-                    {
-                        if(prc.Relation.ParentKey.IsNullOrEmpty())
+                        if (ep.Property.ReletedEntity.Synchronized)
                         {
-                            Column parentKey = prc.Parent.Columns.FirstOrDefault(c => c.PrimaryKey);
-                            if(parentKey.IsNotNull())
-                            {
-                                prc.Relation.ParentKey = parentKey.Property;
-                                prc.Relation.ParentType = parentKey.ColumnType;
-                            }
-                            else
-                            {
-                                throw new ModelException("Table["+prc.Parent.TableName+"] doesn't have Primary Key");
-                            }
-                            prc.Relation.ParentValue = LambdaTools.PropertyGetter(prc.Parent.EntityType, prc.Relation.ParentKey);
-                            prc.Relation.ChildValue = LambdaTools.PropertyGetter(prc.Child.EntityType, prc.Relation.ChildKey);
+                            ep.Property.ReletedEntity.RelatedEntity.Synchronized(ep.Entity.Name, ep.Property.Name);
+                        }
+                        if (ep.Property.ReletedEntity.Related == Releted.List)
+                        {
+                            ep.Property.AddGetInterceptor(CollectionInterceptorDispatcher.GetId(ep.Property.ReletedEntity.Relation.ChildEntity.EntityType));
+                        }
+                        else
+                        {
+                            ep.Property.AddGetInterceptor(EntityInterceptorDispatcher.GetId(ep.Property.ReletedEntity.Relation.ParentEntity.EntityType));
                         }
                     });
                 });
@@ -277,7 +298,8 @@ namespace MVCEngine.Model
                 });
 
                 task.ContinueWith((antecedent) =>
-                {      
+                {
+                    if (_contexts.IsValueCreated) _contexts.Value.Clear();
                     //ToDo log exception into log file
                 }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
 
@@ -305,7 +327,7 @@ namespace MVCEngine.Model
         {
             if (Context.IsNotNull())
             {
-                Context.Tables.ForEach((t) =>
+                Context.Entites.ForEach((t) =>
                 {
                     t.Entities.ToList().ForEach((e) =>
                     {
@@ -322,16 +344,84 @@ namespace MVCEngine.Model
         internal static Context GetContext(Type type)
         {
             Context ctx = _contexts.Value.FirstOrDefault(c => c.Name == type.Name);
-            if (ctx.IsNotNull())
+            Debug.Assert(ctx.IsNotNull(), "Context[" + type.Name + "] has to be initialized before create.");
+            return ctx;
+        }
+        #endregion Context By Type
+
+        #region Interceptor
+        internal static bool ShouldInterceptMethod(Type type, System.Reflection.MethodInfo methodInfo)
+        {
+            if (_entites.Value.ContainsKey(type.FullName))
             {
-                return ctx;
+                return _entites.Value[type.FullName].Properties.Where(p => p.GetInterceptorsId(methodInfo.Name).Count() > 0).Count() > 0;           
             }
             else
             {
-                throw new ModelException("Context[" + type.Name + "] has to be initialized before create.");
+                return false;
             }
         }
-        #endregion Context By Type
+
+        internal static IInterceptor[] GetInterceptors(Type type)
+        {
+            EntityClass entity = _entites.Value[type.FullName];
+            if (entity.IsNotNull())
+            {
+                //TO DO Cache
+                List<IInterceptor> interceptors = new List<IInterceptor>();
+                interceptors.Add(SecurityInterceptor.GetInstance());
+                interceptors.Add(ModificationInterceptor.GetInstance());
+                if (entity.Validators.Count(v => v.RealTimeValidation) > 0 ||
+                   entity.Properties.SelectMany(p => p.Validators.Where(v => v.RealTimeValidation), (p, v) => v).Count() > 0)
+                {
+                    interceptors.Add(ValidationInterceptor.GetInstance());
+                }
+                entity.Properties.Where(p => p.ReletedEntity.IsNotNull()).ToList().
+                    ForEach((p) =>
+                {
+                    if (p.ReletedEntity.Related == Releted.List)
+                    {
+                        interceptors.Add(CollectionInterceptorDispatcher.GetInstance(p.ReletedEntity.RelatedEntity.EntityType));
+                    }
+                    else
+                    {
+                        interceptors.Add(EntityInterceptorDispatcher.GetInstance(p.ReletedEntity.RelatedEntity.EntityType));
+                    }
+                });
+                return interceptors.ToArray();
+            }
+            else
+            {
+                return new IInterceptor[0];
+            }
+        }
+
+        internal static IInterceptor[] SelectInterceptors(MethodInfo info, IInterceptor[] interceptors)
+        {
+            Type type = info.ReflectedType;
+            EntityClass entity = _entites.Value[type.FullName];
+            if (entity.IsNotNull())
+            {
+                EntityProperty property = entity.Properties.FirstOrDefault(p => p.GetInterceptorsId(info.Name).Count() > 0);
+                if(property.IsNotNull())
+                {
+                    var query = from i in property.GetInterceptorsId(info.Name)
+                            join ii in interceptors.Where(i => i.IsTypeOf<Interceptor>()).Select(i => i.CastToType<Interceptor>())
+                            on i equals ii.GetId()
+                            select ii.CastToType<IInterceptor>();
+                    return query.ToArray();
+                }
+                else
+                {
+                    return new IInterceptor[0];
+                }
+            }
+            else
+            {
+                return new IInterceptor[0];
+            }
+        }
+        #endregion Interceptor
 
         #region Dispose & Destructor
         public void Dispose()

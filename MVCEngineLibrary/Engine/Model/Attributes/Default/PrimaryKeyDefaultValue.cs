@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using description = MVCEngine.Model.Internal.Descriptions;
+using MVCEngine;
 
 namespace MVCEngine.Model.Attributes.Default
 {
     public class PrimaryKeyDefaultValue : DefaultValue
     {
         #region Value
-        public override object Value(Entity e, description.Column c)
+        public override object Value(Entity e, description.EntityProperty c)
         {
             object ret = null;
-            if (e.Table.IsNotNull())
+            if (e.EntityCtx.IsNotNull())
             {
-                ret = e.Table.Entities.Select(entity => entity[c.Name]).Max();
+                ret = e.EntityCtx.Entities.Select(entity => entity[c.Name]).Max();
                 if(ret.IsNotNull())
                 {
                     decimal d;
                     if (decimal.TryParse(ret.ToString(), out d))
                     {
-                        ret = Convert.ChangeType(d + 1, c.ColumnType);
+                        ret = Convert.ChangeType(d + 1, c.PropertyType);
                     }
                     else
                     {
@@ -29,7 +30,7 @@ namespace MVCEngine.Model.Attributes.Default
                 }
                 else
                 {
-                    ret = c.ColumnType.GetDefaultValue();
+                    ret = c.PropertyType.GetDefaultValue();
                 }
             }
             return ret;

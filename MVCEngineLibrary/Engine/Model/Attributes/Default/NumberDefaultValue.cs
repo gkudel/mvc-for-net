@@ -11,7 +11,7 @@ namespace MVCEngine.Model.Attributes.Default
     public class NumberDefaultValue : DefaultValue
     {
         #region Value
-        public override object Value(Entity e, description.Column c)
+        public override object Value(Entity e, description.EntityProperty c)
         {
             return IntValue.HasValue ? IntValue : LongValue.HasValue ? LongValue : DoubleValue;
         }

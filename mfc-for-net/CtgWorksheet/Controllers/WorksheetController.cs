@@ -72,7 +72,7 @@ namespace CtgWorksheet.Controllers
                 Worksheet w = screening.Worksheet;                
                 ctx.Screenings.Remove(screening);
                 w.Description = "Workshet(" + w.Screenings.Count() + ")";
-                return new { SreeeningNumber = w.Screenings.Count() };
+                return new { Model = w };
             }
             else
             {

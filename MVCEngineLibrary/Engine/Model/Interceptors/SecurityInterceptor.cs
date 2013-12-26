@@ -7,19 +7,45 @@ using System.Threading.Tasks;
 using MVCEngine.Model.Interceptors.Exceptions;
 using MVCEngine.Model.Internal;
 using attribute = MVCEngine.Model.Attributes;
+using MVCEngine;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
     internal class SecurityInterceptor : Interceptor
     {
+        #region Members
+        private static SecurityInterceptor _instance;
+        #endregion Members
+
         #region Constructor
-        public SecurityInterceptor()
+        private SecurityInterceptor()
         {
         }
         #endregion Constructor
 
+        #region GetInstance
+        internal static SecurityInterceptor GetInstance()
+        {
+            if (_instance.IsNull()) _instance = new SecurityInterceptor();
+            return _instance;
+        }
+        #endregion GetInstance
+
         #region Inetercept
+        public static string Id
+        {
+            get
+            {
+                return "SecurityInterceptor";
+            }
+        }
+
+        public override string GetId()
+        {
+            return SecurityInterceptor.Id;
+        }
+
         public override void Intercept(IInvocation invocation)
         {
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
@@ -40,10 +66,5 @@ namespace MVCEngine.Model.Interceptors
             }
         }
         #endregion Inetercept
-
-        #region Initialize
-        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
-        { }
-        #endregion Initialize
     }
 }

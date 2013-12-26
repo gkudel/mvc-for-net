@@ -5,14 +5,14 @@ using System.Text;
 using System.ComponentModel;
 using MVCEngine;
 using Castle.DynamicProxy;
-using MVCEngine.Model.Interceptors;
 using MVCEngine.Model.Exceptions;
 using MVCEngine.Model.Internal;
 using MVCEngine.Model.Internal.Descriptions;
-using MVCEngine.Model.Interceptors.Exceptions;
 using System.Collections;
 using MVCEngine.Model.Interface;
 using MVCEngine.Model.Attributes.Discriminators;
+using MVCEngine.Model.Interceptors;
+using System.Diagnostics;
 
 namespace MVCEngine.Model
 {
@@ -29,27 +29,25 @@ namespace MVCEngine.Model
         #endregion Context
 
         #region Child Collection
-        internal bool ChildCollection { get; set; }
-        internal string ChildColumn { get; set; }
+        internal ReletedEntity Releted { get; set; }
         internal object ParentValue { get; set; }
-        internal bool CopiedFromMain { get; set; }
-        internal List<Discriminator> Discriminators { get; set; }
+        internal bool CopyFromMainCollection { get; set; }
         #endregion Child Collection
 
-        #region Table Property
-        private Table _table;
-        private Table Table
+        #region Entity Class Property
+        private EntityClass _entityClass;
+        private EntityClass EntityCtx
         {
             get
             {
-                if(_table.IsNull())
+                if (_entityClass.IsNull())
                 {
-                    _table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
+                    _entityClass = Context.Entites.FirstOrDefault(t => t.Name == typeof(T).Name);
                 }
-                return _table;
+                return _entityClass;
             }
         }
-        #endregion Table Property
+        #endregion Entity Class Property
 
         #region Constructors
         static EntitiesCollection()
@@ -100,43 +98,58 @@ namespace MVCEngine.Model
         #region Override
         protected override void InsertItem(int index, T item)
         {
-            if (!ChildCollection)
+            if (Releted.IsNull())
             {
                 if (item.GetType() == typeof(T)
                     && !item.GetType().Assembly.FullName.Contains("DynamicProxy"))
                 {
                     throw new ModelException("Please use CreateInstance function CreateInstance or AddNew to create proper object entity");
                 }
-                if (Table.IsNotNull())
+                if (EntityCtx.IsNotNull())
                 {
                     if (item.Session.IsNullOrEmpty())
                     {
                         item.Validate((v) => { return v.RealTimeValidation; },
                                        (v) => { throw new ValidationException(v.ErrrorMessage); });
                     }
-                    if (Table.Entities.FirstOrDefault(e => e.Equals(item)).IsNotNull())
+                    if (EntityCtx.Entities.FirstOrDefault(e => e.Equals(item)).IsNotNull())
                     {
                         throw new ValidationException("You can't add twice the same object[" + typeof(T).Name + "] to collection");
                     }
-                    Table.MarkedAsModified();
+                    EntityCtx.MarkedAsModified();
                 }
                 base.InsertItem(index, item);
-                foreach (Entity e in Table.Triggers.Keys)
+                if (EntityCtx.Synchronizing)
                 {
-                    Table.Triggers[e].ForEach((t) => { t(e); });
+                    foreach (string entityName in EntityCtx.SynchronizedCollection.Keys)
+                    {
+                        EntityClass releted = Context.Entites.FirstOrDefault(e => e.Name == entityName);
+                        Debug.Assert(releted.IsNotNull(), "Internal error");
+                        if (releted.IsNotNull())
+                        {
+                            foreach (Entity e in releted.Entities)
+                            {
+                                foreach (string propertyName in EntityCtx.SynchronizedCollection[entityName])
+                                {
+                                    object o = e[propertyName];
+                                }
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-                if (!CopiedFromMain)
+                if (!CopyFromMainCollection)
                 {
-                    Table table = Context.Tables.FirstOrDefault(t => t.ClassName == typeof(T).Name);
-                    if (table.IsNotNull())
+                    if (EntityCtx.IsNotNull())
                     {
-                        IList list = table.Entities as IList;
+                        IList list = EntityCtx.Entities as IList;
                         if (list.IsNotNull())
                         {
+                            EntityCtx.Synchronizing = false;
                             list.Add(item);
+                            EntityCtx.Synchronizing = true;
                         }
                     }
                 }
@@ -160,7 +173,7 @@ namespace MVCEngine.Model
 
         protected override void RemoveItem(int index)
         {
-            if (!ChildCollection)
+            if (Releted.IsNull())
             {
                 Entity obj = null;
                 if (AllowRemove && index < Count)
@@ -183,33 +196,33 @@ namespace MVCEngine.Model
                 {
                     base.RemoveItem(index);
                 }
-                if (obj.IsNotNull())
+                if (EntityCtx.IsNotNull())
                 {
-                    Context.Tables.ForEach((t) =>
+                    EntityCtx.MarkedAsModified();
+                    foreach (string entityName in EntityCtx.SynchronizedCollection.Keys)
                     {
-                        if (t.Triggers.ContainsKey(obj))
+                        EntityClass releted = Context.Entites.FirstOrDefault(e => e.Name == entityName);
+                        Debug.Assert(releted.IsNotNull(), "Internal error");
+                        if (releted.IsNotNull())
                         {
-                            t.Triggers[obj].Clear();
-                            t.Triggers.Remove(obj);
+                            foreach (Entity e in releted.Entities)
+                            {
+                                foreach (string propertyName in EntityCtx.SynchronizedCollection[entityName])
+                                {
+                                    object o = e[propertyName];
+                                }
+                            }
                         }
-                    });
-                }
-                if (Table.IsNotNull())
-                {
-                    Table.MarkedAsModified();
-                    foreach (Entity e in Table.Triggers.Keys)
-                    {
-                        Table.Triggers[e].ForEach((t) => { t(e); });
                     }
                 }
             }
             else
             {
-                if (!CopiedFromMain)
+                if (!CopyFromMainCollection)
                 {
-                    if (Table.IsNotNull())
+                    if (EntityCtx.IsNotNull())
                     {
-                        IList list = Table.Entities as IList;
+                        IList list = EntityCtx.Entities as IList;
                         if (list.IsNotNull())
                         {
                             if (index < Count)
@@ -237,7 +250,7 @@ namespace MVCEngine.Model
         public object CreateInstance(Type type, bool defaultValue)
         {            
             var options = new ProxyGenerationOptions(new EntityInterceptorGenerationHook()) { Selector = new EntityInterceptorSelector() };
-            var proxy = _generator.Value.CreateClassProxy(type, options, InterceptorDispatcher.GetInstnace().GetInterceptorsObject(type).ToArray());            
+            var proxy = _generator.Value.CreateClassProxy(type, options, EntitiesContext.GetInterceptors(type) );            
             Entity entity = proxy.CastToType<Entity>();
             if (entity.IsNotNull())
             {                               
@@ -247,12 +260,12 @@ namespace MVCEngine.Model
                 {
                     entity.Default();
                 }
-                if (ChildCollection)
+                if (Releted.IsNotNull())
                 {
-                    entity[ChildColumn] = ParentValue;
-                    if (Discriminators.IsNotNull())
+                    entity[Releted.Relation.ChildKey] = ParentValue;
+                    if (Releted.Discriminators.IsNotNull())
                     {
-                        Discriminators.ForEach((d) => d.Default(entity));
+                        Releted.Discriminators.ForEach((d) => d.Default(entity));
                     }
                 }
             }
@@ -273,6 +286,7 @@ namespace MVCEngine.Model
         #region Dispose
         public void Dispose()
         {
+            Releted = null;
             Context = null;
         }
 

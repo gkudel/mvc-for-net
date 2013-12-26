@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCEngine.Internal;
 using MVCEngine.Model.Attributes;
 using MVCEngine.Model.Internal;
+using MVCEngine.Model.Internal.Descriptions;
 
 namespace MVCEngine.Model.Interceptors
 {
@@ -23,7 +23,7 @@ namespace MVCEngine.Model.Interceptors
 
         public bool ShouldInterceptMethod(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            return InterceptorDispatcher.GetInstnace().ShouldBeIntercept(type, methodInfo);
+            return EntitiesContext.ShouldInterceptMethod(type, methodInfo);
         }
 
         public void NonProxyableMemberNotification(Type type, System.Reflection.MemberInfo memberInfo)

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Model.Internal;
 using System.Reflection;
+using MVCEngine;
 
 namespace MVCEngine.Model.Interceptors
 {
@@ -14,18 +15,8 @@ namespace MVCEngine.Model.Interceptors
     {
         #region SelectInterceptors
         public IInterceptor[] SelectInterceptors(Type type, System.Reflection.MethodInfo method, IInterceptor[] interceptors)
-        {               
-            var query = from a in InterceptorDispatcher.GetInstnace().GetInterceptors(method)
-                        join i in interceptors on new
-                        {
-                            Name = a.InterceptorFullName
-                        }
-                        equals new
-                        {
-                            Name = i.GetType().FullName
-                        }
-                        select i;
-            return query.ToList().ToArray();
+        {
+            return EntitiesContext.SelectInterceptors(method, interceptors);
         }
         #endregion SelectInterceptors
 

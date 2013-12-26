@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using MVCEngine;
+using MVCEngine.Model.Interface;
+using System.Diagnostics;
 
 namespace MVCEngine.Model.Internal.Descriptions
 {
@@ -16,17 +19,17 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Constructor
         internal Context()
         {
-            Tables = new List<Table>();
-            Relations = new List<Relation>();
+            Entites = new List<EntityClass>();
+            Relations = new List<EntitiesRelation>();
             IsModified = false;
         }
         #endregion Constructor
 
         #region Properties
         public string Name { get; internal set; }        
-        public List<Table> Tables { get; internal set; }
+        public List<EntityClass> Entites { get; internal set; }
         internal Type EntitiesContextType { get; set; }
-        internal List<Relation> Relations { get; set; }
+        internal List<EntitiesRelation> Relations { get; set; }
         internal Action ContextModifed { get; set; }
 
         public bool IsModified
@@ -53,46 +56,30 @@ namespace MVCEngine.Model.Internal.Descriptions
             {
                 Name = this.Name
             };
-            Tables.ForEach((t) =>
+            Entites.ForEach((t) =>
             {
-                Table table = new Table()
+                EntityClass entity = new EntityClass()
                 {
-                    TableName = t.TableName,
-                    ClassName = t.ClassName, 
+                    Name = t.Name,
                     EntityType = t.EntityType, 
-                    EntityFieldName = t.EntityFieldName,
-                    EntityFieldGetter = t.EntityFieldGetter,
-                    ContextSetter = t.ContextSetter,
                     PrimaryKey = t.PrimaryKey,
-                    PrimaryKeyColumn = t.PrimaryKeyColumn,
-                    DynamicProperties = t.DynamicProperties,                   
+                    PrimaryKeyProperty = t.PrimaryKeyProperty
                 };
-                table.Validators.AddRange(t.Validators);
-                t.Columns.ForEach((c) => 
+                entity.Validators.AddRange(t.Validators);
+                t.SynchronizedCollection.Keys.ToList().ForEach((s) =>
                 {
-                    Column column = new Column() 
-                    {
-                        Name = c.Name,
-                        Property = c.Property,
-                        ColumnType = c.ColumnType,
-                        PrimaryKey = c.PrimaryKey,
-                        Getter = c.Getter, 
-                        Setter = c.Setter,
-                        DefaultValue = c.DefaultValue
-                    };
-                    column.Validators.AddRange(c.Validators);
-                    table.Columns.Add(c);
+                    entity.SynchronizedCollection.Add(s, new List<string>(t.SynchronizedCollection[s]));
                 });
-                ctx.Tables.Add(table);
+                ctx.Entites.Add(entity);
             });
             Relations.ForEach((r) => 
             {
-                Relation relation = new Relation() 
+                EntitiesRelation relation = new EntitiesRelation() 
                 {
                     Ordinal = r.Ordinal,
                     Name = r.Name,
-                    ParentTableName = r.ParentTableName,                    
-                    ChildTableName = r.ChildTableName,
+                    ParentEntityName = r.ParentEntityName,                    
+                    ChildEntityName = r.ChildEntityName,
                     ParentKey = r.ParentKey,
                     ParentType = r.ParentType, 
                     ParentValue = r.ParentValue,
@@ -102,20 +89,55 @@ namespace MVCEngine.Model.Internal.Descriptions
                     OnDelete = r.OnDelete
                 };
                 ctx.Relations.Add(relation);
-                relation.ParentTable = ctx.Tables.FirstOrDefault(t => t.TableName == r.ParentTableName);
-                relation.ChildTable = ctx.Tables.FirstOrDefault(t => t.TableName == r.ChildTableName);
+                relation.ParentEntity = ctx.Entites.FirstOrDefault(t => t.Name == r.ParentEntityName);
+                relation.ChildEntity = ctx.Entites.FirstOrDefault(t => t.Name == r.ChildEntityName);
+            });
+            ctx.Entites.ForEach((t) =>
+            {
+                EntityClass entity = Entites.FirstOrDefault(e => e.Name == t.Name);
+                Debug.Assert(entity.IsNotNull(), "Somthing gone wrrong");
+                entity.Properties.ForEach((p) =>
+                {
+                    EntityProperty property = new EntityProperty()
+                    {
+                        Name = p.Name,
+                        PropertyType = p.PropertyType,
+                        PrimaryKey = p.PrimaryKey,
+                        DefaultValue = p.DefaultValue,
+                        Setter = p.Setter,
+                        Getter = p.Getter
+                    };
+                    if (p.ReletedEntity.IsNotNull())
+                    {
+                        property.ReletedEntity = new ReletedEntity()
+                        {
+                            Related = p.ReletedEntity.Related,
+                            RelatedEntity = ctx.Entites.FirstOrDefault(e => e.Name == p.ReletedEntity.RelatedEntityName),
+                            RelatedEntityName = p.ReletedEntity.RelatedEntityName,
+                            Relation = ctx.Relations.FirstOrDefault(r => r.Ordinal == p.ReletedEntity.Relation.Ordinal),
+                            RelationName = p.ReletedEntity.RelationName
+                        };
+                        property.ReletedEntity.Discriminators.AddRange(p.ReletedEntity.Discriminators);
+                    }
+                    property.Validators.AddRange(p.Validators);
+                    t.Properties.Add(property);
+                });
             });
             return ctx;
         }
         #endregion Copy
 
         #region Initialize 
-        internal Context InitailizeRows(EntitiesContext mctx)
+        internal Context InitailizeRows(EntitiesContext mctx, Dictionary<string, Func<object, object>> ini)
         {
-            Tables.ForEach((t) =>
+            Entites.ForEach((e) =>
             {
-                t.Entities = t.EntityFieldGetter(mctx).CastToType<IEnumerable<Entity>>();
-                t.ContextSetter(t.EntityFieldGetter(mctx), this);
+                e.Entities = ini[e.Name](mctx).CastToType<IEnumerable<Entity>>();
+                IEntityCollection collection = e.Entities as IEntityCollection;
+                if (collection.IsNotNull())
+                {
+                    collection.Context = this;
+                }
             });
             return this;
         }
@@ -124,7 +146,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Dispose
         public void Dispose()
         {
-            Tables.ForEach((t) =>
+            Entites.ForEach((t) =>
             {
                 t.Entities = null;
             });

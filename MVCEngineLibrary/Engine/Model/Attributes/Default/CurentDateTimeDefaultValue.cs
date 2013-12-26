@@ -9,7 +9,7 @@ namespace MVCEngine.Model.Attributes.Default
     public class CurentDateTimeDefaultValue : DefaultValue
     {
         #region Value
-        public override object Value(Entity e, description.Column c)
+        public override object Value(Entity e, description.EntityProperty c)
         {
             return DateTime.Now;
         }
