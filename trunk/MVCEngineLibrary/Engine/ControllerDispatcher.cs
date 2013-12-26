@@ -380,7 +380,10 @@ namespace MVCEngine
                     if (pinfo.IsNotNull()) anonymous.Id = LambdaTools.PropertyGetter(param.GetType(), pinfo);
                     method.Anonymous.Add(anonymous);
                 }
-                parameters.AddRange(anonymous.MethodArguments(param));
+                if (method.Parameters.Count > 0)
+                {
+                    parameters.AddRange(anonymous.MethodArguments(param));
+                }
                 if (anonymous.Id.IsNotNull()) id = anonymous.Id(param);
              
                 if (id.IsNull())

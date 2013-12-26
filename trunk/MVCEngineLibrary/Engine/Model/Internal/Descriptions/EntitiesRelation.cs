@@ -6,14 +6,15 @@ using System.Text;
 
 namespace MVCEngine.Model.Internal.Descriptions
 {
-    public class Relation
+    public enum OnDelete { Nothing, Cascade, SetNull }
+    public class EntitiesRelation
     {
         #region Members
         private static int _ordninal = 0;
         #endregion Members
 
         #region Constructor
-        internal Relation()
+        internal EntitiesRelation()
         {
             Ordinal = _ordninal++;
         }
@@ -22,10 +23,10 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Properties
         internal int Ordinal { get; set; }
         public string Name { get; internal set; }
-        public string ParentTableName { get; internal set; }
-        public Table ParentTable { get; internal set; }
-        public string ChildTableName { get; internal set; }
-        public Table ChildTable { get; internal set; }
+        public string ParentEntityName { get; internal set; }
+        public EntityClass ParentEntity { get; internal set; }
+        public string ChildEntityName { get; internal set; }
+        public EntityClass ChildEntity { get; internal set; }
 
         public string ParentKey { get; internal set; }
         internal Type ParentType { get; set; }

@@ -8,35 +8,77 @@ using System.Linq;
 using System.Text;
 using attribute = MVCEngine.Model.Attributes;
 using MVCEngine.Model.Attributes.Validation;
+using MVCEngine;
 
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
     internal class ValidationInterceptor : Interceptor
     {
+        #region Members
+        private static ValidationInterceptor _instance;
+        #endregion Members
+
         #region Constructor
-        public ValidationInterceptor()
+        private ValidationInterceptor()
         {
         }
         #endregion Constructor
 
+        #region GetInstance
+        internal static ValidationInterceptor GetInstance()
+        {
+            if (_instance.IsNull()) _instance = new ValidationInterceptor();
+            return _instance;
+        }
+        #endregion GetInstance
+
         #region Inetercept
+        public static string Id
+        {
+            get
+            {
+                return "ValidationInterceptor";
+            }
+        }
+
+        public override string GetId()
+        {
+            return ValidationInterceptor.Id;
+        }
+
         public override void Intercept(IInvocation invocation)
         {           
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (!entity.Disposing && entity.IsNotNull() && entity.Session.IsNullOrEmpty() && invocation.Arguments.Count() == 1)
             {
-                string propertyName = invocation.Method.Name.StartsWith("set_") ? invocation.Method.Name.Substring(4, invocation.Method.Name.Length - 4 ) :
-                                      invocation.Method.Name;
-                if(!propertyName.IsNullOrEmpty())
-                {       
-                    if (entity.Table.IsNotNull())
+                string propertyName = invocation.Method.Name;
+                if (propertyName.StartsWith("set_"))
+                {
+                    propertyName = propertyName.Substring(4, propertyName.Length - 4);
+                }
+                if (entity.EntityCtx.IsNotNull())
+                {
+                    bool validated = true;
+                    var validateentityquery = entity.EntityCtx.Validators.Where(v => v.RealTimeValidation && (v.PropritesName.IsNull() || v.PropritesName.Contains(propertyName)));
+                    validateentityquery.ToList().ForEach((v) =>
                     {
-                        bool validated = true;
-                        var validateentityquery = entity.Table.Validators.Where(v => v.RealTimeValidation && (v.ColumnsName.IsNull() || v.ColumnsName.Contains(propertyName)));
-                        validateentityquery.ToList().ForEach((v) =>
+                        if (!v.Validate(entity, propertyName, invocation.Arguments[0]))
                         {
-                            if (!v.Validate(entity, propertyName, invocation.Arguments[0]))
+                            validated = false;
+                            if (v.IfFaildThrowException)
+                            {
+                                throw new ValidationException(v.ErrrorMessage);
+                            }
+                        }
+                    });
+                    var validatorcolumnquery = entity.EntityCtx.Properties.Where(p => p.Name == propertyName).
+                        SelectMany(p => p.Validators.Where(v => v.RealTimeValidation), (p, v) => v);
+                    if (validatorcolumnquery.ToList().Count() > 0)
+                    {
+                        validatorcolumnquery.ToList().ForEach((v) =>
+                        {
+                            if (!v.Validate(invocation.Arguments[0]))
                             {
                                 validated = false;
                                 if (v.IfFaildThrowException)
@@ -45,28 +87,8 @@ namespace MVCEngine.Model.Interceptors
                                 }
                             }
                         });
-                        var validatorcolumnquery = entity.Table.Columns.Where(c => c.Property == propertyName).
-                            SelectMany(c => c.Validators.Where(v => v.RealTimeValidation), (c, v) => v);
-                        if (validatorcolumnquery.ToList().Count() > 0)
-                        {
-                            validatorcolumnquery.ToList().ForEach((v) =>
-                            {
-                                if (!v.Validate(invocation.Arguments[0]))
-                                {
-                                    validated = false;
-                                    if (v.IfFaildThrowException)
-                                    {
-                                        throw new ValidationException(v.ErrrorMessage);
-                                    }
-                                }
-                            });
-                        }
-                        if (validated) invocation.Proceed();
                     }
-                    else
-                    {
-                        invocation.Proceed();
-                    }
+                    if (validated) invocation.Proceed();
                 }
                 else
                 {
@@ -79,10 +101,5 @@ namespace MVCEngine.Model.Interceptors
             }
         }
         #endregion Inetercept
-
-        #region Initialize
-        public override void Initialize(Type entityType, attribute.Interceptor interceptor)
-        { }
-        #endregion Initialize
     }
 }

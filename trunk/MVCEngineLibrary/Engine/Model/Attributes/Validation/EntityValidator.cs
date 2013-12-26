@@ -9,13 +9,13 @@ namespace MVCEngine.Model.Attributes.Validation
     public abstract class EntityValidator : Validator
     {
         #region Members
-        private string[] columnsName;
+        private string[] propertiesName;
         #endregion Members
 
         #region Constructor
-        public EntityValidator(params string[] columnsName)
+        public EntityValidator(params string[] propertiesName)
         {
-            this.columnsName = columnsName;
+            this.propertiesName = propertiesName;
         }
         #endregion Constructor
 
@@ -24,8 +24,8 @@ namespace MVCEngine.Model.Attributes.Validation
         public abstract bool Validate(Entity entity);
         #endregion Validate
 
-        #region Properties        
-        public string[] ColumnsName { get { return columnsName; } }
+        #region Properties
+        public string[] PropritesName { get { return propertiesName; } }
         #endregion Properties
 
     }

@@ -7,32 +7,34 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using attributes = MVCEngine.Model.Attributes;
+using MVCEngine;
 
 namespace CtgWorksheet.Model
 {
-    [Table("GP_PROBE")]
     [attributes.Validation.PrimaryKeyValidator(RealTimeValidation = true, ErrrorMessage = "Integrity Constraint")]
-    [attributes.CollectionInterceptor("Screenings", "CtgWorksheet.Model.Screening, mfc-for-net", RelationName = "Probe_Screening", AutoRefresh=true)]
     public class Probe : Entity
     {        
-        [Column("GP_PROB_RECID", IsPrimaryKey = true)]
         [PrimaryKeyDefaultValue()]
+        [attributes.PrimaryKey()]
         public virtual long Id { get; set; }
 
-        [Column("GP_PROB_CODE")]
         [StringDefaultValue(StringValue = "10")]
         public virtual string Code { get; set; }
 
-        [Column("GP_PROB_NAME")]
         [StringDefaultValue(StringValue = "10")]
         public virtual string Name { get; set; }
 
+        [attributes.RelationName("Probe_Screening")]
+        [attributes.Synchronized()]
         public virtual EntitiesCollection<Screening> Screenings { get; private set; }
 
         public override void Dispose()
         {
             base.Dispose();
-            Screenings.Clear();            
+            if (Screenings.IsNotNull())
+            {
+                Screenings.Clear();
+            }
         }
     }
 }

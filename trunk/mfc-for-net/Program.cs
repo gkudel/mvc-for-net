@@ -23,7 +23,7 @@ namespace mfc_for_net
             ControllerDispatcher.GetInstance().AppeConfigInitialization();
             EntitiesContext.EntitiesContextInitialization<WorksheetContext>();
 
-            Application.Run(new WorksheetForm());
+            Application.Run(new WorksheetForm());             
         }
     }
 }

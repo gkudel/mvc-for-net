@@ -76,7 +76,24 @@ namespace MvcForNet.CtgWorksheet.GUI
                 ScreeningCtrl control = xtraTabControl.SelectedTabPage.Controls[0].CastToType<ScreeningCtrl>();
                 if (control.IsNotNull())
                 {
+                    Probe probe = gridView.GetFocusedRow() as Probe;
+                    GridView view = null;
+                    if (probe.IsNotNull())
+                    {
+                        view = gridView.GetDetailView(gridView.FocusedRowHandle, 0) as GridView;
+                        if (view.IsNotNull())
+                        {
+                            view.FocusedRowChanged -= new DevExpress.XtraGrid.Views.Base.FocusedRowChangedEventHandler(this.gridViewScreening_FocusedRowChanged);
+                        }
+                    }
+                    this.xtraTabControl.SelectedPageChanged -= new DevExpress.XtraTab.TabPageChangedEventHandler(this.xtraTabControl_SelectedPageChanged);
                     ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().DeleteScreening(control.Id, SessionId);
+                    this.xtraTabControl.SelectedPageChanged += new DevExpress.XtraTab.TabPageChangedEventHandler(this.xtraTabControl_SelectedPageChanged);
+                    if (view.IsNotNull())
+                    {
+                        view.FocusedRowChanged += new DevExpress.XtraGrid.Views.Base.FocusedRowChangedEventHandler(this.gridViewScreening_FocusedRowChanged);
+                    }
+                    InvokeScreeningChanged();
                 }
             }
         }
@@ -226,7 +243,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         }
 
         [ActionMethodCallBack("Worksheet", "DeleteScreening")]
-        public void ScreeningDeleted(int SreeeningNumber)
+        public void ScreeningDeleted(Worksheet model)
         {
             if (xtraTabControl.SelectedTabPage.IsNotNull())
             {
@@ -239,7 +256,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                     tp.Dispose();
                 }
             }
-            btnDeleteScreening.Enabled = SreeeningNumber > 0;
+            btnDeleteScreening.Enabled = model.Screenings.Count() > 0;
         }
 
         [ActionMethodCallBack("Worksheet", "ProbeChenged")]

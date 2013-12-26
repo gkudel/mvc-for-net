@@ -157,20 +157,28 @@ namespace MVCEngine.Internal
                             select new { Parameter = p, Value = v };
             List<Expression> assignExpression = new List<Expression>();
             int i = 0;
-            joinquery.ToList().ForEach((v) =>
+            if (joinquery.Count() > 0)
             {
-                if (v.Value.IsNotNull())
+                joinquery.ToList().ForEach((v) =>
                 {
-                    assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)),
-                        Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(obj, param.GetType()), v.Value), typeof(object))));
-                }
-                else
-                {
-                    assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)), 
-                        Expression.Convert(Expression.Constant(null), typeof(object))));
-                }
-                i++;
-            });
+                    if (v.Value.IsNotNull())
+                    {
+                        assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)),
+                            Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(obj, param.GetType()), v.Value), typeof(object))));
+                    }
+                    else
+                    {
+                        assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)),
+                            Expression.Convert(Expression.Constant(null), typeof(object))));
+                    }
+                    i++;
+                });
+            }
+            else 
+            {
+                assignExpression.Add(Expression.Assign(Expression.ArrayAccess(ret, Expression.Constant(i)),
+                    Expression.Convert(Expression.Constant(null), typeof(object)))); 
+            }
 
 
             BlockExpression block =   Expression.Block(

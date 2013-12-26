@@ -9,7 +9,7 @@ namespace MVCEngine.Model.Attributes.Default
     public class StringDefaultValue : DefaultValue
     {
         #region Value
-        public override object Value(Entity e, description.Column c)
+        public override object Value(Entity e, description.EntityProperty c)
         {
             return StringValue;
         }

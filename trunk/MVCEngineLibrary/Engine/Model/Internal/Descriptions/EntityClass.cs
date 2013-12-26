@@ -1,25 +1,54 @@
-﻿using System;
+﻿using Castle.DynamicProxy;
+using MVCEngine.Model.Attributes.Validation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Castle.DynamicProxy;
 
 namespace MVCEngine.Model.Internal.Descriptions
 {
-    internal class EntityClass
+    public class EntityClass
     {
         #region Constructor
         internal EntityClass()
         {
-            Interceptors = new List<Interceptor>();
-            InterceptorObjects = new List<IInterceptor>();
+            Properties = new List<EntityProperty>();
+            Validators = new List<EntityValidator>();
+            SynchronizedCollection = new Dictionary<string, List<string>>();
+            Synchronizing = true;
+            MarkedAsModified();
         }
         #endregion Constructor
 
-        #region Prtoperties
-        internal string FullName { get; set; }
-        internal List<Interceptor> Interceptors { get; set; }
-        internal List<IInterceptor> InterceptorObjects { get; set; }
-        #endregion Prtoperties
+        #region Properties
+        public string Name { get; internal set; }
+        public List<EntityProperty> Properties { get; internal set; }
+        internal IEnumerable<Entity> Entities { get; set; }
+        internal string Uid { get; private set; }
+        internal Func<object, object> PrimaryKey { get; set; }
+        internal EntityProperty PrimaryKeyProperty { get; set; }
+        internal Type EntityType { get; set; }
+        internal List<EntityValidator> Validators { get; private set; }
+        internal Dictionary<string, List<string>> SynchronizedCollection { get; set; }
+        internal bool Synchronizing { get; set; }
+        #endregion Properties
+
+        #region Synchronized
+        internal void Synchronized(string entityName, string propertyName)
+        {
+            if (!SynchronizedCollection.ContainsKey(entityName))
+            {
+                SynchronizedCollection.Add(entityName, new List<string>());
+            }
+            SynchronizedCollection[entityName].Add(propertyName);
+        }
+        #endregion Synchronized
+
+        #region Marked as Modified
+        public void MarkedAsModified()
+        {
+            Uid = Guid.NewGuid().ToString();
+        }
+        #endregion Marked as Modified
     }
 }

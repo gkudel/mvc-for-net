@@ -50,6 +50,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             }
             else
             {
+                checkEdit.EditValue = "N";
                 checkEdit.Enabled = false;
             }
 
@@ -65,6 +66,14 @@ namespace MvcForNet.CtgWorksheet.GUI
                 richTextBox.Text = string.Empty;
                 richTextBox.Enabled = false;
             }
+        }
+        
+        [ActionMethodCallBack("Worksheet", "DeleteScreening")]
+        public void ScreeningDeleted()
+        {
+            dateEdit.DataBindings.Clear();
+            checkEdit.DataBindings.Clear();
+            richTextBox.DataBindings.Clear();
         }
         #endregion Action Calls Back
     }

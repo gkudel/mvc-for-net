@@ -99,7 +99,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.gridControl.Location = new System.Drawing.Point(0, 0);
             this.gridControl.MainView = this.gridView;
             this.gridControl.Name = "gridControl";
-            this.gridControl.Size = new System.Drawing.Size(318, 522);
+            this.gridControl.Size = new System.Drawing.Size(318, 468);
             this.gridControl.TabIndex = 0;
             this.gridControl.ViewCollection.AddRange(new DevExpress.XtraGrid.Views.Base.BaseView[] {
             this.gridView,
@@ -156,16 +156,16 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.panel1.Controls.Add(this.btnClose);
             this.panel1.Controls.Add(this.btnAddScreening);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 564);
+            this.panel1.Location = new System.Drawing.Point(0, 510);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1037, 44);
+            this.panel1.Size = new System.Drawing.Size(1084, 44);
             this.panel1.TabIndex = 0;
             // 
             // btnDeleteScreening
             // 
             this.btnDeleteScreening.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnDeleteScreening.Enabled = false;
-            this.btnDeleteScreening.Location = new System.Drawing.Point(839, 9);
+            this.btnDeleteScreening.Location = new System.Drawing.Point(886, 9);
             this.btnDeleteScreening.Name = "btnDeleteScreening";
             this.btnDeleteScreening.Size = new System.Drawing.Size(105, 23);
             this.btnDeleteScreening.TabIndex = 2;
@@ -176,7 +176,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.Location = new System.Drawing.Point(950, 9);
+            this.btnClose.Location = new System.Drawing.Point(997, 9);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 1;
@@ -187,7 +187,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             // btnAddScreening
             // 
             this.btnAddScreening.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddScreening.Location = new System.Drawing.Point(738, 9);
+            this.btnAddScreening.Location = new System.Drawing.Point(785, 9);
             this.btnAddScreening.Name = "btnAddScreening";
             this.btnAddScreening.Size = new System.Drawing.Size(95, 23);
             this.btnAddScreening.TabIndex = 0;
@@ -201,7 +201,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTop.Location = new System.Drawing.Point(0, 0);
             this.pnlTop.Name = "pnlTop";
-            this.pnlTop.Size = new System.Drawing.Size(1037, 42);
+            this.pnlTop.Size = new System.Drawing.Size(1084, 42);
             this.pnlTop.TabIndex = 2;
             // 
             // txtDescription
@@ -217,7 +217,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel2.Location = new System.Drawing.Point(0, 42);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(318, 522);
+            this.panel2.Size = new System.Drawing.Size(318, 468);
             this.panel2.TabIndex = 3;
             // 
             // xtraTabControl
@@ -225,24 +225,24 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.xtraTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.xtraTabControl.Location = new System.Drawing.Point(318, 42);
             this.xtraTabControl.Name = "xtraTabControl";
-            this.xtraTabControl.Size = new System.Drawing.Size(719, 189);
+            this.xtraTabControl.Size = new System.Drawing.Size(766, 141);
             this.xtraTabControl.TabIndex = 4;
             this.xtraTabControl.SelectedPageChanged += new DevExpress.XtraTab.TabPageChangedEventHandler(this.xtraTabControl_SelectedPageChanged);
             // 
             // statusCtrl
             // 
             this.statusCtrl.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.statusCtrl.Location = new System.Drawing.Point(318, 381);
+            this.statusCtrl.Location = new System.Drawing.Point(318, 333);
             this.statusCtrl.Name = "statusCtrl";
-            this.statusCtrl.Size = new System.Drawing.Size(719, 183);
+            this.statusCtrl.Size = new System.Drawing.Size(766, 177);
             this.statusCtrl.TabIndex = 5;
             // 
             // worksheetCtrl
             // 
             this.worksheetCtrl.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.worksheetCtrl.Location = new System.Drawing.Point(318, 231);
+            this.worksheetCtrl.Location = new System.Drawing.Point(318, 183);
             this.worksheetCtrl.Name = "worksheetCtrl";
-            this.worksheetCtrl.Size = new System.Drawing.Size(719, 150);
+            this.worksheetCtrl.Size = new System.Drawing.Size(766, 150);
             this.worksheetCtrl.TabIndex = 6;
             // 
             // WorksheetForm
@@ -250,7 +250,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.AcceptButton = this.btnClose;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1037, 608);
+            this.ClientSize = new System.Drawing.Size(1084, 554);
             this.Controls.Add(this.xtraTabControl);
             this.Controls.Add(this.worksheetCtrl);
             this.Controls.Add(this.statusCtrl);
