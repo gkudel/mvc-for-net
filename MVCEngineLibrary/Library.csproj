@@ -89,6 +89,9 @@
     <Compile Include="Engine\Model\Attributes\Discriminators\IsNullDiscriminator.cs" />
     <Compile Include="Engine\Model\Attributes\Discriminators\StringDiscriminator.cs" />
     <Compile Include="Engine\Model\Attributes\DynamicProperties.cs" />
+    <Compile Include="Engine\Model\Attributes\Formatter\Formatter.cs" />
+    <Compile Include="Engine\Model\Attributes\Formatter\NumberFormatter.cs" />
+    <Compile Include="Engine\Model\Attributes\NotIntercept.cs" />
     <Compile Include="Engine\Model\Attributes\PrimaryKey.cs" />
     <Compile Include="Engine\Model\Attributes\Relation.cs" />
     <Compile Include="Engine\Model\Attributes\RelationName.cs" />

@@ -22,7 +22,7 @@ namespace MVCEngine.Model
         private EntityState _entityState = EntityState.Added;
         private Lazy<bool> _isvalid;
         private EntityClass _Entity;
-        private Dictionary<string, string> _uids;
+        private Dictionary<string, string> _uids;        
         #endregion Members
 
         #region Constructor
@@ -217,6 +217,10 @@ namespace MVCEngine.Model
         #region Context
         internal Context Context { get; set; }
         #endregion Context
+
+        #region Properties
+        internal bool IsFormatting { get; set; }
+        #endregion Properties
 
         #region Entity
         public EntityClass EntityCtx

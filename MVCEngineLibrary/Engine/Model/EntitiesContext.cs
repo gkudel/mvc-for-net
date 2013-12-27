@@ -18,6 +18,7 @@ using MVCEngine.Model.Attributes.Validation;
 using MVCEngine.Model.Attributes.Default;
 using MVCEngine.Model.Interceptors;
 using MVCEngine.Internal;
+using MVCEngine.Model.Attributes.Formatter;
 
 namespace MVCEngine.Model
 {
@@ -161,6 +162,8 @@ namespace MVCEngine.Model
                                             PropertyValidator validator = null;
                                             DefaultValue defaultValue = null;
                                             Synchronized synchronized = null;
+                                            Formatter formatter = null;
+                                            NotIntercept notIntercept = null;
                                             attribute.DynamicProperties dynamicProperties = null;
                                             if (a.IsTypeOf<PrimaryKey>())
                                             {
@@ -220,6 +223,21 @@ namespace MVCEngine.Model
                                                         Property = property,                                                       
                                                     };
                                                     dynamicList.Add(entityClass.DynamicProperties, dynamicProperties.ValueProperties);
+                                                }
+                                            }
+                                            else if ((formatter = a.CastToType<Formatter>()).IsNotNull())
+                                            {
+                                                property.AddFormatter(formatter);
+                                            }
+                                            else if ((notIntercept = a.CastToType<NotIntercept>()).IsNotNull())
+                                            {
+                                                if (notIntercept.Method == Method.Get)
+                                                {
+                                                    property.RemoveGetInterceptor(notIntercept.InterceptorId);
+                                                }
+                                                else
+                                                {
+                                                    property.RemoveSetInterceptor(notIntercept.InterceptorId);
                                                 }
                                             }
                                         });

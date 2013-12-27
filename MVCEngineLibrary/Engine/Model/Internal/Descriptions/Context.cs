@@ -119,6 +119,7 @@ namespace MVCEngine.Model.Internal.Descriptions
                         property.ReletedEntity.Discriminators.AddRange(p.ReletedEntity.Discriminators);
                     }
                     property.Validators.AddRange(p.Validators);
+                    p.Formatters.Keys.ToList().ForEach((k) => property.Formatters.Add(k, p.Formatters[k]));
                     t.Properties.Add(property);
                 });
                 if (entity.PrimaryKeyProperty.IsNotNull()) t.PrimaryKeyProperty = t.Properties.FirstOrDefault(p => p.Name == entity.PrimaryKeyProperty.Name);
