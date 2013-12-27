@@ -11,15 +11,14 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Constructor
         internal DynamicProperties()
         {
-            Discriminators = new List<Discriminator>();
+            ValuesProperties = new Dictionary<Type, string>();
         }
         #endregion Constructor
 
         #region Properties
-        internal Func<object, object> Entities { get; set; }
-        internal List<Discriminator> Discriminators { get; set; }
-        internal KeyValuePair<Type, string>[] PropertiesValue { get; set; }
-        internal Type EntityType { get; set; }
+        internal EntityProperty Property { get; set; }
+        internal string CodeProperty { get; set; }
+        internal Dictionary<Type, string> ValuesProperties { get; set; }
         #endregion Properties
     }
 }

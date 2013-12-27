@@ -48,7 +48,8 @@ namespace MvcForNet.CtgWorksheet.GUI
                 {
                     this.Text = "Worksheet Dialog"; 
                 }
-            });            
+            });
+            worksheetCtrl.SessionId = SessionId;
             ControllerDispatcher.GetInstance().RegisterListener(this);
             try
             {

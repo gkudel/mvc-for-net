@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MVCEngine.Model;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -213,5 +214,27 @@ namespace MVCEngine
                 "] is not a publicly-visible type, so the default value cannot be retrieved");
         }
         #endregion GetDefaultValue
+
+        #region Entity Collection Extensions
+        public static T FirstOrDefulatEntity<T>(this IEnumerable<T> collection, Func<T, bool> predict) where T : Entity
+        {
+            return collection.FirstOrDefault(e => e.State != EntityState.Deleted && predict(e));
+        }
+
+        public static IEnumerable<T> WhereEntity<T>(this IEnumerable<T> collection, Func<T, bool> predict) where T : Entity
+        {
+            return collection.Where(e => e.State != EntityState.Deleted && predict(e));
+        }
+
+        public static int CountEntity<T>(this IEnumerable<T> collection, Func<T, bool> predict) where T : Entity
+        {
+            return collection.Count(e => e.State != EntityState.Deleted && predict(e));
+        }
+
+        public static int CountEntity<T>(this IEnumerable<T> collection) where T : Entity
+        {
+            return collection.Count(e => e.State != EntityState.Deleted);
+        }
+        #endregion Entity Collection Extensions
     }
 }

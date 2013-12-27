@@ -6,7 +6,7 @@ using System.Text;
 namespace MVCEngine.Model.Attributes.Validation
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public abstract class ColumnValidator : Validator
+    public abstract class PropertyValidator : Validator
     {
         #region Validate
         public abstract bool Validate(object value);

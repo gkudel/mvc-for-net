@@ -29,6 +29,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         internal EntityProperty PrimaryKeyProperty { get; set; }
         internal Type EntityType { get; set; }
         internal List<EntityValidator> Validators { get; private set; }
+        internal DynamicProperties DynamicProperties { get; set; }
         internal Dictionary<string, List<string>> SynchronizedCollection { get; set; }
         internal bool Synchronizing { get; set; }
         #endregion Properties

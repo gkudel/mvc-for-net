@@ -93,7 +93,7 @@
     <Compile Include="Engine\Model\Attributes\Relation.cs" />
     <Compile Include="Engine\Model\Attributes\RelationName.cs" />
     <Compile Include="Engine\Model\Attributes\Synchronized.cs" />
-    <Compile Include="Engine\Model\Attributes\Validation\ColumnValidator.cs" />
+    <Compile Include="Engine\Model\Attributes\Validation\PropertyValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\EntityValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\NotNullValidator.cs" />
     <Compile Include="Engine\Model\Attributes\Validation\PrimaryKeyValidator.cs" />

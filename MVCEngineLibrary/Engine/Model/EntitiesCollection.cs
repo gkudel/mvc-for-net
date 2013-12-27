@@ -297,6 +297,14 @@ namespace MVCEngine.Model
         #endregion Dispose
 
         #region ITypedList
+        public void AddPropertyDescriptor(string name, Type propertyType)
+        {
+            if (_properties.Find(name, true).IsNull())
+            {
+                _properties.Add(new EntityPropertyDescriptor(name, EntityCtx.EntityType, propertyType));
+            }
+        }
+
         public PropertyDescriptorCollection GetItemProperties(PropertyDescriptor[] listAccessors)
         {
             return _properties;

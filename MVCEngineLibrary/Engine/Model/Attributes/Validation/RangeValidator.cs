@@ -6,7 +6,7 @@ using MVCEngine;
 
 namespace MVCEngine.Model.Attributes.Validation
 {
-    public class RangeValidator : ColumnValidator
+    public class RangeValidator : PropertyValidator
     {
         #region Validate
         public override bool Validate(object value)

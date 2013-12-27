@@ -15,15 +15,29 @@ namespace MvcForNet.CtgWorksheet.GUI
 {
     public partial class WorksheetCtrl : UserControl
     {
+        #region Constructor
         public WorksheetCtrl()
         {
             InitializeComponent();
         }
+        #endregion Constructor
 
         #region GUI Events
         private void WorksheetCtrl_Load(object sender, EventArgs e)
         {
             ControllerDispatcher.GetInstance().RegisterListener(this);
+        }
+
+        private void ViewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Delete)
+            {
+                WorksheetRow row = gridView.GetFocusedRow() as WorksheetRow;
+                if (row.IsNotNull())
+                {
+                    ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().RemoveWorkshetRow(row.Id, SessionId);
+                }
+            }
         }
         #endregion GUI Events
 
@@ -33,6 +47,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         {
             if (screening.IsNotNull())
             {
+                screening.WorksheetRows.AddPropertyDescriptor("C1", typeof(string));
                 gridControl.DataSource = screening.WorksheetRows;
                 gridControl.Enabled = true;
                 gridView.OptionsView.NewItemRowPosition = DevExpress.XtraGrid.Views.Grid.NewItemRowPosition.Bottom;
@@ -45,5 +60,11 @@ namespace MvcForNet.CtgWorksheet.GUI
             }
         }
         #endregion Action Calls Back
+
+        #region Properties
+        [Browsable(false)]
+        public string SessionId { get; set; }
+        #endregion Properties
+
     }
 }

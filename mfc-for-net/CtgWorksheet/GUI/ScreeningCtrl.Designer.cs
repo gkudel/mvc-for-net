@@ -41,6 +41,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.label2 = new System.Windows.Forms.Label();
             this.lblResult = new System.Windows.Forms.Label();
             this.btnLock = new System.Windows.Forms.Button();
+            this.btnAccept = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnRecalculation
@@ -106,10 +107,22 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.btnLock.UseVisualStyleBackColor = true;
             this.btnLock.Click += new System.EventHandler(this.LockClick);
             // 
-            // ScreeningControl
+            // btnAccept
+            // 
+            this.btnAccept.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAccept.Location = new System.Drawing.Point(241, 333);
+            this.btnAccept.Name = "btnAccept";
+            this.btnAccept.Size = new System.Drawing.Size(95, 23);
+            this.btnAccept.TabIndex = 7;
+            this.btnAccept.Text = "Accept Changes";
+            this.btnAccept.UseVisualStyleBackColor = true;
+            this.btnAccept.Click += new System.EventHandler(this.AcceptClick);
+            // 
+            // ScreeningCtrl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.btnAccept);
             this.Controls.Add(this.btnLock);
             this.Controls.Add(this.lblResult);
             this.Controls.Add(this.label2);
@@ -117,7 +130,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtA);
             this.Controls.Add(this.btnRecalculation);
-            this.Name = "ScreeningControl";
+            this.Name = "ScreeningCtrl";
             this.Size = new System.Drawing.Size(577, 372);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -133,5 +146,6 @@ namespace MvcForNet.CtgWorksheet.GUI
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblResult;
         private System.Windows.Forms.Button btnLock;
+        private System.Windows.Forms.Button btnAccept;
     }
 }
