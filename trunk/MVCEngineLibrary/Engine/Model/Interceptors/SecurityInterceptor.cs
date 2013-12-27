@@ -12,7 +12,7 @@ using MVCEngine;
 namespace MVCEngine.Model.Interceptors
 {
     [Serializable]
-    internal class SecurityInterceptor : Interceptor
+    public class SecurityInterceptor : Interceptor
     {
         #region Members
         private static SecurityInterceptor _instance;
@@ -33,13 +33,7 @@ namespace MVCEngine.Model.Interceptors
         #endregion GetInstance
 
         #region Inetercept
-        public static string Id
-        {
-            get
-            {
-                return "SecurityInterceptor";
-            }
-        }
+        public const string Id = "SecurityInterceptor";
 
         public override string GetId()
         {

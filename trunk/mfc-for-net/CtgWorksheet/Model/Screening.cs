@@ -13,6 +13,7 @@ using System.ComponentModel;
 using MVCEngine.Model.Attributes.Discriminators;
 using MVCEngine.Model.Internal.Descriptions;
 using MVCEngine;
+using MVCEngine.Model.Attributes.Formatter;
 
 namespace CtgWorksheet.Model
 {
@@ -34,7 +35,10 @@ namespace CtgWorksheet.Model
         [StringDefaultValue(StringValue = "15")]
         public virtual string ValueB { get; set; }
 
+        [NumberFormatter(PropertyName="ValueDecimal")]
         public virtual string ValueResult { get; set; }
+
+        public virtual decimal? ValueDecimal { get; set; }
 
         public virtual string Comment { get; set; }
 

@@ -18,7 +18,7 @@ namespace CtgWorksheet.Model
         [attributes.PrimaryKey()]
         public virtual long Id { get; set; }
 
-        [attributes.Validation.StringLengthValidator(Length=15, RealTimeValidation=true)]        
+        [attributes.Validation.StringLengthValidator(Length=15, RealTimeValidation=true)]
         public virtual string Description { get; set; }
 
         public virtual string Name { get; set; }
