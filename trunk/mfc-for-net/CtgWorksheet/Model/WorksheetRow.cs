@@ -23,10 +23,9 @@ namespace CtgWorksheet.Model
 
         public virtual string Name { get; set; }
 
-        [attributes.Relation("WorksheetRow_Screening", ForeignEntity="Screening", ForeignProperty="Id", OnDelete=OnDelete.Cascade)]
         public virtual long ScreeningId { get; set; }
 
-        [attributes.RelationName("WorksheetRow_Screening")]
+        [attributes.Relation("WorksheetRow_Screening", "Screening", "Id", "WorksheetRow", "ScreeningId", OnDelete = OnDelete.Cascade)]
         public virtual Screening Screening { get; private set; }
 
         [DynamicProperties("Code", "Value")]

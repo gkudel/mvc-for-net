@@ -61,6 +61,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             this.gridView.OptionsView.NewItemRowPosition = DevExpress.XtraGrid.Views.Grid.NewItemRowPosition.Bottom;
             this.gridView.OptionsView.ShowDetailButtons = false;
             this.gridView.OptionsView.ShowGroupPanel = false;
+            this.gridView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ViewKeyDown);
             // 
             // gridColumn1
             // 

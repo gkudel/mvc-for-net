@@ -61,9 +61,8 @@ namespace MVCEngine.Model.Internal.Descriptions
                 EntityClass entity = new EntityClass()
                 {
                     Name = t.Name,
-                    EntityType = t.EntityType, 
+                    EntityType = t.EntityType,
                     PrimaryKey = t.PrimaryKey,
-                    PrimaryKeyProperty = t.PrimaryKeyProperty
                 };
                 entity.Validators.AddRange(t.Validators);
                 t.SynchronizedCollection.Keys.ToList().ForEach((s) =>
@@ -122,6 +121,19 @@ namespace MVCEngine.Model.Internal.Descriptions
                     property.Validators.AddRange(p.Validators);
                     t.Properties.Add(property);
                 });
+                if (entity.PrimaryKeyProperty.IsNotNull()) t.PrimaryKeyProperty = t.Properties.FirstOrDefault(p => p.Name == entity.PrimaryKeyProperty.Name);
+                if (entity.DynamicProperties.IsNotNull())
+                {
+                    t.DynamicProperties = new DynamicProperties()
+                    {
+                        CodeProperty = entity.DynamicProperties.CodeProperty,
+                        Property = t.Properties.FirstOrDefault(p => p.Name == entity.DynamicProperties.Property.Name)
+                    };
+                    entity.DynamicProperties.ValuesProperties.Keys.ToList().ForEach((type) =>
+                    {
+                        t.DynamicProperties.ValuesProperties.Add(type, entity.DynamicProperties.ValuesProperties[type]);
+                    });
+                }
             });
             return ctx;
         }

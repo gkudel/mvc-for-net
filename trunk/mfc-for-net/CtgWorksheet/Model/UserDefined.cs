@@ -21,10 +21,9 @@ namespace CtgWorksheet.Model
 
         public virtual string Value { get; set; }
 
-        [Relation("WorksheetRow_UserDefined", ForeignEntity="WorksheetRow", ForeignProperty="Id", OnDelete=OnDelete.Cascade)]
         public virtual long WorksheetRowId { get; set; }
 
-        [attributes.RelationName("WorksheetRow_UserDefined")]
+        [Relation("WorksheetRow_UserDefined", "WorksheetRow", "Id", "UserDefined", "WorksheetRowId", OnDelete = OnDelete.Cascade)]
         public virtual WorksheetRow WorksheetRow { get; private set; }
 
         public override void Dispose()

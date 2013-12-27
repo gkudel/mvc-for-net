@@ -55,6 +55,11 @@ namespace MvcForNet.CtgWorksheet.GUI
         {            
             ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Lock(Id, SessionId);
         }
+        
+        private void AcceptClick(object sender, EventArgs e)
+        {
+            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().AcceptChanges(Id, SessionId);
+        }
         #endregion GUI Events
 
         #region Calls Back

@@ -46,7 +46,28 @@ namespace MVCEngine.Model
             internal set
             {
                 _isFrozen = value;
-                EnumerateByChildren((e, r) => { e.IsFrozen = value; });
+                AllowEditCollection(this, !_isFrozen);
+                EnumerateByChildren((e, r) => 
+                { 
+                    if(e.IsFrozen != value) e.IsFrozen = value;
+                    AllowEditCollection(e, !e.IsFrozen);
+                });
+            }
+        }
+
+        private void AllowEditCollection(Entity e, bool value)
+        {
+            if (e.EntityCtx.IsNotNull())
+            {
+                e.EntityCtx.Properties.Where(p => p.ReletedEntity.IsNotNull() && p.ReletedEntity.Related == Releted.List).
+                    ToList().ForEach((p) =>
+                {
+                    IEntityCollection collection = e[p.Name] as IEntityCollection;
+                    if (collection.IsNotNull())
+                    {
+                        collection.AllowEdit = value;
+                    }
+                });
             }
         }
         #endregion IsFroze
@@ -74,22 +95,35 @@ namespace MVCEngine.Model
                 return _entityState; 
             }
             internal set
-            {                
-                if (value == EntityState.Deleted) EnumerateByChildren((e, r) => 
+            {
+                if (value == EntityState.Deleted || value == EntityState.Unchanged)
                 {
-                    if (r.OnDelete == OnDelete.Cascade)
+                    EnumerateByChildren((e, r) =>
                     {
-                        IList iList = e.EntityCtx.Entities as IList;
-                        if (iList.IsNotNull())
+                        if (value == EntityState.Deleted)
                         {
-                            iList.Remove(e);
+                            if (e.State != EntityState.Deleted)
+                            {
+                                if (r.OnDelete == OnDelete.Cascade)
+                                {
+                                    IList iList = e.EntityCtx.Entities as IList;
+                                    if (iList.IsNotNull())
+                                    {
+                                        iList.Remove(e);
+                                    }
+                                }
+                                else if (r.OnDelete == OnDelete.SetNull)
+                                {
+                                    e[r.ChildKey] = r.ChildType.GetDefaultValue();
+                                }
+                            }
                         }
-                    }
-                    else if (r.OnDelete == OnDelete.SetNull)
-                    {
-                        e[r.ChildKey] = r.ChildType.GetDefaultValue();
-                    }
-                });
+                        else
+                        {
+                            e.State = EntityState.Unchanged;
+                        }
+                    });
+                }
                 _entityState = value;
                 if (_entityState != EntityState.Unchanged) Context.IsModified = true;
                 if (value == EntityState.Deleted)
@@ -118,20 +152,50 @@ namespace MVCEngine.Model
         #endregion Object State
 
         #region Enumerate by Children
-        public void EnumerateByChildren(Action<Entity,EntitiesRelation> action)
+        private void EnumerateByChildren(Action<Entity,EntitiesRelation> action)
         {
             if (EntityCtx.IsNotNull())
             {
                 Context.Relations.Where(r => r.ParentEntityName == EntityCtx.Name).ToList().ForEach((r) =>
                 {
-                    EntityClass childEntity = Context.Entites.FirstOrDefault(t => t.Name == r.ChildEntityName);
-                    if (childEntity.IsNotNull())
+                    List<EntityProperty> list = EntityCtx.Properties.Where(p => p.ReletedEntity.IsNotNull() &&
+                        p.ReletedEntity.Relation.Name == r.Name).ToList();
+                    if (list.Count() > 0 )
                     {
-                        childEntity.Entities.Where(row => row.State != EntityState.Deleted &&
-                        r.ChildValue(row).Equals(r.ParentValue(this))).ToList().ForEach((row) =>
+                        list.ForEach((p) =>
                         {
-                            action(row, r);
+                            if (p.ReletedEntity.Related == Releted.List)
+                            {
+                                IEnumerable<Entity> entities = this[p.Name] as IEnumerable<Entity>;
+                                if (entities.IsNotNull())
+                                {
+                                    foreach (Entity e in entities)
+                                    {
+                                        action(e, r);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Entity e = this[p.Name] as Entity;
+                                if (e.IsNotNull())
+                                {
+                                    action(e, r);
+                                } 
+                            }
                         });
+                    }
+                    else
+                    {
+                        EntityClass childEntity = Context.Entites.FirstOrDefault(t => t.Name == r.ChildEntityName);
+                        if (childEntity.IsNotNull())
+                        {
+                            childEntity.Entities.Where(row => row.State != EntityState.Deleted &&
+                            r.ChildValue(row).Equals(r.ParentValue(this))).ToList().ForEach((row) =>
+                            {
+                                action(row, r);
+                            });
+                        }
                     }
                 });
             }
@@ -279,16 +343,6 @@ namespace MVCEngine.Model
                 return _isvalid.Value;
             }
         }
-
-        public bool IsValidWithChildren
-        {
-            get
-            {
-                bool ret = IsValid;
-                EnumerateByChildren((e, r) => { ret &= e.IsValidWithChildren; });
-                return ret;
-            }
-        }
         #endregion Validate
 
         #region Default
@@ -307,39 +361,37 @@ namespace MVCEngine.Model
         #region Get & Set Child Value
         internal object GetValue(string name, Type propertyType)
         {
-            /*if (Table.DynamicProperties.IsNotNull())
+            if (EntityCtx.DynamicProperties.IsNotNull())
             {
-                IEnumerable<Entity> entities = Table.DynamicProperties.Entities(this) as IEnumerable<Entity>;
+                IEnumerable<Entity> entities = this[EntityCtx.DynamicProperties.Property.Name] as IEnumerable<Entity>;
                 if (entities.IsNotNull())
                 {
-                    Entity entity = entities.FirstOrDefault(e => e[Table.DynamicProperties.PropertyCode].IsNotNull() && e[Table.DynamicProperties.PropertyCode].Equals(name));
+                    Entity entity = entities.FirstOrDefault(e => e[EntityCtx.DynamicProperties.CodeProperty].IsNotNull() && e[EntityCtx.DynamicProperties.CodeProperty].Equals(name));
                     if (entity.IsNotNull())
                     {
-                        KeyValuePair<Type, string> kv = Table.DynamicProperties.PropertiesValue.FirstOrDefault(k => k.Key == propertyType);
-                        if (kv.Value.IsNotNull())
+                        if (EntityCtx.DynamicProperties.ValuesProperties.ContainsKey(propertyType))
                         {
-                            return entity[kv.Value]; 
+                            return entity[EntityCtx.DynamicProperties.ValuesProperties[propertyType]]; 
                         }
                     }
                 }
-            }*/
+            }
             return propertyType.GetDefaultValue();
         }
 
         internal void SetValue(string name, object value, Type propertyType)
         {
-            /*if (Table.DynamicProperties.IsNotNull())
+            if (EntityCtx.DynamicProperties.IsNotNull())
             {
-                IEnumerable<Entity> entities = Table.DynamicProperties.Entities(this) as IEnumerable<Entity>;
+                IEnumerable<Entity> entities = this[EntityCtx.DynamicProperties.Property.Name] as IEnumerable<Entity>;
                 if (entities.IsNotNull())
                 {
-                    Entity entity = entities.FirstOrDefault(e => e[Table.DynamicProperties.PropertyCode].IsNotNull() && e[Table.DynamicProperties.PropertyCode].Equals(name));
+                    Entity entity = entities.FirstOrDefault(e => e[EntityCtx.DynamicProperties.CodeProperty].IsNotNull() && e[EntityCtx.DynamicProperties.CodeProperty].Equals(name));
                     if (entity.IsNotNull())
                     {
-                        KeyValuePair<Type, string> kv = Table.DynamicProperties.PropertiesValue.FirstOrDefault(k => k.Key == propertyType);
-                        if (kv.Value.IsNotNull())
+                        if (EntityCtx.DynamicProperties.ValuesProperties.ContainsKey(propertyType))
                         {
-                            entity[kv.Value] = value;
+                            entity[EntityCtx.DynamicProperties.ValuesProperties[propertyType]] = value;
                         }
                     }
                     else
@@ -347,21 +399,20 @@ namespace MVCEngine.Model
                         IEntityCollection collection = entities as IEntityCollection;
                         if (collection.IsNotNull())
                         {
-                            entity = collection.CreateInstance(Table.DynamicProperties.EntityType, true) as Entity;
+                            entity = collection.CreateInstance(EntityCtx.DynamicProperties.Property.ReletedEntity.RelatedEntity.EntityType, true) as Entity;
                             if (entity.IsNotNull())
                             {
-                                KeyValuePair<Type, string> kv = Table.DynamicProperties.PropertiesValue.FirstOrDefault(k => k.Key == propertyType);
-                                if (kv.Value.IsNotNull())
+                                if (EntityCtx.DynamicProperties.ValuesProperties.ContainsKey(propertyType))
                                 {
-                                    entity[kv.Value] = value;
+                                    entity[EntityCtx.DynamicProperties.ValuesProperties[propertyType]] = value;
                                 }
-                                entity[Table.DynamicProperties.PropertyCode] = name;
+                                entity[EntityCtx.DynamicProperties.CodeProperty] = name;
                                 collection.Add(entity);
                             }
                         }
                     }
                 }
-            }*/
+            }
         }
         #endregion Get & Set Child Value
 

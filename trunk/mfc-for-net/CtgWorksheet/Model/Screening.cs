@@ -22,11 +22,9 @@ namespace CtgWorksheet.Model
         [PrimaryKeyDefaultValue()]
         [attributes.PrimaryKey()]
         public virtual long Id { get; set; }
-
-        [attributes.Relation("Worksheet_Screening", ForeignEntity="Worksheet", ForeignProperty="Id", OnDelete=OnDelete.Cascade)]
+        
         public virtual long WorksheetId { get; set; }
 
-        [attributes.Relation("Probe_Screening", ForeignEntity = "Probe", ForeignProperty = "Id", OnDelete = OnDelete.Cascade)]
         public virtual long ProbetId { get; set; }
 
         [StringDefaultValue(StringValue="10")]
@@ -47,13 +45,14 @@ namespace CtgWorksheet.Model
         [CurentDateTimeDefaultValue()]
         public virtual DateTime? Date { get; set; }
 
-        [attributes.RelationName("Worksheet_Screening")]
+        [attributes.Relation("Worksheet_Screening", "Worksheet", "Id", "Screening", "WorksheetId", OnDelete = OnDelete.Cascade)]
         public virtual Worksheet Worksheet { get; private set; }
 
-        [attributes.RelationName("Probe_Screening")]
+        [attributes.Relation("Probe_Screening", "Probe", "Id", "Screening", "ProbetId", OnDelete = OnDelete.Cascade)]
         public virtual Probe Probe { get; private set; }
 
         [attributes.RelationName("WorksheetRow_Screening")]
+        [attributes.Synchronized()]
         public virtual EntitiesCollection<WorksheetRow> WorksheetRows { get; private set; }
 
         public override void Dispose()

@@ -9,21 +9,21 @@ namespace MVCEngine.Model.Attributes
     public class DynamicProperties : System.Attribute
     {
         #region Members
-        private string _propertyCode;
-        private string[] _propertiesValue;
+        private string _codeProperty;
+        private string[] _valueProperties;
         #endregion Members
 
         #region Constructors
-        public DynamicProperties(string propertyCode, params string[] propertiesValue)
+        public DynamicProperties(string codeProperty, params string[] valueProperties)
         {
-            this._propertyCode = propertyCode;
-            this._propertiesValue = propertiesValue;
+            this._codeProperty = codeProperty;
+            this._valueProperties = valueProperties;
         }
         #endregion Constructors
 
         #region Properties
-        public string PropertyCode { get { return _propertyCode; } }
-        public string[] PropertiesValue { get { return _propertiesValue; } }
+        public string CodeProperty { get { return _codeProperty; } }
+        public string[] ValueProperties { get { return _valueProperties; } }
         #endregion Properties
     }
 }

@@ -21,7 +21,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Constructor
         internal EntityProperty()
         {
-            Validators = new List<ColumnValidator>();
+            Validators = new List<PropertyValidator>();
             Interceptors = new Dictionary<string, List<string>>();
         }
         #endregion Constructor
@@ -30,7 +30,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         public string Name { get; internal set; }
         public Type PropertyType { get; internal set; }        
         public bool PrimaryKey { get; internal set; }        
-        internal List<ColumnValidator> Validators { get; set; }
+        internal List<PropertyValidator> Validators { get; set; }
         internal DefaultValue DefaultValue { get; set; }
         internal Action<object, object> Setter { get; set; }
         internal Func<object, object> Getter { get; set; }

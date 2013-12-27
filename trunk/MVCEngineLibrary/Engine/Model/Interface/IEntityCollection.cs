@@ -11,5 +11,6 @@ namespace MVCEngine.Model.Interface
     {
         object CreateInstance(Type type, bool defaultValue);
         Context Context { get; set; }
+        bool AllowEdit { get; set; }
     }
 }

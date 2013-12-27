@@ -95,6 +95,8 @@ namespace MVCEngine.Model
                 string sessionid = MVCEngine.Session.Session.CreateUserSession(typeof(T).Name);
                 Task task = new Task(() =>
                 {
+                    Dictionary<MVCEngine.Model.Internal.Descriptions.DynamicProperties, string[]> dynamicList = 
+                        new Dictionary<MVCEngine.Model.Internal.Descriptions.DynamicProperties, string[]>();
                     Context ctx = new Context()
                     {
                         Name = typeof(T).Name,
@@ -155,11 +157,11 @@ namespace MVCEngine.Model
                                         Attribute.GetCustomAttributes(p).ToList().ForEach((a) =>
                                         {
                                             Relation relation = null;
-                                            RelationName relationName = null;
                                             Discriminator discriminator = null;
-                                            ColumnValidator validator = null;
+                                            PropertyValidator validator = null;
                                             DefaultValue defaultValue = null;
                                             Synchronized synchronized = null;
+                                            attribute.DynamicProperties dynamicProperties = null;
                                             if (a.IsTypeOf<PrimaryKey>())
                                             {
                                                 Debug.Assert(entityClass.Properties.FirstOrDefault(primary => primary.PrimaryKey).IsNull(), "Entity[" + entityType.Name + "] at least two primary key property defined");
@@ -171,24 +173,19 @@ namespace MVCEngine.Model
                                             {
                                                 EntitiesRelation r = ctx.Relations.FirstOrDefault(re => re.Name == relation.RelationName);
                                                 Debug.Assert(r.IsNull(), "Relation[" + relation.RelationName + "] is declared at least twice");
-                                                ctx.Relations.Add(new EntitiesRelation()
-                                                {
-                                                    Name = relation.RelationName,
-                                                    ParentEntityName = relation.ForeignEntity,
-                                                    ChildEntityName = entityClass.Name,
-                                                    ChildEntity = entityClass,
-                                                    ChildValue = LambdaTools.PropertyGetter(entityType, p),
-                                                    ChildKey = p.Name,
-                                                    ChildType = p.PropertyType,
-                                                    ParentKey = relation.ForeignProperty,
-                                                    OnDelete = relation.OnDelete
-                                                });
-                                            }
-                                            else if ((relationName = a.CastToType<RelationName>()).IsNotNull())
-                                            {
                                                 if (property.ReletedEntity.IsNotNull())
                                                 {
-                                                    property.ReletedEntity.RelationName = relationName.Name;
+                                                    EntitiesRelation entityrelation = new EntitiesRelation()
+                                                    {
+                                                        Name = relation.RelationName,
+                                                        ParentEntityName = relation.ParentEntity,
+                                                        ChildEntityName = relation.ChildEntity,
+                                                        ChildKey = relation.ChildProperty,
+                                                        ParentKey = relation.ParentProperty,
+                                                        OnDelete = relation.OnDelete
+                                                    };
+                                                    ctx.Relations.Add(entityrelation);
+                                                    property.ReletedEntity.Relation = entityrelation;
                                                 }
                                             }
                                             else if ((synchronized = a.CastToType<Synchronized>()).IsNotNull())
@@ -205,13 +202,25 @@ namespace MVCEngine.Model
                                                     property.ReletedEntity.Discriminators.Add(discriminator);
                                                 }
                                             }
-                                            else if ((validator = a.CastToType<ColumnValidator>()).IsNotNull())
+                                            else if ((validator = a.CastToType<PropertyValidator>()).IsNotNull())
                                             {
                                                 property.Validators.Add(validator);
                                             }
                                             else if ((defaultValue = a.CastToType<DefaultValue>()).IsNotNull())
                                             {
                                                 property.DefaultValue = defaultValue;
+                                            }
+                                            else if ((dynamicProperties = a.CastToType<attribute.DynamicProperties>()).IsNotNull())
+                                            {
+                                                if (property.ReletedEntity.IsNotNull() && property.ReletedEntity.Related == Releted.List)
+                                                {
+                                                    entityClass.DynamicProperties = new Internal.Descriptions.DynamicProperties() 
+                                                    {
+                                                        CodeProperty = dynamicProperties.CodeProperty,
+                                                        Property = property,                                                       
+                                                    };
+                                                    dynamicList.Add(entityClass.DynamicProperties, dynamicProperties.ValueProperties);
+                                                }
                                             }
                                         });
                                     });
@@ -233,7 +242,6 @@ namespace MVCEngine.Model
                             }
                         }                                                           
                     });
-
                     ctx.Relations.ForEach((r) =>
                     {
                         EntityClass entity = ctx.Entites.FirstOrDefault(e => e.Name == r.ParentEntityName);
@@ -243,6 +251,16 @@ namespace MVCEngine.Model
                         Debug.Assert(property.IsNotNull(), "Entity[" + entity.Name + "] property["+r.ParentKey+"] not defined");
                         r.ParentType = property.PropertyType;
                         r.ParentValue = property.Getter;
+
+                        EntityClass childEntity = ctx.Entites.FirstOrDefault(e => e.Name == r.ChildEntityName);
+                        Debug.Assert(childEntity.IsNotNull(), "Relation[" + r.Name + "] child entity not found");
+                        r.ChildEntity = childEntity;
+                        EntityProperty childProperty = childEntity.Properties.FirstOrDefault(p => p.Name == r.ChildKey);
+                        Debug.Assert(childProperty.IsNotNull(), "Entity[" + childEntity.Name + "] property[" + r.ChildKey + "] not defined");
+                        r.ChildType = childProperty.PropertyType;
+                        r.ChildValue = childProperty.Getter;
+
+
                     });
 
                     var reletedquery = ctx.Entites.Where(e => e.Properties.Count(p => p.ReletedEntity.IsNotNull()) > 0).
@@ -253,28 +271,31 @@ namespace MVCEngine.Model
                         EntityClass entityClass = ctx.Entites.FirstOrDefault(e => e.Name == ep.Property.ReletedEntity.RelatedEntityName);
                         Debug.Assert(entityClass.IsNotNull(), "Entity[" + ep.Property.ReletedEntity.RelatedEntityName + "] dosen't have collection");
                         ep.Property.ReletedEntity.RelatedEntity = entityClass;
-                        if (!ep.Property.ReletedEntity.RelationName.IsNullOrEmpty())
+                        if (ep.Property.ReletedEntity.Relation.IsNull())
                         {
-                            EntitiesRelation relation = ctx.Relations.FirstOrDefault(r => r.Name == ep.Property.ReletedEntity.RelationName);
-                            Debug.Assert(relation.IsNotNull(), "Relation[" + ep.Property.ReletedEntity.RelationName + "] not defined");
-                            ep.Property.ReletedEntity.Relation = relation;
-                        }
-                        else
-                        {
-                            List<EntitiesRelation> relations = null;
-                            if (ep.Property.ReletedEntity.Related == Releted.Entity)
+                            if (!ep.Property.ReletedEntity.RelationName.IsNullOrEmpty())
                             {
-                                relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Property.ReletedEntity.RelatedEntityName && r.ChildEntityName == ep.Entity.Name).ToList();
+                                EntitiesRelation relation = ctx.Relations.FirstOrDefault(r => r.Name == ep.Property.ReletedEntity.RelationName);
+                                Debug.Assert(relation.IsNotNull(), "Relation[" + ep.Property.ReletedEntity.RelationName + "] not defined");
+                                ep.Property.ReletedEntity.Relation = relation;
                             }
                             else
                             {
-                                relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Entity.Name && r.ChildEntityName == ep.Property.ReletedEntity.RelatedEntityName).ToList();
-                            }
+                                List<EntitiesRelation> relations = null;
+                                if (ep.Property.ReletedEntity.Related == Releted.Entity)
+                                {
+                                    relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Property.ReletedEntity.RelatedEntityName && r.ChildEntityName == ep.Entity.Name).ToList();
+                                }
+                                else
+                                {
+                                    relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Entity.Name && r.ChildEntityName == ep.Property.ReletedEntity.RelatedEntityName).ToList();
+                                }
 
-                            Debug.Assert(relations.Count() < 2, "Relation[" + ep.Property.ReletedEntity.RelatedEntityName + "-" + ep.Entity.Name + "] more then one");
-                            if (relations.Count() == 1)
-                            {
-                                ep.Property.ReletedEntity.Relation = relations[0];
+                                Debug.Assert(relations.Count() < 2, "Relation[" + ep.Property.ReletedEntity.RelatedEntityName + "-" + ep.Entity.Name + "] more then one");
+                                if (relations.Count() == 1)
+                                {
+                                    ep.Property.ReletedEntity.Relation = relations[0];
+                                }
                             }
                         }
                         if (ep.Property.ReletedEntity.Synchronized)
@@ -290,6 +311,18 @@ namespace MVCEngine.Model
                             ep.Property.AddGetInterceptor(EntityInterceptorDispatcher.GetId(ep.Property.ReletedEntity.Relation.ParentEntity.EntityType));
                         }
                     });
+
+                    foreach (MVCEngine.Model.Internal.Descriptions.DynamicProperties dynamicProperty in dynamicList.Keys)
+                    {
+                        foreach (string p in dynamicList[dynamicProperty])
+                        {
+                            EntityProperty property = dynamicProperty.Property.ReletedEntity.RelatedEntity.Properties.FirstOrDefault(pr => pr.Name == p);
+                            if (property.IsNotNull())
+                            {
+                                dynamicProperty.ValuesProperties.Add(property.PropertyType, property.Name);
+                            }
+                        }
+                    }
                 });
 
                 task.ContinueWith((antecedent) =>
