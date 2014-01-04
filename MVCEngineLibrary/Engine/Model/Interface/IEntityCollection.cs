@@ -7,9 +7,9 @@ using System.Text;
 
 namespace MVCEngine.Model.Interface
 {
-    public interface IEntityCollection : IList
+    public interface IEntityCollection : IList 
     {
-        object CreateInstance(Type type, bool defaultValue);
+        object CreateInstance(Type type, bool defaultValue, object[] constructorArguments);
         Context Context { get; set; }
         bool AllowEdit { get; set; }
     }

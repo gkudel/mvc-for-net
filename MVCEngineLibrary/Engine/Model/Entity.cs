@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using MVCEngine;
 using MVCEngine.Internal.Validation;
+using MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model
 {
@@ -20,7 +21,6 @@ namespace MVCEngine.Model
         #region Members
         private bool _isFrozen = false;
         private EntityState _entityState = EntityState.Added;
-        private Lazy<bool> _isvalid;
         private EntityClass _Entity;
         private Dictionary<string, string> _uids;        
         #endregion Members
@@ -28,10 +28,6 @@ namespace MVCEngine.Model
         #region Constructor
         public Entity()
         {
-            _isvalid = new Lazy<bool>(() =>
-            {
-                return Validate();
-            }, true);
             _uids = new Dictionary<string, string>();
         }
         #endregion Constructor
@@ -77,24 +73,14 @@ namespace MVCEngine.Model
         #endregion Session
 
         #region Object State
-        public void Modified()
-        {
-            if (_isvalid.IsValueCreated)
-            {
-                _isvalid = new Lazy<bool>(() =>
-                {
-                    return Validate();
-                }, true);
-            }
-        }
-
-        public EntityState State
+        [NotIntercept()]
+        public virtual EntityState State
         {
             get 
             { 
                 return _entityState; 
             }
-            internal set
+            set
             {
                 if (value == EntityState.Deleted || value == EntityState.Unchanged)
                 {
@@ -108,7 +94,7 @@ namespace MVCEngine.Model
                                 {
                                     IList iList = e.EntityCtx.Entities as IList;
                                     if (iList.IsNotNull())
-                                    {
+                                    {                                        
                                         iList.Remove(e);
                                     }
                                 }
@@ -241,7 +227,8 @@ namespace MVCEngine.Model
         #endregion Entity
 
         #region Get & Set Coulumn Value
-        public object this[string property]
+        [NotIntercept()]
+        public virtual object this[string property]
         {
             get 
             {
@@ -339,14 +326,6 @@ namespace MVCEngine.Model
             }
             return ret;
         }
-
-        public bool IsValid
-        {
-            get
-            {
-                return _isvalid.Value;
-            }
-        }
         #endregion Validate
 
         #region Default
@@ -354,7 +333,7 @@ namespace MVCEngine.Model
         {
             EntityCtx.Properties.Where(p => p.DefaultValue.IsNotNull()).ToList().ForEach((p) =>
             {
-                if (this[p.Name].IsNull() || this[p.Name].Equals(p.PropertyType.GetDefaultValue()))
+                if (this[p.Name].IsNull() || string.Empty.Equals(this[p.Name]) || this[p.Name].Equals(p.PropertyType.GetDefaultValue()))
                 {
                     this[p.Name] = p.DefaultValue.Value(this, p);
                 }
@@ -403,7 +382,7 @@ namespace MVCEngine.Model
                         IEntityCollection collection = entities as IEntityCollection;
                         if (collection.IsNotNull())
                         {
-                            entity = collection.CreateInstance(EntityCtx.DynamicProperties.Property.ReletedEntity.RelatedEntity.EntityType, true) as Entity;
+                            entity = collection.CreateInstance(EntityCtx.DynamicProperties.Property.ReletedEntity.RelatedEntity.EntityType, true, null) as Entity;
                             if (entity.IsNotNull())
                             {
                                 if (EntityCtx.DynamicProperties.ValuesProperties.ContainsKey(propertyType))

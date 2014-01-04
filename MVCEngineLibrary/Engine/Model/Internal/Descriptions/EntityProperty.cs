@@ -25,13 +25,15 @@ namespace MVCEngine.Model.Internal.Descriptions
             Validators = new List<PropertyValidator>();
             Interceptors = new Dictionary<string, List<string>>();
             Formatters = new Dictionary<string, List<Formatter>>();
+            Attibutes = new List<Attribute>();
         }
         #endregion Constructor
 
         #region Properties
         public string Name { get; internal set; }
         public Type PropertyType { get; internal set; }        
-        public bool PrimaryKey { get; internal set; }                
+        public bool PrimaryKey { get; internal set; }
+        public List<Attribute> Attibutes { get; private set; }  
         internal List<PropertyValidator> Validators { get; set; }
         internal DefaultValue DefaultValue { get; set; }
         internal Action<object, object> Setter { get; set; }
@@ -53,8 +55,8 @@ namespace MVCEngine.Model.Internal.Descriptions
                 {
                     Interceptors.Add(_pinfo.GetSetMethod().Name, new List<string>());
                     Interceptors[_pinfo.GetSetMethod().Name].Add(SecurityInterceptor.Id);
-                    Interceptors[_pinfo.GetSetMethod().Name].Add(ValidationInterceptor.Id);
                     Interceptors[_pinfo.GetSetMethod().Name].Add(ModificationInterceptor.Id);
+                    Interceptors[_pinfo.GetSetMethod().Name].Add(ValidationInterceptor.Id);                    
                 }
             }
         }
@@ -78,11 +80,21 @@ namespace MVCEngine.Model.Internal.Descriptions
             Debug.Assert(_pinfo.IsNotNull(), "PropertyInfo is null");
             if (_pinfo.IsNotNull() && _pinfo.GetGetMethod().IsNotNull())
             {
-                if (Interceptors.ContainsKey(_pinfo.GetGetMethod().Name))
+                if (id.IsNullOrEmpty())
                 {
-                    if (Interceptors[_pinfo.GetGetMethod().Name].Contains(id))
+                    if (Interceptors.ContainsKey(_pinfo.GetGetMethod().Name))
                     {
-                        Interceptors[_pinfo.GetGetMethod().Name].Remove(id);
+                        Interceptors[_pinfo.GetGetMethod().Name].Clear();
+                    }
+                }
+                else
+                {
+                    if (Interceptors.ContainsKey(_pinfo.GetGetMethod().Name))
+                    {
+                        if (Interceptors[_pinfo.GetGetMethod().Name].Contains(id))
+                        {
+                            Interceptors[_pinfo.GetGetMethod().Name].Remove(id);
+                        }
                     }
                 }
             }
@@ -97,7 +109,7 @@ namespace MVCEngine.Model.Internal.Descriptions
                 {
                     Interceptors.Add(_pinfo.GetSetMethod().Name, new List<string>());
                 }
-                Debug.Assert(Interceptors[_pinfo.GetSetMethod().Name].Contains(id), "Id[" + id + "] duplicated");
+                Debug.Assert(!Interceptors[_pinfo.GetSetMethod().Name].Contains(id), "Id[" + id + "] duplicated");
                 Interceptors[_pinfo.GetSetMethod().Name].Add(id);
             }
         }
@@ -107,11 +119,21 @@ namespace MVCEngine.Model.Internal.Descriptions
             Debug.Assert(_pinfo.IsNotNull(), "PropertyInfo is null");
             if (_pinfo.IsNotNull() && _pinfo.GetSetMethod().IsNotNull())
             {
-                if (Interceptors.ContainsKey(_pinfo.GetSetMethod().Name))
+                if (id.IsNullOrEmpty())
                 {
-                    if (Interceptors[_pinfo.GetSetMethod().Name].Contains(id))
+                    if (Interceptors.ContainsKey(_pinfo.GetSetMethod().Name))
                     {
-                        Interceptors[_pinfo.GetSetMethod().Name].Remove(id);
+                        Interceptors[_pinfo.GetSetMethod().Name].Clear();
+                    }
+                }
+                else
+                {
+                    if (Interceptors.ContainsKey(_pinfo.GetSetMethod().Name))
+                    {
+                        if (Interceptors[_pinfo.GetSetMethod().Name].Contains(id))
+                        {
+                            Interceptors[_pinfo.GetSetMethod().Name].Remove(id);
+                        }
                     }
                 }
             }

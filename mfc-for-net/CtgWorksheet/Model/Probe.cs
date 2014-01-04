@@ -8,20 +8,30 @@ using System.Linq;
 using System.Text;
 using attributes = MVCEngine.Model.Attributes;
 using MVCEngine;
+using CtgWorksheet.Model.Attributes;
+using System.Data;
 
 namespace CtgWorksheet.Model
 {
-    [attributes.Validation.PrimaryKeyValidator(RealTimeValidation = true, ErrrorMessage = "Integrity Constraint")]
-    public class Probe : Entity
+    [Table("GP_PROBE")]
+    public class Probe : EntityRow
     {        
-        [PrimaryKeyDefaultValue()]
+        public Probe()
+            : base()
+        {}
+
+        public Probe(DataRow row)
+            : base(row)
+        { }
+
         [attributes.PrimaryKey()]
+        [Column("GP_PR_RECID")]
         public virtual long Id { get; set; }
 
-        [StringDefaultValue(StringValue = "10")]
+        [Column("GP_PR_CODE")]
         public virtual string Code { get; set; }
 
-        [StringDefaultValue(StringValue = "10")]
+        [Column("GP_PR_NAME")]
         public virtual string Name { get; set; }
 
         [attributes.RelationName("Probe_Screening")]

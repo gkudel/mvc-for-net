@@ -194,7 +194,7 @@ namespace MVCEngine.Model
                 }
                 else
                 {
-                    base.RemoveItem(index);
+                    throw new InvalidOperationException();
                 }
                 if (EntityCtx.IsNotNull())
                 {
@@ -244,29 +244,44 @@ namespace MVCEngine.Model
         #region Create Object
         public T CreateInstance()
         {
-            return CreateInstance(typeof(T), true) as T;
-        }
+            return CreateInstance(typeof(T), true, null) as T;
+        }       
 
-        public object CreateInstance(Type type, bool defaultValue)
-        {            
+        public object CreateInstance(Type type, bool defaultValue, object[] constructorArguments)
+        {
             var options = new ProxyGenerationOptions(new EntityInterceptorGenerationHook()) { Selector = new EntityInterceptorSelector() };
-            var proxy = _generator.Value.CreateClassProxy(type, options, EntitiesContext.GetInterceptors(type) );            
-            Entity entity = proxy.CastToType<Entity>();
-            if (entity.IsNotNull())
-            {                               
-                entity.Context = Context;
-                entity.State = EntityState.Added;
-                if (defaultValue)
+            object proxy = null;
+            if (constructorArguments.IsNotNull())
+            {
+                proxy = _generator.Value.CreateClassProxy(type, options, constructorArguments, EntitiesContext.GetInterceptors(type));
+            }
+            else
+            {
+                proxy = _generator.Value.CreateClassProxy(type, options, EntitiesContext.GetInterceptors(type));
+            }            
+            if (proxy.IsNotNull())
+            {
+                Entity entity = proxy.CastToType<Entity>();
+                if (entity.IsNotNull())
                 {
-                    entity.Default();
-                }
-                if (Releted.IsNotNull())
-                {
-                    entity[Releted.Relation.ChildKey] = ParentValue;
-                    if (Releted.Discriminators.IsNotNull())
+                    entity.Context = Context;
+
+                    if (Context.EntityInitialize.IsNotNull())
                     {
-                        Releted.Discriminators.ForEach((d) => d.Default(entity));
+                        Context.EntityInitialize(entity);
                     }
+                    if (defaultValue)
+                    {
+                        entity.Default();
+                    }
+                    if (Releted.IsNotNull())
+                    {
+                        entity[Releted.Relation.ChildKey] = ParentValue;
+                        if (Releted.Discriminators.IsNotNull())
+                        {
+                            Releted.Discriminators.ForEach((d) => d.Default(entity));
+                        }
+                    }       
                 }
             }
             return proxy;

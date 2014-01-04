@@ -8,19 +8,31 @@ using MVCEngine.Model;
 using MVCEngine.Model.Interceptors;
 using System.ComponentModel;
 using MVCEngine;
+using CtgWorksheet.Model.Attributes;
+using System.Data;
 
 namespace CtgWorksheet.Model
 {
-    [attributes.Validation.PrimaryKeyValidator(RealTimeValidation = true, ErrrorMessage = "Integrity Constraint")]
-    public class Worksheet : Entity
+    [Table("GP_WORKSHEET")]
+    public class Worksheet : EntityRow
     {
-        [attributes.Default.PrimaryKeyDefaultValue()]
+        public Worksheet()
+            : base()
+        {}
+
+        public Worksheet(DataRow row)
+            : base(row)
+        { }
+
         [attributes.PrimaryKey()]
+        [Column("GP_WKS_RECID")]
         public virtual long Id { get; set; }
 
         [attributes.Validation.StringLengthValidator(Length=15, RealTimeValidation=true)]
+        [Column("GP_WKS_DESCRIPTION")]
         public virtual string Description { get; set; }
 
+        [Column("GP_WKS_NAME")]
         public virtual string Name { get; set; }
 
         [attributes.RelationName("Worksheet_Screening")]

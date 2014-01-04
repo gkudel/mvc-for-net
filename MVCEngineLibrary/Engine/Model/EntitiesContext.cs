@@ -85,7 +85,7 @@ namespace MVCEngine.Model
         #endregion Properties
 
         #region Context
-        internal Context Context { get; set; }
+        public Context Context { get; set; }
         #endregion Context
         
         #region Context Initializtion
@@ -123,6 +123,7 @@ namespace MVCEngine.Model
                                 {
                                     entityClass.Name = entityType.Name;
                                     entityClass.EntityType = entityType;
+                                    entityClass.Attributes.AddRange(Attribute.GetCustomAttributes(entityType));
 
                                     _entitiesCollection.Value[ctx.Name].Add(entityType.Name, LambdaTools.FieldGetter(typeof(T), f));
 
@@ -137,6 +138,7 @@ namespace MVCEngine.Model
                                             Setter = p.CanWrite ? LambdaTools.PropertySetter(entityType, p) : null,
                                             Getter = LambdaTools.PropertyGetter(entityType, p)
                                         };
+                                        property.Attibutes.AddRange(Attribute.GetCustomAttributes(p));
                                         entityClass.Properties.Add(property);
 
                                         if (typeof(Entity).IsAssignableFrom(p.PropertyType))
@@ -164,6 +166,7 @@ namespace MVCEngine.Model
                                             Synchronized synchronized = null;
                                             Formatter formatter = null;
                                             NotIntercept notIntercept = null;
+                                            Intercept intercept = null;
                                             attribute.DynamicProperties dynamicProperties = null;
                                             if (a.IsTypeOf<PrimaryKey>())
                                             {
@@ -231,13 +234,33 @@ namespace MVCEngine.Model
                                             }
                                             else if ((notIntercept = a.CastToType<NotIntercept>()).IsNotNull())
                                             {
-                                                if (notIntercept.Method == Method.Get)
+                                                if (notIntercept.InterceptorId.IsNullOrEmpty())
                                                 {
-                                                    property.RemoveGetInterceptor(notIntercept.InterceptorId);
+                                                    property.RemoveGetInterceptor(string.Empty);
+                                                    property.RemoveSetInterceptor(string.Empty);
                                                 }
                                                 else
                                                 {
-                                                    property.RemoveSetInterceptor(notIntercept.InterceptorId);
+                                                    if (notIntercept.Method == Method.Get)
+                                                    {
+                                                        property.RemoveGetInterceptor(notIntercept.InterceptorId);
+                                                    }
+                                                    else
+                                                    {
+                                                        property.RemoveSetInterceptor(notIntercept.InterceptorId);
+                                                    }
+                                                }
+                                            }
+                                            else if ((intercept = a.CastToType<Intercept>()).IsNotNull() && intercept.Method.IsNotNull())
+                                            {
+                                                if (intercept.Method.Contains(Method.Get))
+                                                {
+                                                    property.AddGetInterceptor(intercept.InterceptorId);
+                                                }
+                                                
+                                                if (intercept.Method.Contains(Method.Set))
+                                                {
+                                                    property.AddSetInterceptor(intercept.InterceptorId);
                                                 }
                                             }
                                         });
@@ -439,6 +462,11 @@ namespace MVCEngine.Model
                         interceptors.Add(EntityInterceptorDispatcher.GetInstance(p.ReletedEntity.RelatedEntity.EntityType));
                     }
                 });
+                entity.Attributes.Where(a => a.IsTypeOf<Interceptor>()).Select(a => a.CastToType<Interceptor>()).ToList().
+                    ForEach((i) =>
+                {
+                    interceptors.Add(i);
+                });
                 return interceptors.ToArray();
             }
             else
@@ -450,17 +478,24 @@ namespace MVCEngine.Model
         internal static IInterceptor[] SelectInterceptors(MethodInfo info, IInterceptor[] interceptors)
         {
             Type type = info.ReflectedType;
-            EntityClass entity = _entites.Value[type.FullName];
-            if (entity.IsNotNull())
+            if (_entites.Value.ContainsKey(type.FullName))
             {
-                EntityProperty property = entity.Properties.FirstOrDefault(p => p.GetInterceptorsId(info.Name).Count() > 0);
-                if(property.IsNotNull())
+                EntityClass entity = _entites.Value[type.FullName];
+                if (entity.IsNotNull())
                 {
-                    var query = from i in property.GetInterceptorsId(info.Name)
-                            join ii in interceptors.Where(i => i.IsTypeOf<Interceptor>()).Select(i => i.CastToType<Interceptor>())
-                            on i equals ii.GetId()
-                            select ii.CastToType<IInterceptor>();
-                    return query.ToArray();
+                    EntityProperty property = entity.Properties.FirstOrDefault(p => p.GetInterceptorsId(info.Name).Count() > 0);
+                    if (property.IsNotNull())
+                    {
+                        var query = from i in property.GetInterceptorsId(info.Name)
+                                    join ii in interceptors.Where(i => i.IsTypeOf<Interceptor>()).Select(i => i.CastToType<Interceptor>())
+                                    on i equals ii.GetId()
+                                    select ii.CastToType<IInterceptor>();
+                        return query.ToArray();
+                    }
+                    else
+                    {
+                        return new IInterceptor[0];
+                    }
                 }
                 else
                 {

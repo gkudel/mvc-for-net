@@ -6,16 +6,11 @@ using System.Text;
 
 namespace MVCEngine.Model.Attributes
 {
-    public enum Method { Get, Set };
-
-    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple=true)]
-    public class NotIntercept : System.Attribute
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true)]
+    public class Intercept : System.Attribute
     {
         #region Constructor
-        public NotIntercept()
-        { }
-
-        public NotIntercept(string interceptorId, Method method)
+        public Intercept(string interceptorId, Method[] method)
         {
             ArgumentValidator.GetInstnace().
                 IsNotEmpty(interceptorId, "interceptorId");
@@ -27,7 +22,7 @@ namespace MVCEngine.Model.Attributes
 
         #region Properties
         internal string InterceptorId { get; private set; }
-        internal Method Method { get; private set; }
+        internal Method[] Method { get; private set; }
         #endregion Properties
     }
 }

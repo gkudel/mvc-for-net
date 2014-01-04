@@ -9,20 +9,33 @@ using System.Linq;
 using System.Text;
 using attributes = MVCEngine.Model.Attributes;
 using MVCEngine;
+using System.Data;
+using CtgWorksheet.Model.Attributes;
 
 namespace CtgWorksheet.Model
 {
-    [attributes.Validation.PrimaryKeyValidator(RealTimeValidation = true, ErrrorMessage = "Integrity Constraint")]
-    public class WorksheetRow : Entity
+    [Table("GP_WORKSHEETROW")]
+    public class WorksheetRow : EntityRow
     {
-        [PrimaryKeyDefaultValue()]
+        public WorksheetRow()
+            : base()
+        {}
+
+        public WorksheetRow(DataRow row)
+            : base(row)
+        { }
+
         [attributes.PrimaryKey()]
+        [Column("GP_WROW_RECID")]
         public virtual long Id { get; set; }
 
+        [Column("GP_WROW_CODE")]
         public virtual string Code { get; set; }
 
+        [Column("GP_WROW_NAME")]
         public virtual string Name { get; set; }
 
+        [Column("GP_WROW_SCRID")]
         public virtual long ScreeningId { get; set; }
 
         [attributes.Relation("WorksheetRow_Screening", "Screening", "Id", "WorksheetRow", "ScreeningId", OnDelete = OnDelete.Cascade)]

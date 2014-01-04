@@ -36,12 +36,12 @@ namespace MVCEngine.Model.Interceptors
         #region Inetercept
         public const string Id = "ModificationInterceptor";
 
-        public override string GetId()
+        public string GetId()
         {
             return ModificationInterceptor.Id;
         }
 
-        public override void Intercept(IInvocation invocation)
+        public void Intercept(IInvocation invocation)
         {
             Entity obj = invocation.InvocationTarget.CastToType<Entity>();
             if (obj.IsNotNull() && !obj.Disposing)
@@ -93,7 +93,6 @@ namespace MVCEngine.Model.Interceptors
                 {
                     obj.State = EntityState.Modified;
                 }
-                obj.Modified();
                 obj.FirePropertyChanged(invocation.Method.Name.Substring(4, invocation.Method.Name.Length - 4));
             }
         }

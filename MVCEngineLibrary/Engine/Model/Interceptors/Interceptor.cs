@@ -7,13 +7,8 @@ using System.Threading.Tasks;
 
 namespace MVCEngine.Model.Interceptors
 {
-    public abstract class Interceptor : IInterceptor
+    public interface Interceptor : IInterceptor
     {
-        public virtual void Intercept(IInvocation invocation)
-        {
-            invocation.Proceed();
-        }
-
-        public abstract string GetId();        
+        string GetId();        
     }
 }
