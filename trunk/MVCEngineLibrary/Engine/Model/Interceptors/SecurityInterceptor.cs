@@ -35,12 +35,12 @@ namespace MVCEngine.Model.Interceptors
         #region Inetercept
         public const string Id = "SecurityInterceptor";
 
-        public override string GetId()
+        public string GetId()
         {
             return SecurityInterceptor.Id;
         }
 
-        public override void Intercept(IInvocation invocation)
+        public void Intercept(IInvocation invocation)
         {
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             if (!entity.Disposing && entity.IsNotNull())

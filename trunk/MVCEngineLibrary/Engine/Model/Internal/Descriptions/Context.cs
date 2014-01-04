@@ -31,7 +31,7 @@ namespace MVCEngine.Model.Internal.Descriptions
         internal Type EntitiesContextType { get; set; }
         internal List<EntitiesRelation> Relations { get; set; }
         internal Action ContextModifed { get; set; }
-
+        
         public bool IsModified
         {
             get
@@ -47,6 +47,8 @@ namespace MVCEngine.Model.Internal.Descriptions
                 }
             }
         }
+
+        public Action<Entity> EntityInitialize { get; set; }
         #endregion Properties
 
         #region Copy
@@ -65,6 +67,7 @@ namespace MVCEngine.Model.Internal.Descriptions
                     PrimaryKey = t.PrimaryKey,
                 };
                 entity.Validators.AddRange(t.Validators);
+                entity.Attributes.AddRange(t.Attributes);
                 t.SynchronizedCollection.Keys.ToList().ForEach((s) =>
                 {
                     entity.SynchronizedCollection.Add(s, new List<string>(t.SynchronizedCollection[s]));
@@ -119,6 +122,7 @@ namespace MVCEngine.Model.Internal.Descriptions
                         property.ReletedEntity.Discriminators.AddRange(p.ReletedEntity.Discriminators);
                     }
                     property.Validators.AddRange(p.Validators);
+                    property.Attibutes.AddRange(p.Attibutes);
                     p.Formatters.Keys.ToList().ForEach((k) => property.Formatters.Add(k, p.Formatters[k]));
                     t.Properties.Add(property);
                 });
@@ -163,6 +167,7 @@ namespace MVCEngine.Model.Internal.Descriptions
             {
                 t.Entities = null;
             });
+            EntityInitialize = null;
             ContextModifed = null;
         }
 

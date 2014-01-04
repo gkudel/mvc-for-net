@@ -9,6 +9,7 @@ using CtgWorksheet.Model;
 using MVCEngine.View;
 using MVCEngine.Session;
 using MVCEngine;
+using CtgWorksheet.DataSet;
 
 namespace CtgWorksheet.Controllers
 {
@@ -25,19 +26,18 @@ namespace CtgWorksheet.Controllers
         public virtual object Load(string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
-            Worksheet w = ctx.Worksheets.AddNew();
-            w.Description = "Workshet(" + w.Screenings.CountEntity() + ")";
-
-            Probe probe = ctx.Probes.AddNew();
-            probe.Code = "PROBE1";
-            probe.Name = "Probe Nr One";
-            EntitiesContext.Freeze(probe);
-            probe = ctx.Probes.AddNew();
-            probe.Code = "PROBE2";
-            probe.Name = "Probe Nr Two";
-            EntitiesContext.Freeze(probe);           
-
-            return new { Model = w, Probes = ctx.Probes.ToList()};
+            DataHandler handler = Session.GetSessionData(SessionId, "WorksheetDataHandler").CastToType<DataHandler>();
+            handler.FillDataSet();
+            handler.FillContext(ctx);
+            ctx.Context.EntityInitialize = handler.EntityInitialize;
+            if (ctx.Worksheets.Count > 0)
+            {
+                return new { Model = ctx.Worksheets.FirstOrDefault(), Probes = ctx.Probes.ToList() };
+            }
+            else
+            {
+                return new ErrorView();
+            }
         }
 
         [ActionMethod("AddScreening")]

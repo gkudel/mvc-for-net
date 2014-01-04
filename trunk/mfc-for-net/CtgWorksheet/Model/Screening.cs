@@ -14,39 +14,58 @@ using MVCEngine.Model.Attributes.Discriminators;
 using MVCEngine.Model.Internal.Descriptions;
 using MVCEngine;
 using MVCEngine.Model.Attributes.Formatter;
+using CtgWorksheet.Model.Attributes;
+using System.Data;
 
 namespace CtgWorksheet.Model
 {
-    [attributes.Validation.PrimaryKeyValidator(RealTimeValidation= true, ErrrorMessage="Integrity Constraint")]
-    public class Screening : Entity
+    [Table("GP_SCREENING")]
+    public class Screening : EntityRow
     {
-        [PrimaryKeyDefaultValue()]
+        public Screening()
+            : base()
+        {}
+
+        public Screening(DataRow row)
+            : base(row)
+        { }
+
         [attributes.PrimaryKey()]
+        [Column("GP_SCR_RECID")]
         public virtual long Id { get; set; }
-        
+
+        [Column("GP_SCR_WKSID")]
         public virtual long WorksheetId { get; set; }
 
+        [Column("GP_SCR_PROBEID")]
         public virtual long ProbetId { get; set; }
 
         [StringDefaultValue(StringValue="10")]
+        [Column("GP_SCR_VALUEA")]
         public virtual string ValueA { get; set; }
 
         [RangeValidator(Min=10, Max=20, RealTimeValidation=true)]
+        [Column("GP_SCR_VALUEB")]
         [StringDefaultValue(StringValue = "15")]
         public virtual string ValueB { get; set; }
 
         [NumberFormatter(PropertyName="ValueDecimal")]
+        [Column("GP_SCR_RESULT")]
         public virtual string ValueResult { get; set; }
 
+        [Column("GP_SCR_RESULTNUMBER")]
         public virtual decimal? ValueDecimal { get; set; }
 
+        [Column("GP_SCR_COMMENT")]
         public virtual string Comment { get; set; }
 
         [StringDefaultValue(StringValue="N")]
         [UniqStringValidator(UniqValues = new string[] { "N", "Y" }, RealTimeValidation=true)]
+        [Column("GP_SCR_COMP")]
         public virtual string Completed { get; set; }
 
         [CurentDateTimeDefaultValue()]
+        [Column("GP_SCR_DATE")]        
         public virtual DateTime? Date { get; set; }
 
         [attributes.Relation("Worksheet_Screening", "Worksheet", "Id", "Screening", "WorksheetId", OnDelete = OnDelete.Cascade)]

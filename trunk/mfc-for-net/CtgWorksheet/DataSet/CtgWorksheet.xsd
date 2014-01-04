@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="CtgWorksheet" targetNamespace="http://tempuri.org/CtgWorksheet.xsd" xmlns:mstns="http://tempuri.org/CtgWorksheet.xsd" xmlns="http://tempuri.org/CtgWorksheet.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="CtgWorksheet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="CtgWorksheet" msprop:Generator_UserDSName="CtgWorksheet">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="GP_WORKSHEET" msprop:Generator_TableClassName="GP_WORKSHEETDataTable" msprop:Generator_TableVarName="tableGP_WORKSHEET" msprop:Generator_TablePropName="GP_WORKSHEET" msprop:Generator_RowDeletingName="GP_WORKSHEETRowDeleting" msprop:Generator_RowChangingName="GP_WORKSHEETRowChanging" msprop:Generator_RowEvHandlerName="GP_WORKSHEETRowChangeEventHandler" msprop:Generator_RowDeletedName="GP_WORKSHEETRowDeleted" msprop:Generator_UserTableName="GP_WORKSHEET" msprop:Generator_RowChangedName="GP_WORKSHEETRowChanged" msprop:Generator_RowEvArgName="GP_WORKSHEETRowChangeEvent" msprop:Generator_RowClassName="GP_WORKSHEETRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GP_WKS_RECID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnGP_WKS_RECID" msprop:Generator_ColumnPropNameInRow="GP_WKS_RECID" msprop:Generator_ColumnPropNameInTable="GP_WKS_RECIDColumn" msprop:Generator_UserColumnName="GP_WKS_RECID" type="xs:long" />
+              <xs:element name="GP_WKS_DESCRIPTION" msprop:Generator_ColumnVarNameInTable="columnGP_WKS_DESCRIPTION" msprop:Generator_ColumnPropNameInRow="GP_WKS_DESCRIPTION" msprop:Generator_ColumnPropNameInTable="GP_WKS_DESCRIPTIONColumn" msprop:Generator_UserColumnName="GP_WKS_DESCRIPTION" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_WKS_NAME" msprop:Generator_ColumnVarNameInTable="columnGP_WKS_NAME" msprop:Generator_ColumnPropNameInRow="GP_WKS_NAME" msprop:Generator_ColumnPropNameInTable="GP_WKS_NAMEColumn" msprop:Generator_UserColumnName="GP_WKS_NAME" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="GP_PROBE" msprop:Generator_TableClassName="GP_PROBEDataTable" msprop:Generator_TableVarName="tableGP_PROBE" msprop:Generator_RowChangedName="GP_PROBERowChanged" msprop:Generator_TablePropName="GP_PROBE" msprop:Generator_RowDeletingName="GP_PROBERowDeleting" msprop:Generator_RowChangingName="GP_PROBERowChanging" msprop:Generator_RowEvHandlerName="GP_PROBERowChangeEventHandler" msprop:Generator_RowDeletedName="GP_PROBERowDeleted" msprop:Generator_RowClassName="GP_PROBERow" msprop:Generator_UserTableName="GP_PROBE" msprop:Generator_RowEvArgName="GP_PROBERowChangeEvent">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GP_PR_RECID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnGP_PR_RECID" msprop:Generator_ColumnPropNameInRow="GP_PR_RECID" msprop:Generator_ColumnPropNameInTable="GP_PR_RECIDColumn" msprop:Generator_UserColumnName="GP_PR_RECID" type="xs:long" />
+              <xs:element name="GP_PR_CODE" msprop:Generator_ColumnVarNameInTable="columnGP_PR_CODE" msprop:Generator_ColumnPropNameInRow="GP_PR_CODE" msprop:Generator_ColumnPropNameInTable="GP_PR_CODEColumn" msprop:Generator_UserColumnName="GP_PR_CODE" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_PR_NAME" msprop:Generator_ColumnVarNameInTable="columnGP_PR_NAME" msprop:Generator_ColumnPropNameInRow="GP_PR_NAME" msprop:Generator_ColumnPropNameInTable="GP_PR_NAMEColumn" msprop:Generator_UserColumnName="GP_PR_NAME" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="GP_SCREENING" msprop:Generator_TableClassName="GP_SCREENINGDataTable" msprop:Generator_TableVarName="tableGP_SCREENING" msprop:Generator_TablePropName="GP_SCREENING" msprop:Generator_RowDeletingName="GP_SCREENINGRowDeleting" msprop:Generator_RowChangingName="GP_SCREENINGRowChanging" msprop:Generator_RowEvHandlerName="GP_SCREENINGRowChangeEventHandler" msprop:Generator_RowDeletedName="GP_SCREENINGRowDeleted" msprop:Generator_UserTableName="GP_SCREENING" msprop:Generator_RowChangedName="GP_SCREENINGRowChanged" msprop:Generator_RowEvArgName="GP_SCREENINGRowChangeEvent" msprop:Generator_RowClassName="GP_SCREENINGRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GP_SCR_RECID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_RECID" msprop:Generator_ColumnPropNameInRow="GP_SCR_RECID" msprop:Generator_ColumnPropNameInTable="GP_SCR_RECIDColumn" msprop:Generator_UserColumnName="GP_SCR_RECID" type="xs:long" />
+              <xs:element name="GP_SCR_WKSID" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_WKSID" msprop:Generator_ColumnPropNameInRow="GP_SCR_WKSID" msprop:Generator_ColumnPropNameInTable="GP_SCR_WKSIDColumn" msprop:Generator_UserColumnName="GP_SCR_WKSID" type="xs:long" minOccurs="0" />
+              <xs:element name="GP_SCR_PROBEID" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_PROBEID" msprop:Generator_ColumnPropNameInRow="GP_SCR_PROBEID" msprop:Generator_ColumnPropNameInTable="GP_SCR_PROBEIDColumn" msprop:Generator_UserColumnName="GP_SCR_PROBEID" type="xs:long" minOccurs="0" />
+              <xs:element name="GP_SCR_VALUEA" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_VALUEA" msprop:Generator_ColumnPropNameInRow="GP_SCR_VALUEA" msprop:Generator_ColumnPropNameInTable="GP_SCR_VALUEAColumn" msprop:Generator_UserColumnName="GP_SCR_VALUEA" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_SCR_VALUEB" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_VALUEB" msprop:Generator_ColumnPropNameInRow="GP_SCR_VALUEB" msprop:Generator_ColumnPropNameInTable="GP_SCR_VALUEBColumn" msprop:Generator_UserColumnName="GP_SCR_VALUEB" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_SCR_RESULT" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_RESULT" msprop:Generator_ColumnPropNameInRow="GP_SCR_RESULT" msprop:Generator_ColumnPropNameInTable="GP_SCR_RESULTColumn" msprop:Generator_UserColumnName="GP_SCR_RESULT" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_SCR_RESULTNUMBER" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_RESULTNUMBER" msprop:Generator_ColumnPropNameInRow="GP_SCR_RESULTNUMBER" msprop:Generator_ColumnPropNameInTable="GP_SCR_RESULTNUMBERColumn" msprop:Generator_UserColumnName="GP_SCR_RESULTNUMBER" type="xs:decimal" minOccurs="0" />
+              <xs:element name="GP_SCR_COMMENT" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_COMMENT" msprop:Generator_ColumnPropNameInRow="GP_SCR_COMMENT" msprop:Generator_ColumnPropNameInTable="GP_SCR_COMMENTColumn" msprop:Generator_UserColumnName="GP_SCR_COMMENT" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_SCR_DATE" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_DATE" msprop:Generator_ColumnPropNameInRow="GP_SCR_DATE" msprop:Generator_ColumnPropNameInTable="GP_SCR_DATEColumn" msprop:Generator_UserColumnName="GP_SCR_DATE" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="GP_SCR_COMP" msprop:Generator_ColumnVarNameInTable="columnGP_SCR_COMP" msprop:Generator_ColumnPropNameInRow="GP_SCR_COMP" msprop:Generator_ColumnPropNameInTable="GP_SCR_COMPColumn" msprop:Generator_UserColumnName="GP_SCR_COMP" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="GP_WORKSHEETROW" msprop:Generator_TableClassName="GP_WORKSHEETROWDataTable" msprop:Generator_TableVarName="tableGP_WORKSHEETROW" msprop:Generator_TablePropName="GP_WORKSHEETROW" msprop:Generator_RowDeletingName="GP_WORKSHEETROWRowDeleting" msprop:Generator_RowChangingName="GP_WORKSHEETROWRowChanging" msprop:Generator_RowEvHandlerName="GP_WORKSHEETROWRowChangeEventHandler" msprop:Generator_RowDeletedName="GP_WORKSHEETROWRowDeleted" msprop:Generator_UserTableName="GP_WORKSHEETROW" msprop:Generator_RowChangedName="GP_WORKSHEETROWRowChanged" msprop:Generator_RowEvArgName="GP_WORKSHEETROWRowChangeEvent" msprop:Generator_RowClassName="GP_WORKSHEETROWRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GP_WROW_RECID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnGP_WROW_RECID" msprop:Generator_ColumnPropNameInRow="GP_WROW_RECID" msprop:Generator_ColumnPropNameInTable="GP_WROW_RECIDColumn" msprop:Generator_UserColumnName="GP_WROW_RECID" type="xs:long" />
+              <xs:element name="GP_WROW_CODE" msprop:Generator_ColumnVarNameInTable="columnGP_WROW_CODE" msprop:Generator_ColumnPropNameInRow="GP_WROW_CODE" msprop:Generator_ColumnPropNameInTable="GP_WROW_CODEColumn" msprop:Generator_UserColumnName="GP_WROW_CODE" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_WROW_NAME" msprop:Generator_ColumnVarNameInTable="columnGP_WROW_NAME" msprop:Generator_ColumnPropNameInRow="GP_WROW_NAME" msprop:Generator_ColumnPropNameInTable="GP_WROW_NAMEColumn" msprop:Generator_UserColumnName="GP_WROW_NAME" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_WROW_SCRID" msprop:Generator_ColumnVarNameInTable="columnGP_WROW_SCRID" msprop:Generator_ColumnPropNameInRow="GP_WROW_SCRID" msprop:Generator_ColumnPropNameInTable="GP_WROW_SCRIDColumn" msprop:Generator_UserColumnName="GP_WROW_SCRID" type="xs:long" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="GP_ANSUM" msprop:Generator_TableClassName="GP_ANSUMDataTable" msprop:Generator_TableVarName="tableGP_ANSUM" msprop:Generator_TablePropName="GP_ANSUM" msprop:Generator_RowDeletingName="GP_ANSUMRowDeleting" msprop:Generator_RowChangingName="GP_ANSUMRowChanging" msprop:Generator_RowEvHandlerName="GP_ANSUMRowChangeEventHandler" msprop:Generator_RowDeletedName="GP_ANSUMRowDeleted" msprop:Generator_UserTableName="GP_ANSUM" msprop:Generator_RowChangedName="GP_ANSUMRowChanged" msprop:Generator_RowEvArgName="GP_ANSUMRowChangeEvent" msprop:Generator_RowClassName="GP_ANSUMRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="GP_ANS_RECID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnGP_ANS_RECID" msprop:Generator_ColumnPropNameInRow="GP_ANS_RECID" msprop:Generator_ColumnPropNameInTable="GP_ANS_RECIDColumn" msprop:Generator_UserColumnName="GP_ANS_RECID" type="xs:long" />
+              <xs:element name="GP_ANS_CODE" msprop:Generator_ColumnVarNameInTable="columnGP_ANS_CODE" msprop:Generator_ColumnPropNameInRow="GP_ANS_CODE" msprop:Generator_ColumnPropNameInTable="GP_ANS_CODEColumn" msprop:Generator_UserColumnName="GP_ANS_CODE" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_ANS_VALUE" msprop:Generator_ColumnVarNameInTable="columnGP_ANS_VALUE" msprop:Generator_ColumnPropNameInRow="GP_ANS_VALUE" msprop:Generator_ColumnPropNameInTable="GP_ANS_VALUEColumn" msprop:Generator_UserColumnName="GP_ANS_VALUE" type="xs:string" minOccurs="0" />
+              <xs:element name="GP_ANS_WROWID" msprop:Generator_ColumnVarNameInTable="columnGP_ANS_WROWID" msprop:Generator_ColumnPropNameInRow="GP_ANS_WROWID" msprop:Generator_ColumnPropNameInTable="GP_ANS_WROWIDColumn" msprop:Generator_UserColumnName="GP_ANS_WROWID" type="xs:long" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:GP_WORKSHEET" />
+      <xs:field xpath="mstns:GP_WKS_RECID" />
+    </xs:unique>
+    <xs:unique name="GP_PROBE_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:GP_PROBE" />
+      <xs:field xpath="mstns:GP_PR_RECID" />
+    </xs:unique>
+    <xs:unique name="GP_SCREENING_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:GP_SCREENING" />
+      <xs:field xpath="mstns:GP_SCR_RECID" />
+    </xs:unique>
+    <xs:unique name="GP_WORKSHEETROW_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:GP_WORKSHEETROW" />
+      <xs:field xpath="mstns:GP_WROW_RECID" />
+    </xs:unique>
+    <xs:unique name="GP_ANSUM_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:GP_ANSUM" />
+      <xs:field xpath="mstns:GP_ANS_RECID" />
+    </xs:unique>
+  </xs:element>
+  <xs:annotation>
+    <xs:appinfo>
+      <msdata:Relationship name="GP_WORKSHEET_GP_SCREENING" msdata:parent="GP_WORKSHEET" msdata:child="GP_SCREENING" msdata:parentkey="GP_WKS_RECID" msdata:childkey="GP_SCR_WKSID" msprop:Generator_UserChildTable="GP_SCREENING" msprop:Generator_ChildPropName="GetGP_SCREENINGRows" msprop:Generator_UserRelationName="GP_WORKSHEET_GP_SCREENING" msprop:Generator_ParentPropName="GP_WORKSHEETRow" msprop:Generator_RelationVarName="relationGP_WORKSHEET_GP_SCREENING" msprop:Generator_UserParentTable="GP_WORKSHEET" />
+      <msdata:Relationship name="GP_PROBE_GP_SCREENING" msdata:parent="GP_PROBE" msdata:child="GP_SCREENING" msdata:parentkey="GP_PR_RECID" msdata:childkey="GP_SCR_PROBEID" msprop:Generator_UserChildTable="GP_SCREENING" msprop:Generator_ChildPropName="GetGP_SCREENINGRows" msprop:Generator_UserRelationName="GP_PROBE_GP_SCREENING" msprop:Generator_ParentPropName="GP_PROBERow" msprop:Generator_RelationVarName="relationGP_PROBE_GP_SCREENING" msprop:Generator_UserParentTable="GP_PROBE" />
+      <msdata:Relationship name="GP_SCREENING_GP_WORKSHEETROW" msdata:parent="GP_SCREENING" msdata:child="GP_WORKSHEETROW" msdata:parentkey="GP_SCR_RECID" msdata:childkey="GP_WROW_SCRID" msprop:Generator_UserChildTable="GP_WORKSHEETROW" msprop:Generator_ChildPropName="GetGP_WORKSHEETROWRows" msprop:Generator_UserRelationName="GP_SCREENING_GP_WORKSHEETROW" msprop:Generator_ParentPropName="GP_SCREENINGRow" msprop:Generator_RelationVarName="relationGP_SCREENING_GP_WORKSHEETROW" msprop:Generator_UserParentTable="GP_SCREENING" />
+      <msdata:Relationship name="GP_WORKSHEETROW_GP_ANSUM" msdata:parent="GP_WORKSHEETROW" msdata:child="GP_ANSUM" msdata:parentkey="GP_WROW_RECID" msdata:childkey="GP_ANS_WROWID" msprop:Generator_UserChildTable="GP_ANSUM" msprop:Generator_ChildPropName="GetGP_ANSUMRows" msprop:Generator_UserRelationName="GP_WORKSHEETROW_GP_ANSUM" msprop:Generator_ParentPropName="GP_WORKSHEETROWRow" msprop:Generator_RelationVarName="relationGP_WORKSHEETROW_GP_ANSUM" msprop:Generator_UserParentTable="GP_WORKSHEETROW" />
+    </xs:appinfo>
+  </xs:annotation>
+</xs:schema>

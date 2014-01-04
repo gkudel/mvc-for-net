@@ -47,7 +47,7 @@ namespace MVCEngine
         #endregion IfNullOrEmptyDefault
 
         #region IsNull
-        internal static bool IsNull(this object thisObject)
+        public static bool IsNull(this object thisObject)
         {
             return thisObject == null;
         }
@@ -185,7 +185,7 @@ namespace MVCEngine
         #endregion AppendByDefault
 
         #region GetDefaultValue
-        internal static object GetDefaultValue(this Type type)
+        public static object GetDefaultValue(this Type type)
         {
             if (type == null || !type.IsValueType || type == typeof(void))
                 return null;

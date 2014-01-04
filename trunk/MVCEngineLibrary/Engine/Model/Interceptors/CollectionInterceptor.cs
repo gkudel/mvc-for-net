@@ -25,12 +25,12 @@ namespace MVCEngine.Model.Interceptors
         #endregion Constructor
 
         #region Inetercept
-        public override string GetId()
+        public string GetId()
         {
             return "CollectionInterceptor["+typeof(T).Name+"]";
         }
 
-        public override void Intercept(IInvocation invocation)
+        public void Intercept(IInvocation invocation)
         {
             Entity entity = invocation.InvocationTarget.CastToType<Entity>();
             Debug.Assert(entity.IsNotNull(), "CollectionInterceptor error");

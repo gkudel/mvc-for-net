@@ -15,6 +15,7 @@ namespace MVCEngine.Model.Internal.Descriptions
             Properties = new List<EntityProperty>();
             Validators = new List<EntityValidator>();
             SynchronizedCollection = new Dictionary<string, List<string>>();
+            Attributes = new List<Attribute>();
             Synchronizing = true;
             MarkedAsModified();
         }
@@ -22,12 +23,13 @@ namespace MVCEngine.Model.Internal.Descriptions
 
         #region Properties
         public string Name { get; internal set; }
-        public List<EntityProperty> Properties { get; internal set; }
-        internal IEnumerable<Entity> Entities { get; set; }
+        public List<EntityProperty> Properties { get; private set; }
+        public List<Attribute> Attributes { get; private set; }
+        public IEnumerable<Entity> Entities { get; internal set; }
+        public Type EntityType { get; internal set; }
         internal string Uid { get; private set; }
         internal Func<object, object> PrimaryKey { get; set; }
-        internal EntityProperty PrimaryKeyProperty { get; set; }
-        internal Type EntityType { get; set; }
+        internal EntityProperty PrimaryKeyProperty { get; set; }        
         internal List<EntityValidator> Validators { get; private set; }
         internal DynamicProperties DynamicProperties { get; set; }
         internal Dictionary<string, List<string>> SynchronizedCollection { get; set; }

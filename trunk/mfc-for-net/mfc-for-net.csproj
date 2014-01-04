@@ -94,6 +94,12 @@
   <ItemGroup>
     <Compile Include="CtgWorksheet\Controllers\ScreeningController.cs" />
     <Compile Include="CtgWorksheet\Controllers\WorksheetController.cs" />
+    <Compile Include="CtgWorksheet\DataSet\CtgWorksheet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CtgWorksheet.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="CtgWorksheet\DataSet\DataHandler.cs" />
     <Compile Include="CtgWorksheet\GUI\ScreeningCtrl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -118,6 +124,9 @@
     <Compile Include="CtgWorksheet\GUI\WorksheetForm.Designer.cs">
       <DependentUpon>WorksheetForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="CtgWorksheet\Model\Attributes\Column.cs" />
+    <Compile Include="CtgWorksheet\Model\Attributes\Table.cs" />
+    <Compile Include="CtgWorksheet\Model\EntityRow.cs" />
     <Compile Include="CtgWorksheet\Model\Probe.cs" />
     <Compile Include="CtgWorksheet\Model\Screening.cs" />
     <Compile Include="CtgWorksheet\Model\UserDefined.cs" />
@@ -149,6 +158,17 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="CtgWorksheet\DataSet\CtgWorksheet.xsc">
+      <DependentUpon>CtgWorksheet.xsd</DependentUpon>
+    </None>
+    <None Include="CtgWorksheet\DataSet\CtgWorksheet.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>CtgWorksheet.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="CtgWorksheet\DataSet\CtgWorksheet.xss">
+      <DependentUpon>CtgWorksheet.xsd</DependentUpon>
+    </None>
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

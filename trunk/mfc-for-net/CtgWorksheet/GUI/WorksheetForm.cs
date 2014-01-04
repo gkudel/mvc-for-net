@@ -17,6 +17,7 @@ using MVCEngine.Internal;
 using System.Diagnostics;
 using DevExpress.XtraGrid.Views.Grid;
 using DevExpress.XtraTab;
+using CtgWorksheet.DataSet;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -49,6 +50,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                     this.Text = "Worksheet Dialog"; 
                 }
             });
+            Session.SetSessionData(SessionId, "WorksheetDataHandler", new DataHandler()); 
             worksheetCtrl.SessionId = SessionId;
             ControllerDispatcher.GetInstance().RegisterListener(this);
             try
