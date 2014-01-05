@@ -29,7 +29,8 @@ namespace CtgWorksheet.Controllers
             DataHandler handler = Session.GetSessionData(SessionId, "WorksheetDataHandler").CastToType<DataHandler>();
             handler.FillDataSet();
             handler.FillContext(ctx);
-            ctx.Context.EntityInitialize = handler.EntityInitialize;
+            ctx.Context.EntityInitialized = handler.EntityInitialized;
+            ctx.Context.EntityCreated = handler.EntityCreated;
             if (ctx.Worksheets.Count > 0)
             {
                 return new { Model = ctx.Worksheets.FirstOrDefault(), Probes = ctx.Probes.ToList() };
