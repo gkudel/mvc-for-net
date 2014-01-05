@@ -266,22 +266,32 @@ namespace MVCEngine.Model
                 {
                     entity.Context = Context;
 
-                    if (Context.EntityInitialize.IsNotNull())
+                    if (Context.EntityCreated.IsNotNull())
                     {
-                        Context.EntityInitialize(entity);
+                        Context.EntityCreated(entity);
                     }
-                    if (defaultValue)
+                    try
                     {
-                        entity.Default();
-                    }
-                    if (Releted.IsNotNull())
-                    {
-                        entity[Releted.Relation.ChildKey] = ParentValue;
-                        if (Releted.Discriminators.IsNotNull())
+                        if (defaultValue)
                         {
-                            Releted.Discriminators.ForEach((d) => d.Default(entity));
+                            entity.Default();
                         }
-                    }       
+                        if (Releted.IsNotNull())
+                        {
+                            entity[Releted.Relation.ChildKey] = ParentValue;
+                            if (Releted.Discriminators.IsNotNull())
+                            {
+                                Releted.Discriminators.ForEach((d) => d.Default(entity));
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        if (Context.EntityInitialized.IsNotNull())
+                        {
+                            Context.EntityInitialized(entity);
+                        }
+                    }
                 }
             }
             return proxy;
