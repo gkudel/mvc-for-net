@@ -80,19 +80,25 @@ namespace MVCEngine.Model.Internal.Descriptions
                 {
                     Ordinal = r.Ordinal,
                     Name = r.Name,
-                    ParentEntityName = r.ParentEntityName,                    
-                    ChildEntityName = r.ChildEntityName,
-                    ParentKey = r.ParentKey,
-                    ParentType = r.ParentType, 
-                    ParentValue = r.ParentValue,
-                    ChildKey = r.ChildKey, 
-                    ChildType = r.ChildType, 
-                    ChildValue = r.ChildValue,
+                    Parent = new EntityRelated() 
+                    {
+                        EntityName = r.Parent.EntityName,                    
+                        Key = r.Parent.Key,
+                        Type = r.Parent.Type,
+                        Value = r.Parent.Value
+                    },
+                    Child = new EntityRelated()
+                    {
+                        EntityName = r.Child.EntityName,
+                        Key = r.Child.Key,
+                        Type = r.Child.Type,
+                        Value = r.Child.Value
+                    },
                     OnDelete = r.OnDelete
                 };
                 ctx.Relations.Add(relation);
-                relation.ParentEntity = ctx.Entites.FirstOrDefault(t => t.Name == r.ParentEntityName);
-                relation.ChildEntity = ctx.Entites.FirstOrDefault(t => t.Name == r.ChildEntityName);
+                relation.Parent.Entity = ctx.Entites.FirstOrDefault(t => t.Name == r.Parent.EntityName);
+                relation.Child.Entity = ctx.Entites.FirstOrDefault(t => t.Name == r.Child.EntityName);
             });
             ctx.Entites.ForEach((t) =>
             {

@@ -23,19 +23,8 @@ namespace MVCEngine.Model.Internal.Descriptions
         #region Properties
         internal int Ordinal { get; set; }
         public string Name { get; internal set; }
-        public string ParentEntityName { get; internal set; }
-        public EntityClass ParentEntity { get; internal set; }
-        public string ChildEntityName { get; internal set; }
-        public EntityClass ChildEntity { get; internal set; }
-
-        public string ParentKey { get; internal set; }
-        internal Type ParentType { get; set; }
-        internal Func<object, object> ParentValue { get; set; }
-
-        public string ChildKey { get; internal set; }
-        internal Type ChildType { get; set; }
-        internal Func<object, object> ChildValue { get; set; }
-
+        public EntityRelated Parent { get; internal set; }
+        public EntityRelated Child { get; internal set; }
         internal OnDelete OnDelete { get; set; }
         #endregion Properties
     }

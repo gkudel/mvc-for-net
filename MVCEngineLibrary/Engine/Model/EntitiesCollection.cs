@@ -276,7 +276,7 @@ namespace MVCEngine.Model
                     }
                     if (Releted.IsNotNull())
                     {
-                        entity[Releted.Relation.ChildKey] = ParentValue;
+                        entity[Releted.Relation.Child.Key] = ParentValue;
                         if (Releted.Discriminators.IsNotNull())
                         {
                             Releted.Discriminators.ForEach((d) => d.Default(entity));
