@@ -29,7 +29,6 @@ namespace CtgWorksheet.Controllers
             DataHandler handler = Session.GetSessionData(SessionId, "WorksheetDataHandler").CastToType<DataHandler>();
             handler.FillDataSet();
             handler.FillContext(ctx);
-            ctx.Context.EntityInitialized = handler.EntityInitialized;
             ctx.Context.EntityCreated = handler.EntityCreated;
             if (ctx.Worksheets.Count > 0)
             {
@@ -47,10 +46,10 @@ namespace CtgWorksheet.Controllers
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
             Worksheet worksheet = ctx.Worksheets.FirstOrDefulatEntity(w => w.Id == id);
             if( worksheet != null)
-            {
+            {               
                 Screening screening = ctx.Screenings.CreateInstance();
                 screening.WorksheetId = worksheet.Id;
-                screening.ProbetId = probeid;
+                screening.ProbeId = probeid;
                 ctx.Screenings.Add(screening);
                 worksheet.Description = "Workshet(" + worksheet.Screenings.CountEntity() + ")";
                 return new { Model = screening };
@@ -83,7 +82,7 @@ namespace CtgWorksheet.Controllers
         public virtual object ProbeChenged(long probeId, string SessionId)
         {
             WorksheetContext ctx = Session.GetSessionData(SessionId, "WorksheetContext").CastToType<WorksheetContext>();
-            return new { Screenings = ctx.Screenings.WhereEntity(s => s.ProbetId == probeId).ToList() };
+            return new { Screenings = ctx.Screenings.WhereEntity(s => s.ProbeId == probeId).ToList() };
         }
 
         [ActionMethod("ScreeningChanged")]

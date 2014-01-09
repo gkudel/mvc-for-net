@@ -51,87 +51,25 @@ namespace CtgWorksheet.Model
         }        
         #endregion Properties
 
-        #region Get & Set
-        public override object this[string name]
-        {
-            get 
+        #region DataTable Column
+        public KeyValuePair<string,EntityProperty> GetDataTableColumn(string name)
+        { 
+            if (!_map.ContainsKey(name))
             {
-                if (!_map.ContainsKey(name))
+                _map.Add(name, new KeyValuePair<string,EntityProperty>(string.Empty, null));
+                EntityProperty property = EntityCtx.Properties.FirstOrDefault(p => p.Name == name);
+                if (property.IsNotNull())
                 {
-                    _map.Add(name, new KeyValuePair<string,EntityProperty>(string.Empty, null));
-                    EntityProperty property = EntityCtx.Properties.FirstOrDefault(p => p.Name == name);
-                    if (property.IsNotNull())
+                    Column column = property.Attibutes.FirstOrDefault(a => a.IsTypeOf<Column>()) as Column;
+                    if (column.IsNotNull())
                     {
-                        Column column = property.Attibutes.FirstOrDefault(a => a.IsTypeOf<Column>()) as Column;
-                        if (column.IsNotNull())
-                        {
-                            _map[name] = new KeyValuePair<string,EntityProperty>(column.ColumnName, property);
-                        }
+                        _map[name] = new KeyValuePair<string,EntityProperty>(column.ColumnName, property);
                     }
-                }
-                if(_map[name].Key != string.Empty)
-                {
-                    if (Row.Table.Columns.Contains(_map[name].Key))
-                    {
-                        if (Row[_map[name].Key] != System.DBNull.Value)
-                        {
-                            return Row[_map[name].Key];
-                        }
-                        else
-                        {
-                            return _map[name].Value.PropertyType.GetDefaultValue();
-                        }
-                    }
-                    else
-                    {
-                        return base[name];
-                    }
-                }
-                else
-                {
-                    return base[name];
                 }
             }
-            set
-            {
-                if (!_map.ContainsKey(name))
-                {
-                    _map.Add(name, new KeyValuePair<string, EntityProperty>(string.Empty, null));
-                    EntityProperty property = EntityCtx.Properties.FirstOrDefault(p => p.Name == name);
-                    if (property.IsNotNull())
-                    {
-                        Column column = property.Attibutes.FirstOrDefault(a => a.IsTypeOf<Column>()) as Column;
-                        if (column.IsNotNull())
-                        {
-                            _map[name] = new KeyValuePair<string, EntityProperty>(column.ColumnName, property);
-                        }
-                    }
-                }
-                if(_map[name].Key != string.Empty)
-                {
-                    if (Row.Table.Columns.Contains(_map[name].Key))
-                    {
-                        if (value != null)
-                        {
-                            Row[_map[name].Key] = value;
-                        }
-                        else
-                        {
-                            Row[_map[name].Key] = System.DBNull.Value;
-                        }
-                    }
-                    else
-                    {
-                        base[name] = value;
-                    }
-                }
-                else
-                {
-                    base[name] = value;
-                }
-            }
+            return _map[name];
         }
-        #endregion Get & Set
+        #endregion DataTable Column
 
         #region Object State
         public override EntityState State

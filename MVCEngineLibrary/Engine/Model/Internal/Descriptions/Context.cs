@@ -49,7 +49,6 @@ namespace MVCEngine.Model.Internal.Descriptions
         }
 
         public Action<Entity> EntityCreated { get; set; }
-        public Action<Entity> EntityInitialized { get; set; }
         #endregion Properties
 
         #region Copy
@@ -169,7 +168,6 @@ namespace MVCEngine.Model.Internal.Descriptions
                 t.Entities = null;
             });
             EntityCreated = null;
-            EntityInitialized = null;
             ContextModifed = null;
         }
 

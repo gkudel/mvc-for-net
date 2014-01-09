@@ -71,21 +71,6 @@ namespace CtgWorksheet.DataSet
             ctx.AcceptChanges();
         }
 
-        public void EntityInitialized(Entity e)
-        {
-            EntityRow entity = e.CastToType<EntityRow>();
-            if (entity.IsNotNull() && entity.Row.IsNotNull())
-            {
-                if (entity.Table.IsNotNull())
-                {
-                    if (_dataSet.Tables.Contains(entity.Table.TableName))
-                    {
-                        _dataSet.Tables[entity.Table.TableName].Rows.Add(entity.Row);
-                    }
-                }
-            }
-        }
-
         public void EntityCreated(Entity e)
         {
             EntityRow entity = e.CastToType<EntityRow>();
@@ -96,6 +81,7 @@ namespace CtgWorksheet.DataSet
                     if (_dataSet.Tables.Contains(entity.Table.TableName))
                     {
                         DataRow row = _dataSet.Tables[entity.Table.TableName].NewRow();
+                        _dataSet.Tables[entity.Table.TableName].Rows.Add(row);
                         entity.Row = row;
                     }
                 }

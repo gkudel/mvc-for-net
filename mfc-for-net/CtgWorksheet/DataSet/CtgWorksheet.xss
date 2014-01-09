@@ -8,7 +8,7 @@
   <Shapes>
     <Shape ID="DesignTable:GP_WORKSHEET" ZOrder="9" X="70" Y="70" Height="86" Width="162" AdapterExpanded="true" DataTableExpanded="true" OldAdapterHeight="0" OldDataTableHeight="0" SplitterPosition="86" />
     <Shape ID="DesignTable:GP_PROBE" ZOrder="5" X="249" Y="72" Height="86" Width="150" AdapterExpanded="true" DataTableExpanded="true" OldAdapterHeight="0" OldDataTableHeight="0" SplitterPosition="82" />
-    <Shape ID="DesignTable:GP_SCREENING" ZOrder="8" X="201" Y="315" Height="220" Width="162" AdapterExpanded="true" DataTableExpanded="true" OldAdapterHeight="0" OldDataTableHeight="0" SplitterPosition="216" />
+    <Shape ID="DesignTable:GP_SCREENING" ZOrder="8" X="201" Y="315" Height="238" Width="179" AdapterExpanded="true" DataTableExpanded="true" OldAdapterHeight="0" OldDataTableHeight="0" SplitterPosition="234" />
     <Shape ID="DesignTable:GP_WORKSHEETROW" ZOrder="4" X="500" Y="70" Height="163" Width="192" AdapterExpanded="true" DataTableExpanded="true" OldAdapterHeight="0" OldDataTableHeight="0" SplitterPosition="159" />
     <Shape ID="DesignTable:GP_ANSUM" ZOrder="2" X="648" Y="292" Height="144" Width="150" AdapterExpanded="true" DataTableExpanded="true" OldAdapterHeight="0" OldDataTableHeight="0" SplitterPosition="140" />
   </Shapes>
