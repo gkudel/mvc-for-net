@@ -228,7 +228,7 @@ namespace MVCEngine.Model
 
         #region Get & Set Coulumn Value
         [NotIntercept()]
-        public virtual object this[string property]
+        public object this[string property]
         {
             get 
             {

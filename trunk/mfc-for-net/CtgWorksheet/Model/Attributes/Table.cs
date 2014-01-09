@@ -52,11 +52,55 @@ namespace CtgWorksheet.Model.Attributes
                 }
                 if (invocation.Method.Name.StartsWith("get_"))
                 {
-                    invocation.ReturnValue = entity[propertyName];
+                    KeyValuePair<string, EntityProperty> column = entity.GetDataTableColumn(propertyName);
+                    if (!string.IsNullOrEmpty(column.Key))
+                    {
+                        if (entity.Row.Table.Columns.Contains(column.Key))
+                        {
+                            if (entity.Row[column.Key] != System.DBNull.Value)
+                            {
+                                invocation.ReturnValue = entity.Row[column.Key];
+                            }
+                            else
+                            {
+                                invocation.ReturnValue = column.Value.PropertyType.GetDefaultValue();
+                            }
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                    }
+                    else
+                    {
+                        invocation.Proceed();
+                    }
                 }
                 else if (invocation.Method.Name.StartsWith("set_") && invocation.Arguments.Count() > 0)
                 {
-                    entity[propertyName] = invocation.Arguments[0];
+                    KeyValuePair<string, EntityProperty> column = entity.GetDataTableColumn(propertyName);
+                    if (!string.IsNullOrEmpty(column.Key))
+                    {
+                        if (entity.Row.Table.Columns.Contains(column.Key))
+                        {
+                            if (invocation.Arguments[0] != null)
+                            {
+                                entity.Row[column.Key] = invocation.Arguments[0];
+                            }
+                            else
+                            {
+                                entity.Row[column.Key] = System.DBNull.Value;
+                            }
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                    }
+                    else
+                    {
+                        invocation.Proceed();
+                    }
                 }
             }
             else

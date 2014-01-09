@@ -183,7 +183,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                     Probe probe = gridView.GetRow(i) as Probe;
                     if (probe.IsNotNull())
                     {
-                        if (probe.Id == screening.ProbetId)
+                        if (probe.Id == screening.ProbeId)
                         {
                             if (gridView.FocusedRowHandle != i)
                             {

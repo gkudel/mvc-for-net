@@ -270,26 +270,16 @@ namespace MVCEngine.Model
                     {
                         Context.EntityCreated(entity);
                     }
-                    try
+                    if (defaultValue)
                     {
-                        if (defaultValue)
-                        {
-                            entity.Default();
-                        }
-                        if (Releted.IsNotNull())
-                        {
-                            entity[Releted.Relation.ChildKey] = ParentValue;
-                            if (Releted.Discriminators.IsNotNull())
-                            {
-                                Releted.Discriminators.ForEach((d) => d.Default(entity));
-                            }
-                        }
+                        entity.Default();
                     }
-                    finally
+                    if (Releted.IsNotNull())
                     {
-                        if (Context.EntityInitialized.IsNotNull())
+                        entity[Releted.Relation.ChildKey] = ParentValue;
+                        if (Releted.Discriminators.IsNotNull())
                         {
-                            Context.EntityInitialized(entity);
+                            Releted.Discriminators.ForEach((d) => d.Default(entity));
                         }
                     }
                 }

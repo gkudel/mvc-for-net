@@ -38,7 +38,10 @@ namespace CtgWorksheet.Model
         public virtual long WorksheetId { get; set; }
 
         [Column("GP_SCR_PROBEID")]
-        public virtual long ProbetId { get; set; }
+        public virtual long ProbeId { get; set; }
+
+        [Column("GP_SCR_PARENTID")]
+        public virtual long? ParentId { get; set; }
 
         [StringDefaultValue(StringValue="10")]
         [Column("GP_SCR_VALUEA")]
@@ -71,21 +74,32 @@ namespace CtgWorksheet.Model
         [attributes.Relation("Worksheet_Screening", "Worksheet", "Id", "Screening", "WorksheetId", OnDelete = OnDelete.Cascade)]
         public virtual Worksheet Worksheet { get; private set; }
 
-        [attributes.Relation("Probe_Screening", "Probe", "Id", "Screening", "ProbetId", OnDelete = OnDelete.Cascade)]
+        [attributes.Relation("Probe_Screening", "Probe", "Id", "Screening", "ProbeId", OnDelete = OnDelete.Cascade)]
         public virtual Probe Probe { get; private set; }
 
         [attributes.RelationName("WorksheetRow_Screening")]
         [attributes.Synchronized()]
         public virtual EntitiesCollection<WorksheetRow> WorksheetRows { get; private set; }
 
+        [attributes.Relation("Screening_Screening", "Screening", "Id", "Screening", "ParentId", OnDelete = OnDelete.Cascade)]
+        public virtual Screening Parent { get; private set; }
+
+        [attributes.RelationName("Screening_Screening")]
+        public virtual EntitiesCollection<Screening> Childs { get; private set; }
+
         public override void Dispose()
         {
             base.Dispose();
             Worksheet = null;
             Probe = null;
+            Parent = null;
             if (WorksheetRows.IsNotNull())
             {
                 WorksheetRows.Clear();
+            }
+            if (Childs.IsNotNull())
+            {
+                Childs.Clear();
             }
         }
     }
