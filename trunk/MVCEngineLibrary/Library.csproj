@@ -124,6 +124,7 @@
     <Compile Include="Engine\Model\Interceptors\SecurityInterceptor.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\EntitiesRelation.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\EntityProperty.cs" />
+    <Compile Include="Engine\Model\Internal\Descriptions\EntityRelated.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\ReletedEntity.cs" />
     <Compile Include="Engine\Model\Internal\EntityPropertyDescriptor.cs" />
     <Compile Include="Engine\Model\Internal\Descriptions\EntityClass.cs" />

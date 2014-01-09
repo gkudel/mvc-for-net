@@ -45,17 +45,22 @@ namespace MVCEngine.Model.Interceptors
                     && property.ReletedEntity.Related == Releted.Entity && property.ReletedEntity.Relation.IsNotNull())
                 {
                     EntitiesRelation relation = property.ReletedEntity.Relation;
-                    if (!relation.ParentEntity.Uid.Equals(entity.GetUid(propertyName)))
+                    EntityRelated relatedEntity = relation.Parent.Entity.Name == typeof(T).Name ? relation.Parent :
+                                                  (relation.Child.Entity.Name == typeof(T).Name ? relation.Child : null);
+                    EntityRelated currentEntity = relation.Parent.Entity.Name == entity.EntityCtx.Name ? relation.Parent :
+                                                  (relation.Child.Entity.Name == entity.EntityCtx.Name ? relation.Child : null);
+                    Debug.Assert(relatedEntity.IsNotNull() || currentEntity.IsNotNull(), "EntityInterceptor error");
+                    if (!relatedEntity.Entity.Uid.Equals(entity.GetUid(propertyName)))
                     {
-                        List<T> list = relation.ParentEntity.Entities.Where(p => p.State != EntityState.Deleted && relation.ParentValue(p).
-                                    Equals(relation.ChildValue(entity)) &&
+                        List<T> list = relatedEntity.Entity.Entities.WhereEntity(p => relatedEntity.Value(p).
+                                    Equals(currentEntity.Value(entity)) &&
                                     property.ReletedEntity.Discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(p); }))).Cast<T>().ToList();
 
                         if (list.Count() == 1)
                         {
                             invocation.ReturnValue = list[0].CastToType<T>();
                             if (property.Setter.IsNotNull()) entity[propertyName] = invocation.ReturnValue;
-                            entity.SetUid(propertyName, relation.ParentEntity.Uid);
+                            entity.SetUid(propertyName, relatedEntity.Entity.Uid);
                         }
                         else if (list.Count() > 1)
                         {
@@ -65,8 +70,8 @@ namespace MVCEngine.Model.Interceptors
                         {
                             invocation.ReturnValue = default(T);
                             if (property.Setter.IsNotNull()) entity[propertyName] = invocation.ReturnValue;
-                            entity.SetUid(propertyName, relation.ParentEntity.Uid);
-                        }                        
+                            entity.SetUid(propertyName, relatedEntity.Entity.Uid);
+                        }
                     }
                     else
                     {
@@ -109,6 +114,11 @@ namespace MVCEngine.Model.Interceptors
         internal static string GetId(Type reletedType)
         {
             return "EntityInterceptor[" + reletedType.Name + "]";
+        }
+
+        internal static string GetId(string reletedTypeName)
+        {
+            return "EntityInterceptor[" + reletedTypeName + "]";
         }
         #endregion GetId
     }

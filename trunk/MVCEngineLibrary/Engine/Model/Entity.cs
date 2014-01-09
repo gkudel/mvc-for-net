@@ -100,7 +100,7 @@ namespace MVCEngine.Model
                                 }
                                 else if (r.OnDelete == OnDelete.SetNull)
                                 {
-                                    e[r.ChildKey] = r.ChildType.GetDefaultValue();
+                                    e[r.Child.Key] = r.Child.Type.GetDefaultValue();
                                 }
                             }
                         }
@@ -142,7 +142,7 @@ namespace MVCEngine.Model
         {
             if (EntityCtx.IsNotNull())
             {
-                Context.Relations.Where(r => r.ParentEntityName == EntityCtx.Name).ToList().ForEach((r) =>
+                Context.Relations.Where(r => r.Parent.EntityName == EntityCtx.Name).ToList().ForEach((r) =>
                 {
                     List<EntityProperty> list = EntityCtx.Properties.Where(p => p.ReletedEntity.IsNotNull() &&
                         p.ReletedEntity.Relation.Name == r.Name).ToList();
@@ -173,11 +173,11 @@ namespace MVCEngine.Model
                     }
                     else
                     {
-                        EntityClass childEntity = Context.Entites.FirstOrDefault(t => t.Name == r.ChildEntityName);
+                        EntityClass childEntity = Context.Entites.FirstOrDefault(t => t.Name == r.Child.EntityName);
                         if (childEntity.IsNotNull())
                         {
                             childEntity.Entities.Where(row => row.State != EntityState.Deleted &&
-                            r.ChildValue(row).Equals(r.ParentValue(this))).ToList().ForEach((row) =>
+                            r.Child.Value(row).Equals(r.Parent.Value(this))).ToList().ForEach((row) =>
                             {
                                 action(row, r);
                             });

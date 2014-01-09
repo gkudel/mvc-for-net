@@ -46,12 +46,12 @@ namespace MVCEngine.Model.Interceptors
                     && property.ReletedEntity.Related == Releted.List && property.ReletedEntity.Relation.IsNotNull())
                 {
                     EntitiesRelation relation = property.ReletedEntity.Relation;
-                    if (!relation.ChildEntity.Uid.Equals(entity.GetUid(propertyName)))
+                    if (!relation.Child.Entity.Uid.Equals(entity.GetUid(propertyName)))
                     {
                         invocation.Proceed();
 
-                        List<T> list = relation.ChildEntity.Entities.Where(c => c.State != EntityState.Deleted && relation.ParentValue(entity).
-                                    Equals(relation.ChildValue(c)) &&
+                        List<T> list = relation.Child.Entity.Entities.Where(c => c.State != EntityState.Deleted && relation.Parent.Value(entity).
+                                    Equals(relation.Child.Value(c)) &&
                                     property.ReletedEntity.Discriminators.TrueForAll(new Predicate<Discriminator>((d) => { return d.Discriminate(c); }))).Cast<T>().ToList();
 
                         if (invocation.ReturnValue.IsNull())
@@ -59,7 +59,7 @@ namespace MVCEngine.Model.Interceptors
                             EntitiesCollection<T> collection = new EntitiesCollection<T>(list);
                             collection.Context = entity.Context;
                             collection.Releted = property.ReletedEntity;
-                            collection.ParentValue = relation.ParentValue(entity);
+                            collection.ParentValue = relation.Parent.Value(entity);
                             invocation.ReturnValue = collection;
                             if (property.Setter.IsNotNull()) entity[propertyName] = collection;
                         }
@@ -75,7 +75,7 @@ namespace MVCEngine.Model.Interceptors
                             }
                             current.CopyFromMainCollection = false;
                         }
-                        entity.SetUid(propertyName, relation.ChildEntity.Uid);
+                        entity.SetUid(propertyName, relation.Child.Entity.Uid);
                     }
                     else
                     {

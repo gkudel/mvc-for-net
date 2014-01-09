@@ -184,10 +184,16 @@ namespace MVCEngine.Model
                                                     EntitiesRelation entityrelation = new EntitiesRelation()
                                                     {
                                                         Name = relation.RelationName,
-                                                        ParentEntityName = relation.ParentEntity,
-                                                        ChildEntityName = relation.ChildEntity,
-                                                        ChildKey = relation.ChildProperty,
-                                                        ParentKey = relation.ParentProperty,
+                                                        Parent = new EntityRelated()
+                                                        {
+                                                            EntityName = relation.ParentEntity,
+                                                            Key = relation.ParentProperty
+                                                        },
+                                                        Child = new EntityRelated()
+                                                        {
+                                                            EntityName = relation.ChildEntity,
+                                                            Key = relation.ChildProperty
+                                                        },
                                                         OnDelete = relation.OnDelete
                                                     };
                                                     ctx.Relations.Add(entityrelation);
@@ -285,23 +291,21 @@ namespace MVCEngine.Model
                     });
                     ctx.Relations.ForEach((r) =>
                     {
-                        EntityClass entity = ctx.Entites.FirstOrDefault(e => e.Name == r.ParentEntityName);
+                        EntityClass entity = ctx.Entites.FirstOrDefault(e => e.Name == r.Parent.EntityName);
                         Debug.Assert(entity.IsNotNull(), "Relation[" + r.Name + "] parent entity not found");
-                        r.ParentEntity = entity;
-                        EntityProperty property = entity.Properties.FirstOrDefault(p => p.Name == r.ParentKey);
-                        Debug.Assert(property.IsNotNull(), "Entity[" + entity.Name + "] property["+r.ParentKey+"] not defined");
-                        r.ParentType = property.PropertyType;
-                        r.ParentValue = property.Getter;
+                        r.Parent.Entity = entity;
+                        EntityProperty property = entity.Properties.FirstOrDefault(p => p.Name == r.Parent.Key);
+                        Debug.Assert(property.IsNotNull(), "Entity[" + entity.Name + "] property["+r.Parent.Key+"] not defined");
+                        r.Parent.Type = property.PropertyType;
+                        r.Parent.Value = property.Getter;
 
-                        EntityClass childEntity = ctx.Entites.FirstOrDefault(e => e.Name == r.ChildEntityName);
+                        EntityClass childEntity = ctx.Entites.FirstOrDefault(e => e.Name == r.Child.EntityName);
                         Debug.Assert(childEntity.IsNotNull(), "Relation[" + r.Name + "] child entity not found");
-                        r.ChildEntity = childEntity;
-                        EntityProperty childProperty = childEntity.Properties.FirstOrDefault(p => p.Name == r.ChildKey);
-                        Debug.Assert(childProperty.IsNotNull(), "Entity[" + childEntity.Name + "] property[" + r.ChildKey + "] not defined");
-                        r.ChildType = childProperty.PropertyType;
-                        r.ChildValue = childProperty.Getter;
-
-
+                        r.Child.Entity = childEntity;
+                        EntityProperty childProperty = childEntity.Properties.FirstOrDefault(p => p.Name == r.Child.Key);
+                        Debug.Assert(childProperty.IsNotNull(), "Entity[" + childEntity.Name + "] property[" + r.Child.Key + "] not defined");
+                        r.Child.Type = childProperty.PropertyType;
+                        r.Child.Value = childProperty.Getter;
                     });
 
                     var reletedquery = ctx.Entites.Where(e => e.Properties.Count(p => p.ReletedEntity.IsNotNull()) > 0).
@@ -325,11 +329,11 @@ namespace MVCEngine.Model
                                 List<EntitiesRelation> relations = null;
                                 if (ep.Property.ReletedEntity.Related == Releted.Entity)
                                 {
-                                    relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Property.ReletedEntity.RelatedEntityName && r.ChildEntityName == ep.Entity.Name).ToList();
+                                    relations = ctx.Relations.Where(r => r.Parent.EntityName == ep.Property.ReletedEntity.RelatedEntityName && r.Child.EntityName == ep.Entity.Name).ToList();
                                 }
                                 else
                                 {
-                                    relations = ctx.Relations.Where(r => r.ParentEntityName == ep.Entity.Name && r.ChildEntityName == ep.Property.ReletedEntity.RelatedEntityName).ToList();
+                                    relations = ctx.Relations.Where(r => r.Parent.EntityName == ep.Entity.Name && r.Child.EntityName == ep.Property.ReletedEntity.RelatedEntityName).ToList();
                                 }
 
                                 Debug.Assert(relations.Count() < 2, "Relation[" + ep.Property.ReletedEntity.RelatedEntityName + "-" + ep.Entity.Name + "] more then one");
@@ -345,11 +349,11 @@ namespace MVCEngine.Model
                         }
                         if (ep.Property.ReletedEntity.Related == Releted.List)
                         {
-                            ep.Property.AddGetInterceptor(CollectionInterceptorDispatcher.GetId(ep.Property.ReletedEntity.Relation.ChildEntity.EntityType));
+                            ep.Property.AddGetInterceptor(CollectionInterceptorDispatcher.GetId(ep.Property.ReletedEntity.Relation.Child.Entity.EntityType));
                         }
                         else
                         {
-                            ep.Property.AddGetInterceptor(EntityInterceptorDispatcher.GetId(ep.Property.ReletedEntity.Relation.ParentEntity.EntityType));
+                            ep.Property.AddGetInterceptor(EntityInterceptorDispatcher.GetId(ep.Property.ReletedEntity.RelatedEntityName));
                         }
                     });
 
