@@ -48,17 +48,17 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Recalculate(Id, SessionId);
+            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { id = Id, SessionId = SessionId });
         }
 
         private void LockClick(object sender, EventArgs e)
         {            
-            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().Lock(Id, SessionId);
+            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { id = Id, SessionId = SessionId });
         }
         
         private void AcceptClick(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().AcceptChanges(Id, SessionId);
+            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "AcceptChanges", new { id = Id, SessionId = SessionId });
         }
         #endregion GUI Events
 

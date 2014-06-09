@@ -59,6 +59,35 @@ namespace MVCEngine
         }
         #endregion Instance Factory
 
+        #region Invoke Action Method
+        public void InvokeActionMethod(string controllerName, string actionMethodName, object param)
+        {
+            ArgumentValidator.GetInstnace().
+                IsNotEmpty(controllerName, "controllerName").
+                IsNotEmpty(actionMethodName, "actionMethodName");
+
+            var actionQuery = _controllers.Value.Where(c => c.Name == controllerName).
+                SelectMany(c => c.ActionMethods.Where(a => a.ActionName == actionMethodName),
+                (c, a) => new { Controller = c, ActionMethod = a });
+            var ca = actionQuery.FirstOrDefault();
+            if (ca.IsNotNull() && ca.Controller.Object.IsNotNull())
+            {
+                if (param.GetType().IsArray)
+                {
+                    ca.ActionMethod.MethodInfo.Invoke(ca.Controller.Object, param.CastToType<object[]>());
+                }
+                else
+                {
+                    InvokeMethod(ca.Controller.Object, ca.ActionMethod.Method, param);
+                }
+            }
+            else
+            {
+                throw new ActionMethodInvocationException("There is no Controller[" + controllerName + "] or Action Method[" + actionMethodName + "] register");
+            }
+        }
+        #endregion Invoke Action Method
+
         #region Controller
         public T GetController<T>() where T : class
         {
@@ -139,12 +168,12 @@ namespace MVCEngine
                             descriptor.Controller c = new descriptor.Controller()
                             {
                                 Name = controlerAttribute.ControllerName,
-                                Type = type
+                                Type = type,
                             };
                             return c;
                         });
 
-                        AddActionMethod(controller, action.ActionName, ma.Method.Name);
+                        AddActionMethod(controller, type, action.ActionName, ma.Method.Name, ma.Method);
                     });
                     
                     if (controller.IsNotNull())
@@ -168,7 +197,7 @@ namespace MVCEngine
             }
         }
 
-        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, string ActionName, string methodName)
+        private descriptor.ActionMethod AddActionMethod(descriptor.Controller controller, Type controllerType, string ActionName, string methodName, MethodInfo methodInfo)
         {
             descriptor.ActionMethod method = controller.ActionMethods.FirstOrDefault(am => am.ActionName == ActionName);
             if (method.IsNull())
@@ -178,8 +207,18 @@ namespace MVCEngine
                     return new descriptor.ActionMethod()
                     {
                         ActionName = ActionName,
-                        MethodName = methodName
+                        MethodName = methodName,
+                        MethodInfo = methodInfo,
+                        Method = new descriptor.Method() { MethodTriger = LambdaTools.MethodTriger(controllerType, methodInfo) }
                     };
+                });
+                methodInfo.GetParameters().ToList().ForEach((p) =>
+                {
+                    method.Method.Parameters.Add(new descriptor.Parameter()
+                    {
+                        ParameterName = p.Name.ToUpper(),
+                        ParameterType = p.ParameterType
+                    });
                 });
                 controller.ActionMethods.Add(method);
             }
@@ -333,6 +372,11 @@ namespace MVCEngine
                     {
                         foreach (descriptor.Listener l in action.Listernes.Where(l => l.ThisObject.IsNotNull()))
                         {
+                            Func<object, bool> checkid = delegate(object id)
+                            {
+                                return id.IsNull() ||
+                                    (l.Id.IsNotNull() && l.Id(l.ThisObject).Equals(id));
+                            };
                             if (value.IsNotNull())
                             {
                                 ErrorView errorView = value.CastToType<ErrorView>();
@@ -340,17 +384,17 @@ namespace MVCEngine
                                 {
                                     if (l.ActionErrorBack.IsNotNull())
                                     {
-                                        InvokeMethod(l, l.ActionErrorBack, errorView.Params);
+                                        InvokeMethod(l.ThisObject, l.ActionErrorBack, errorView.Params, checkid);
                                     }
                                 }
                                 else if (l.ActionCallBack.IsNotNull())
                                 {
-                                    InvokeMethod(l, l.ActionCallBack, value);
+                                    InvokeMethod(l.ThisObject, l.ActionCallBack, value, checkid);
                                 }
                             }
                             else if (l.ActionCallBack.IsNotNull())
                             {
-                                InvokeMethod(l, l.ActionCallBack, value);
+                                InvokeMethod(l.ThisObject, l.ActionCallBack, value, checkid);
                             }
                         }
                     }
@@ -358,7 +402,7 @@ namespace MVCEngine
             }
         }
 
-        private void InvokeMethod(descriptor.Listener listener, descriptor.Method method, object param)
+        private void InvokeMethod(object thisObject, descriptor.Method method, object param, Func<object, bool> checkId = null)
         {
             List<object> parameters = new List<object>();
             object id = null;
@@ -385,18 +429,15 @@ namespace MVCEngine
                     parameters.AddRange(anonymous.MethodArguments(param));
                 }
                 if (anonymous.Id.IsNotNull()) id = anonymous.Id(param);
-             
-                if (id.IsNull())
+
+
+                if (checkId.IsNull())
                 {
-                    method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
+                    method.MethodTriger(thisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
                 }
-                else if (listener.Id.IsNotNull())
+                else if (checkId(id))
                 {
-                    object viewid = listener.Id(listener.ThisObject);
-                    if (viewid.Equals(id))
-                    {
-                        method.MethodTriger(listener.ThisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
-                    }
+                    method.MethodTriger(thisObject, (parameters.Count > 0 ? parameters.ToArray() : null));
                 }
             }
         }
@@ -412,6 +453,7 @@ namespace MVCEngine
                     c.Object = null;
                     c.ActionMethods.ForEach((a) =>
                     {
+                        a.MethodInfo = null;
                         a.Listernes.ForEach((l) =>
                         {
                             l.ThisObject = null;

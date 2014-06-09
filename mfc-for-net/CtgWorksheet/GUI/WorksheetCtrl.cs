@@ -35,7 +35,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 WorksheetRow row = gridView.GetFocusedRow() as WorksheetRow;
                 if (row.IsNotNull())
                 {
-                    ControllerDispatcher.GetInstance("Screening").CastToType<ScreeningController>().RemoveWorkshetRow(row.Id, SessionId);
+                    ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "RemoveWorkshetRow", new { id = row.Id, SessionId = SessionId });
                 }
             }
         }
