@@ -52,10 +52,10 @@ namespace MvcForNet.CtgWorksheet.GUI
             });
             Session.SetSessionData(SessionId, "WorksheetDataHandler", new DataHandler()); 
             worksheetCtrl.SessionId = SessionId;
-            ControllerDispatcher.GetInstance().RegisterListener(this);
+            ControllerDispatcher.GetInstance().RegisterListener(this);            
             try
             {
-                ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().Load(SessionId);
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "Load", new { SessionId = SessionId });
             }
             catch (Exception exc)
             {
@@ -68,7 +68,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             Probe probe = gridView.GetFocusedRow() as Probe;
             if (probe.IsNotNull())
             {
-                ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().AddScreening(_worksheetid, probe.Id, SessionId);
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "AddScreening", new { id = _worksheetid, probeid = probe.Id, SessionId = SessionId });
             }
         }
 
@@ -90,7 +90,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                         }
                     }
                     this.xtraTabControl.SelectedPageChanged -= new DevExpress.XtraTab.TabPageChangedEventHandler(this.xtraTabControl_SelectedPageChanged);
-                    ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().DeleteScreening(control.Id, SessionId);
+                    ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "DeleteScreening", new { id = control.Id, SessionId = SessionId });
                     this.xtraTabControl.SelectedPageChanged += new DevExpress.XtraTab.TabPageChangedEventHandler(this.xtraTabControl_SelectedPageChanged);
                     if (view.IsNotNull())
                     {
@@ -111,7 +111,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             Probe probe = gridView.GetFocusedRow() as Probe;
             if (probe.IsNotNull())
             {
-                ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().ProbeChenged(probe.Id, SessionId);
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "ProbeChenged", new { probeId = probe.Id, SessionId = SessionId });
             }
         }
 
@@ -156,7 +156,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             {
                 Screening screening = view.GetRow(e.FocusedRowHandle) as Screening;
                 FocusProperProbe(screening);
-                ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().ScreeningChanged(screening.Id, SessionId);
+                ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "ScreeningChanged", new { screeningId = screening.Id, SessionId = SessionId } );
             }
         }
 
@@ -169,7 +169,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 {
                     Screening screening = view.GetRow(view.FocusedRowHandle) as Screening;
                     FocusProperProbe(screening);
-                    ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().ScreeningChanged(screening.Id, SessionId);
+                    ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "ScreeningChanged", new { screeningId = screening.Id, SessionId = SessionId });
                 }
             }
         }
@@ -212,7 +212,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                     id = control.Id;
                 }                
             }
-            ControllerDispatcher.GetInstance("Worksheet").CastToType<WorksheetController>().ScreeningChanged(id, SessionId);
+            ControllerDispatcher.GetInstance().InvokeActionMethod("Worksheet", "ScreeningChanged", new { screeningId = id, SessionId = SessionId });
         }
         #endregion GUI Events
 
