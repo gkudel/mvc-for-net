@@ -45,10 +45,8 @@ namespace MVCEngine.Model.Interceptors
                     && property.ReletedEntity.Related == Releted.Entity && property.ReletedEntity.Relation.IsNotNull())
                 {
                     EntitiesRelation relation = property.ReletedEntity.Relation;
-                    EntityRelated relatedEntity = relation.Parent.Entity.Name == typeof(T).Name ? relation.Parent :
-                                                  (relation.Child.Entity.Name == typeof(T).Name ? relation.Child : null);
-                    EntityRelated currentEntity = relation.Parent.Entity.Name == entity.EntityCtx.Name ? relation.Parent :
-                                                  (relation.Child.Entity.Name == entity.EntityCtx.Name ? relation.Child : null);
+                    EntityRelated relatedEntity = relation.Parent;
+                    EntityRelated currentEntity = relation.Child;
                     Debug.Assert(relatedEntity.IsNotNull() || currentEntity.IsNotNull(), "EntityInterceptor error");
                     if (!relatedEntity.Entity.Uid.Equals(entity.GetUid(propertyName)))
                     {

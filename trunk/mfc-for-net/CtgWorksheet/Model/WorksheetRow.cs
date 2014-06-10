@@ -38,7 +38,7 @@ namespace CtgWorksheet.Model
         [Column("GP_WROW_SCRID")]
         public virtual long ScreeningId { get; set; }
 
-        [attributes.Relation("WorksheetRow_Screening", "Screening", "Id", "WorksheetRow", "ScreeningId", OnDelete = OnDelete.Cascade)]
+        [attributes.Relation("WorksheetRow_Screening", "Screening", "Id", "WorksheetRow", "ScreeningId", OnDelete = OnAction.Cascade)]
         public virtual Screening Screening { get; private set; }
 
         [DynamicProperties("Code", "Value")]

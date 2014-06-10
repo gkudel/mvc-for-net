@@ -22,7 +22,9 @@ namespace MVCEngine.Model.Attributes
             this.ParentProperty = parentProperty;
             this.ChildEntity = childEntity;
             this.ChildProperty = childProperty;
-            this.OnDelete = OnDelete.Nothing;
+            this.OnDelete = OnAction.Nothing;
+            this.OnAccept = OnAction.Nothing;
+            this.OnFreeze = OnAction.Nothing;
         }
         #endregion Constructor
 
@@ -32,7 +34,9 @@ namespace MVCEngine.Model.Attributes
         internal string ParentProperty { get; private set; }
         internal string ChildEntity { get; private set; }
         internal string ChildProperty { get; private set; }
-        public virtual OnDelete OnDelete { get; set; }
+        public virtual OnAction OnDelete { get; set; }
+        public virtual OnAction OnAccept { get; set; }
+        public virtual OnAction OnFreeze { get; set; }
         #endregion Properties
     }
 }

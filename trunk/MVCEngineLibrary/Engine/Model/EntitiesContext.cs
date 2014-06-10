@@ -194,7 +194,9 @@ namespace MVCEngine.Model
                                                             EntityName = relation.ChildEntity,
                                                             Key = relation.ChildProperty
                                                         },
-                                                        OnDelete = relation.OnDelete
+                                                        OnDelete = relation.OnDelete, 
+                                                        OnAccept = relation.OnAccept,
+                                                        OnFreeze = relation.OnFreeze
                                                     };
                                                     ctx.Relations.Add(entityrelation);
                                                     property.ReletedEntity.Relation = entityrelation;

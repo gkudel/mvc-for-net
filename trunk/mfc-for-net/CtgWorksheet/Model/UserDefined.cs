@@ -36,7 +36,7 @@ namespace CtgWorksheet.Model
         [Column("GP_ANS_WROWID")]
         public virtual long WorksheetRowId { get; set; }
 
-        [Relation("WorksheetRow_UserDefined", "WorksheetRow", "Id", "UserDefined", "WorksheetRowId", OnDelete = OnDelete.Cascade)]
+        [Relation("WorksheetRow_UserDefined", "WorksheetRow", "Id", "UserDefined", "WorksheetRowId", OnDelete = OnAction.Cascade)]
         public virtual WorksheetRow WorksheetRow { get; private set; }
 
         public override void Dispose()
