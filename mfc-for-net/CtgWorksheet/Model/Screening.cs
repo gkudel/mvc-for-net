@@ -71,20 +71,20 @@ namespace CtgWorksheet.Model
         [Column("GP_SCR_DATE")]        
         public virtual DateTime? Date { get; set; }
 
-        [attributes.Relation("Worksheet_Screening", "Worksheet", "Id", "Screening", "WorksheetId", OnDelete = OnDelete.Cascade)]
+        [attributes.Relation("Worksheet_Screening", "Worksheet", "Id", "Screening", "WorksheetId", OnDelete = OnAction.Cascade)]
         public virtual Worksheet Worksheet { get; private set; }
 
-        [attributes.Relation("Probe_Screening", "Probe", "Id", "Screening", "ProbeId", OnDelete = OnDelete.Cascade)]
+        [attributes.Relation("Probe_Screening", "Probe", "Id", "Screening", "ProbeId", OnDelete = OnAction.Cascade)]
         public virtual Probe Probe { get; private set; }
 
         [attributes.RelationName("WorksheetRow_Screening")]
         [attributes.Synchronized()]
         public virtual EntitiesCollection<WorksheetRow> WorksheetRows { get; private set; }
 
-        [attributes.Relation("Screening_Screening", "Screening", "Id", "Screening", "ParentId", OnDelete = OnDelete.Cascade)]
+        [attributes.Relation("Parent_Screening", "Screening", "Id", "Screening", "ParentId")]
         public virtual Screening Parent { get; private set; }
 
-        [attributes.RelationName("Screening_Screening")]
+        [attributes.Relation("Child_Screening", "Screening", "Id", "Screening", "ParentId", OnDelete = OnAction.Cascade)]
         public virtual EntitiesCollection<Screening> Childs { get; private set; }
 
         public override void Dispose()

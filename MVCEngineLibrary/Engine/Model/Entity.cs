@@ -43,7 +43,7 @@ namespace MVCEngine.Model
             {
                 _isFrozen = value;
                 AllowEditCollection(this, !_isFrozen);
-                EnumerateByChildren((e, r) => 
+                EnumerateByReletedEntity((e, r) => 
                 { 
                     if(e.IsFrozen != value) e.IsFrozen = value;
                     AllowEditCollection(e, !e.IsFrozen);
@@ -84,13 +84,13 @@ namespace MVCEngine.Model
             {
                 if (value == EntityState.Deleted || value == EntityState.Unchanged)
                 {
-                    EnumerateByChildren((e, r) =>
+                    EnumerateByReletedEntity((e, r) =>
                     {
                         if (value == EntityState.Deleted)
                         {
                             if (e.State != EntityState.Deleted)
                             {
-                                if (r.OnDelete == OnDelete.Cascade)
+                                if (r.OnDelete == OnAction.Cascade)
                                 {
                                     IList iList = e.EntityCtx.Entities as IList;
                                     if (iList.IsNotNull())
@@ -98,13 +98,13 @@ namespace MVCEngine.Model
                                         iList.Remove(e);
                                     }
                                 }
-                                else if (r.OnDelete == OnDelete.SetNull)
+                                else if (r.OnDelete == OnAction.SetNull)
                                 {
                                     e[r.Child.Key] = r.Child.Type.GetDefaultValue();
                                 }
                             }
                         }
-                        else
+                        else if (r.OnAccept == OnAction.Cascade)
                         {
                             e.State = EntityState.Unchanged;
                         }
@@ -138,7 +138,7 @@ namespace MVCEngine.Model
         #endregion Object State
 
         #region Enumerate by Children
-        private void EnumerateByChildren(Action<Entity,EntitiesRelation> action)
+        private void EnumerateByReletedEntity(Action<Entity,EntitiesRelation> action)
         {
             if (EntityCtx.IsNotNull())
             {

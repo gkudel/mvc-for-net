@@ -6,7 +6,7 @@ using System.Text;
 
 namespace MVCEngine.Model.Internal.Descriptions
 {
-    public enum OnDelete { Nothing, Cascade, SetNull }
+    public enum OnAction { Nothing, Cascade, SetNull }
     public class EntitiesRelation
     {
         #region Members
@@ -25,7 +25,9 @@ namespace MVCEngine.Model.Internal.Descriptions
         public string Name { get; internal set; }
         public EntityRelated Parent { get; internal set; }
         public EntityRelated Child { get; internal set; }
-        internal OnDelete OnDelete { get; set; }
+        internal OnAction OnDelete { get; set; }
+        internal OnAction OnAccept { get; set; }
+        internal OnAction OnFreeze { get; set; }
         #endregion Properties
     }
 }
