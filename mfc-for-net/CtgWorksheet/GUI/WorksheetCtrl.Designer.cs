@@ -1,4 +1,5 @@
 ﻿using MVCEngine;
+using MVCEngine.ControllerView;
 namespace MvcForNet.CtgWorksheet.GUI
 {
     partial class WorksheetCtrl
@@ -18,7 +19,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             {
                 components.Dispose();
             }
-            ControllerDispatcher.GetInstance().UnRegisterListener(this);
+            Dispatcher.GetInstance().UnRegisterListener(this);
             base.Dispose(disposing);
         }
 

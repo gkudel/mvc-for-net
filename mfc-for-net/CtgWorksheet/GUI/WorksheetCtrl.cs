@@ -6,10 +6,11 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using MVCEngine;
-using MVCEngine.Attributes;
+using MVCEngine.Tools;
 using CtgWorksheet.Model;
 using CtgWorksheet.Controllers;
+using MVCEngine.ControllerView;
+using MVCEngine.ControllerView.Attributes;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -25,7 +26,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void WorksheetCtrl_Load(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance().RegisterListener(this);
+            Dispatcher.GetInstance().RegisterListener(this);
         }
 
         private void ViewKeyDown(object sender, KeyEventArgs e)
@@ -35,7 +36,7 @@ namespace MvcForNet.CtgWorksheet.GUI
                 WorksheetRow row = gridView.GetFocusedRow() as WorksheetRow;
                 if (row.IsNotNull())
                 {
-                    ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "RemoveWorkshetRow", new { id = row.Id, SessionId = SessionId });
+                    this.InvokeActionMethod("Screening", "RemoveWorkshetRow", new { id = row.Id, SessionId = SessionId });
                 }
             }
         }

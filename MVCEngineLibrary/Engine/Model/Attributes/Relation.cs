@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MVCEngine.Model.Internal.Descriptions;
-using MVCEngine.Internal.Validation;
+using MVCEngine.Internal.Tools.Validation;
 
 namespace MVCEngine.Model.Attributes
 {

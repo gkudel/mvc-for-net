@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using MVCEngine;
+using MVCEngine.Tools;
 using MVCEngine.Model.Internal.Descriptions;
 
 namespace CtgWorksheet.Model

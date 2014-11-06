@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using attribute = MVCEngine.Model.Attributes;
 using MVCEngine.Model.Attributes.Validation;
-using MVCEngine;
+using MVCEngine.Tools;
 
 namespace MVCEngine.Model.Interceptors
 {

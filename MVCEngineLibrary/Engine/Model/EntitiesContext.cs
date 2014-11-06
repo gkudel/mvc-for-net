@@ -10,7 +10,7 @@ using MVCEngine.Model.Internal.Descriptions;
 using attribute = MVCEngine.Model.Attributes;
 using MVCEngine.Model.Exceptions;
 using MVCEngine;
-using MVCEngine.Internal.Validation;
+using MVCEngine.Internal.Tools.Validation;
 using System.Diagnostics;
 using MVCEngine.Model.Attributes;
 using MVCEngine.Model.Attributes.Discriminators;
@@ -19,6 +19,7 @@ using MVCEngine.Model.Attributes.Default;
 using MVCEngine.Model.Interceptors;
 using MVCEngine.Internal;
 using MVCEngine.Model.Attributes.Formatter;
+using MVCEngine.Tools;
 
 namespace MVCEngine.Model
 {
@@ -50,18 +51,18 @@ namespace MVCEngine.Model
         public EntitiesContext()
         {
             string name = this.GetType().Name;
-            if (MVCEngine.Session.Session.IsUserSessionExists(name))
+            if (MVCEngine.Tools.Session.Session.IsUserSessionExists(name))
             {
                 try
                 {
-                    string sessionId = MVCEngine.Session.Session.GetUserSessionId(name);
-                    Task task = MVCEngine.Session.Session.GetSessionData<Task>(sessionId, "InitializeTask");
+                    string sessionId = MVCEngine.Tools.Session.Session.GetUserSessionId(name);
+                    Task task = MVCEngine.Tools.Session.Session.GetSessionData<Task>(sessionId, "InitializeTask");
                     if (task.IsNotNull())
                     {
                         task.Wait();
                     }
                 }
-                catch (Session.Exceptions.InvalidSessionIdException)
+                catch (Tools.Session.Exceptions.InvalidSessionIdException)
                 { }
                 catch (AggregateException)
                 { }
@@ -93,7 +94,7 @@ namespace MVCEngine.Model
         {            
             if (_contexts.Value.FirstOrDefault(c => c.Name == (typeof(T).Name)).IsNull())
             {
-                string sessionid = MVCEngine.Session.Session.CreateUserSession(typeof(T).Name);
+                string sessionid = MVCEngine.Tools.Session.Session.CreateUserSession(typeof(T).Name);
                 Task task = new Task(() =>
                 {
                     Dictionary<MVCEngine.Model.Internal.Descriptions.DynamicProperties, string[]> dynamicList = 
@@ -374,7 +375,7 @@ namespace MVCEngine.Model
 
                 task.ContinueWith((antecedent) =>
                 {
-                    MVCEngine.Session.Session.ReleaseSession(sessionid);
+                    MVCEngine.Tools.Session.Session.ReleaseSession(sessionid);
                 });
 
                 task.ContinueWith((antecedent) =>
@@ -383,7 +384,7 @@ namespace MVCEngine.Model
                     //ToDo log exception into log file
                 }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
 
-                MVCEngine.Session.Session.SetSessionData(sessionid, "InitializeTask", task);
+                MVCEngine.Tools.Session.Session.SetSessionData(sessionid, "InitializeTask", task);
 
                 task.Start();
             }

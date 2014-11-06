@@ -6,9 +6,10 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using MVCEngine;
-using MVCEngine.Attributes;
+using MVCEngine.Tools;
 using CtgWorksheet.Model;
+using MVCEngine.ControllerView;
+using MVCEngine.ControllerView.Attributes;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -22,7 +23,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         #region GUI Events
         private void StatusCtrl_Load(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance().RegisterListener(this);
+            Dispatcher.GetInstance().RegisterListener(this);
         }
         #endregion GUI Events
 

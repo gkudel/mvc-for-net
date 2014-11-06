@@ -12,6 +12,7 @@ using attribute = MVCEngine.Model.Attributes;
 using System.ComponentModel;
 using MVCEngine;
 using System.Diagnostics;
+using MVCEngine.Tools;
 
 namespace MVCEngine.Model.Interceptors
 {

@@ -9,8 +9,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using attribute = MVCEngine.Model.Attributes;
-using MVCEngine;
 using System.Diagnostics;
+using MVCEngine.Tools;
 
 namespace MVCEngine.Model.Interceptors
 {

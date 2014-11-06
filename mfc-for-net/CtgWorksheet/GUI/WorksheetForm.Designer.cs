@@ -1,5 +1,6 @@
 ﻿using MVCEngine;
-using MVCEngine.Session;
+using MVCEngine.Tools.Session;
+using MVCEngine.ControllerView;
 namespace MvcForNet.CtgWorksheet.GUI
 {
     partial class WorksheetForm
@@ -19,7 +20,7 @@ namespace MvcForNet.CtgWorksheet.GUI
             {
                 components.Dispose();
             }
-            ControllerDispatcher.GetInstance().UnRegisterListener(this);
+            Dispatcher.GetInstance().UnRegisterListener(this);
             Session.ReleaseSession(SessionId);
             base.Dispose(disposing);
         }

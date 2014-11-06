@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MVCEngine.Model;
 using CtgWorksheet.Model;
+using MVCEngine.ControllerView;
 
 namespace mfc_for_net
 {
@@ -19,8 +20,8 @@ namespace mfc_for_net
         static void Main()
         {
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);           
-            ControllerDispatcher.GetInstance().AppeConfigInitialization();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Dispatcher.GetInstance().InitConfiguration();
             EntitiesContext.EntitiesContextInitialization<WorksheetContext>();
 
             Application.Run(new WorksheetForm());             
