@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using MVCEngine;
-using MVCEngine.Internal.Validation;
+using MVCEngine.Tools;
+using MVCEngine.Internal.Tools.Validation;
 using MVCEngine.Model.Attributes;
 
 namespace MVCEngine.Model
@@ -44,9 +44,12 @@ namespace MVCEngine.Model
                 _isFrozen = value;
                 AllowEditCollection(this, !_isFrozen);
                 EnumerateByReletedEntity((e, r) => 
-                { 
-                    if(e.IsFrozen != value) e.IsFrozen = value;
-                    AllowEditCollection(e, !e.IsFrozen);
+                {
+                    if (r.OnFreeze == OnAction.Cascade)
+                    {
+                        if (e.IsFrozen != value) e.IsFrozen = value;
+                        AllowEditCollection(e, !e.IsFrozen);
+                    }
                 });
             }
         }

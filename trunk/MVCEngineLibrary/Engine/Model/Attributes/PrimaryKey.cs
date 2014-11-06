@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MVCEngine.Internal.Validation;
+using MVCEngine.Internal.Tools.Validation;
 
 namespace MVCEngine.Model.Attributes
 {

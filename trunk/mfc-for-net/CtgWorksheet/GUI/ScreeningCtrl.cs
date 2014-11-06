@@ -6,12 +6,14 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using MVCEngine.Attributes;
 using MVCEngine;
 using CtgWorksheet.Model;
-using MVCEngine.Exceptions;
+using MVCEngine.Tools.Exceptions;
 using CtgWorksheet.Controllers;
 using System.Diagnostics;
+using MVCEngine.Tools;
+using MVCEngine.ControllerView;
+using MVCEngine.ControllerView.Attributes;
 
 namespace MvcForNet.CtgWorksheet.GUI
 {
@@ -26,7 +28,7 @@ namespace MvcForNet.CtgWorksheet.GUI
         public ScreeningCtrl(Screening screening, string sessionId)
             : this()
         {
-            ControllerDispatcher.GetInstance().RegisterListener(this);
+            Dispatcher.GetInstance().RegisterListener(this);
             SessionId = sessionId;
             Id = screening.Id;
 
@@ -41,24 +43,23 @@ namespace MvcForNet.CtgWorksheet.GUI
         private string SessionId { get; set; }
 
         [Browsable(false)]
-        [Id()]
         public long Id  { get; private set; }
         #endregion Properties
 
         #region GUI Events
         private void Recalculation(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Recalculate", new { id = Id, SessionId = SessionId });
+            this.InvokeActionMethod("Screening", "Recalculate", new { id = Id, SessionId = SessionId });
         }
 
         private void LockClick(object sender, EventArgs e)
-        {            
-            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "Lock", new { id = Id, SessionId = SessionId });
+        {
+            this.InvokeActionMethod("Screening", "Lock", new { id = Id, SessionId = SessionId });
         }
         
         private void AcceptClick(object sender, EventArgs e)
         {
-            ControllerDispatcher.GetInstance().InvokeActionMethod("Screening", "AcceptChanges", new { id = Id, SessionId = SessionId });
+            this.InvokeActionMethod("Screening", "AcceptChanges", new { id = Id, SessionId = SessionId });
         }
         #endregion GUI Events
 
