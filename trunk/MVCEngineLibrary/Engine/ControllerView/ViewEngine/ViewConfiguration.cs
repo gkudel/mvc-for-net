@@ -5,7 +5,7 @@ using System.Text;
 using MVCEngine.ControllerView.AppConfig;
 using MVCEngine.Tools;
 
-namespace MVCEngineLibrary.Engine.ControllerView.ViewEngine
+namespace MVCEngine.ControllerView.ViewEngine
 {
     static class ViewConfiguration
     {

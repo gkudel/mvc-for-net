@@ -20,7 +20,7 @@ namespace MVCEngine.ControllerView.Interceptors
 
         public bool ShouldInterceptMethod(Type type, System.Reflection.MethodInfo methodInfo)
         {
-            return Dispatcher.GetInstance().IsControllerActionMethod(type, methodInfo.Name);                            
+            return Dispatcher.GetInstance().IsActionMethodForController(type, methodInfo.Name);                            
         }
 
         public void NonProxyableMemberNotification(Type type, System.Reflection.MemberInfo memberInfo)

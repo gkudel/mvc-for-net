@@ -24,7 +24,6 @@ namespace MVCEngine.ControllerView.Descriptors
         internal string FullTypeName { get; set; }
         internal Method ActionCallBack { get; set; }
         internal Method ActionErrorBack { get; set; }
-        internal Func<object, object> Id { get; set; }
         #endregion Properties
     }
 }

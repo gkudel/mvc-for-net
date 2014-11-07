@@ -46,11 +46,11 @@ namespace MVCEngine.ControllerView.AppConfig
             }
         }
 
-        new public Controller this[string Name]
+        new public Controller this[string Class]
         {
             get
             {
-                return (Controller)BaseGet(Name);
+                return (Controller)BaseGet(Class);
             }
         }
 
@@ -79,9 +79,9 @@ namespace MVCEngine.ControllerView.AppConfig
             BaseRemoveAt(index);
         }
 
-        public void Remove(string name)
+        public void Remove(string Class)
         {
-            BaseRemove(name);
+            BaseRemove(Class);
         }
 
         public void Clear()

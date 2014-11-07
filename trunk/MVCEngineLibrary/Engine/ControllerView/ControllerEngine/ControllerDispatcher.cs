@@ -134,7 +134,7 @@ namespace MVCEngine.ControllerView.ControllerEngine
         #endregion Register Controller
 
         #region Is Controller ActionMethod
-        internal bool IsControllerActionMethod(Type type, string name)
+        internal bool IsActionMethodForController(Type type, string name)
         {
             Controller controller = _controllers.FirstOrDefault(c => c.Type == type
                                                 || (c.Type.BaseType.IsNotNull() && c.Type.BaseType == type));
@@ -184,10 +184,6 @@ namespace MVCEngine.ControllerView.ControllerEngine
                 c.ActionMethods.ForEach((a) =>
                 {
                     a.MethodInfo = null;
-                    a.Listernes.ForEach((l) =>
-                    {
-                        l.ThisObject = null;
-                    });
                 });
             });
         }
