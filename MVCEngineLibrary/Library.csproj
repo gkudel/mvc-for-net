@@ -65,6 +65,8 @@
     <Compile Include="Engine\ControllerView\Attributes\Controller.cs" />
     <Compile Include="Engine\ControllerView\ControllerEngine\ControllerDispatcher.cs" />
     <Compile Include="Engine\ControllerView\ControllerEngine\ControllerConfiguration.cs" />
+    <Compile Include="Engine\ControllerView\Descriptors\ActionCallBack.cs" />
+    <Compile Include="Engine\ControllerView\Descriptors\View.cs" />
     <Compile Include="Engine\ControllerView\Dispatcher.cs" />
     <Compile Include="Engine\ControllerView\ControllerEngine\Interface\IControllerMenagment.cs" />
     <Compile Include="Engine\ControllerView\Exceptions\ActionMethodInvocationException.cs" />

@@ -27,7 +27,7 @@ namespace MVCEngine.ControllerView.AppConfig
 
         protected override Object GetElementKey(ConfigurationElement element)
         {
-            return ((View)element).Name;
+            return ((View)element).Class;
         }
 
         public View this[int index]
@@ -46,11 +46,11 @@ namespace MVCEngine.ControllerView.AppConfig
             }
         }
 
-        new public View this[string Name]
+        new public View this[string Class]
         {
             get
             {
-                return (View)BaseGet(Name);
+                return (View)BaseGet(Class);
             }
         }
 
@@ -71,7 +71,7 @@ namespace MVCEngine.ControllerView.AppConfig
         public void Remove(View view)
         {
             if (BaseIndexOf(view) >= 0)
-                BaseRemove(view.Name);
+                BaseRemove(view.Class);
         }
 
         public void RemoveAt(int index)
@@ -79,9 +79,9 @@ namespace MVCEngine.ControllerView.AppConfig
             BaseRemoveAt(index);
         }
 
-        public void Remove(string name)
+        public void Remove(string Class)
         {
-            BaseRemove(name);
+            BaseRemove(Class);
         }
 
         public void Clear()

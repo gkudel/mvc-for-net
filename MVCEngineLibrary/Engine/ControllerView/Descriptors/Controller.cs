@@ -21,7 +21,7 @@ namespace MVCEngine.ControllerView.Descriptors
         internal string Name { get; set; }
         internal object Key { get; set; }
         internal Type Type { get; set; }
-        internal List<ActionMethod> ActionMethods;
+        internal List<ActionMethod> ActionMethods { get; set; }
         #endregion Properties
     }
 }
