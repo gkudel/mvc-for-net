@@ -159,14 +159,7 @@ namespace MVCEngine.ControllerView.ControllerEngine
             var ca = actionQuery.FirstOrDefault();
             if (ca.IsNotNull() && ca.Controller.Object.IsNotNull())
             {
-                if (param.GetType().IsArray)
-                {
-                    ca.ActionMethod.MethodInfo.Invoke(ca.Controller.Object, param.CastToType<object[]>());
-                }
-                else
-                {
-                    MethodInvoker.Invoke(ca.Controller.Object, ca.ActionMethod.Method, param);
-                }
+                MethodInvoker.Invoke(ca.Controller.Object, ca.ActionMethod, param);
             }
             else
             {

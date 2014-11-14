@@ -11,6 +11,18 @@ namespace MVCEngine.ControllerView
     static class MethodInvoker
     {
         #region Invoke
+        internal static void Invoke(object thisObject, ActionMethod method, object param)
+        {
+            if (param.GetType().IsArray)
+            {
+                method.MethodInfo.Invoke(thisObject, param.CastToType<object[]>());
+            }
+            else
+            {
+                Invoke(thisObject, method.Method, param);
+            }
+        }
+
         internal static void Invoke(object thisObject, Method method, object param)
         {
             List<object> parameters = new List<object>();
